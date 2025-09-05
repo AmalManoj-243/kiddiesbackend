@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+.page-section {
+  margin-top: 60px;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+@media (max-width: 900px) {
+  .page-section { max-width: 100%; }
+}
+@media (max-width: 768px) {
+  .page-section { margin-top: 40px; }
+}
+</style>
+<div class="page-section">
+<div class="container text-center mt-5">
+  <div class="card shadow-lg mx-auto" style="max-width: 500px;">
+    <div class="card-body">
+      <h2 class="mb-3">Certificate of Completion</h2>
+      <p>Congratulations! You have completed the course:</p>
+      <h4 class="mb-2">{{ course.name }}</h4>
+      <p>Language: <strong>{{ course.language.name }}</strong></p>
+      <p>Level: <strong>{{ course.level }}</strong></p>
+      <div class="mt-4">
+        <span style="font-size:2rem; color:#2a7cff;">&#x1F3C6;</span>
+        <p><em>This certificate is awarded for your achievement!</em></p>
+      </div>
+      <a href="{% url 'certificate_download' course.id %}" class="btn btn-primary mt-3">Download Certificate (PDF)</a>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}

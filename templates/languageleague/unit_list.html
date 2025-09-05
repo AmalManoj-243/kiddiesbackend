@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+.page-section {
+  margin-top: 60px;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+@media (max-width: 900px) {
+  .page-section { max-width: 100%; }
+}
+@media (max-width: 768px) {
+  .page-section { margin-top: 40px; }
+}
+</style>
+<div class="page-section">
+<div class="container py-4">
+  <h2 class="mb-4">Units in {{ course.name }}</h2>
+  <div class="row">
+    {% for unit in units %}
+      <div class="col-md-4 mb-4">
+        <div class="card shadow-sm h-100">
+          <div class="card-body">
+            <h5 class="card-title">{{ unit.title }}</h5>
+            <p class="card-text">{{ unit.description|default:'No description available.' }}</p>
+            <a href="{% url 'lesson_list' unit.id %}" class="btn btn-primary">View Lessons</a>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <div class="col-12"><div class="alert alert-warning">No units available yet.</div></div>
+    {% endfor %}
+  </div>
+</div>
+</div>
+{% endblock %}

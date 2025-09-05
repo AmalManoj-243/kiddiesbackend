@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% load alphabet_extras %}
+{% block content %}
+<style>
+  .phonics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1.2rem;
+    justify-items: center;
+    margin: 2rem auto;
+    max-width: 900px;
+  }
+  .phonics-card {
+    background: linear-gradient(135deg, #e0f7fa 60%, #ffd6e0 100%);
+    border-radius: 1.2rem;
+    box-shadow: 0 2px 12px #ffd60a22;
+    border: 2px solid #ff9800;
+    text-align: center;
+    padding: 1.2rem 0.5rem;
+    font-size: 2rem;
+    font-family: 'Baloo 2', cursive;
+    color: #2d6a4f;
+    font-weight: bold;
+    transition: transform 0.25s, box-shadow 0.25s;
+    cursor: pointer;
+    position: relative;
+    will-change: transform, box-shadow;
+  }
+  .phonics-card:hover {
+    transform: scale(1.06);
+    box-shadow: 0 12px 32px #ffd60a55;
+    background: linear-gradient(135deg, #fffbe6 60%, #ffe066 100%);
+    z-index: 2;
+  }
+  .example-img {
+    width: 38px;
+    height: 38px;
+    object-fit: contain;
+    margin-bottom: 0.2rem;
+    border-radius: 0.5rem;
+    background: #fffbe6;
+    box-shadow: 0 2px 8px #ffd60a22;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .play-sound-btn {
+    margin-top: 0.5rem;
+    border-radius: 1rem;
+    background: linear-gradient(90deg,#ffd60a 0%,#a7ffeb 100%);
+    color: #2d6a4f;
+    font-family: 'Baloo 2', cursive;
+    font-weight: bold;
+    box-shadow: 0 2px 8px #ffd60a22;
+    border: none;
+    padding: 0.3rem 1.1rem;
+    cursor: pointer;
+    font-size: 1rem;
+  }
+  .play-sound-btn:hover {
+    background: #ff4066;
+    color: #fff;
+    box-shadow: 0 8px 24px #ffd60a44;
+  }
+</style>
+<div class="container py-4">
+  <div class="lesson-title" style="font-size:2.2rem; color:#ff4066; font-family:'Baloo 2',cursive; font-weight:bold; text-align:center; margin-bottom:1.2rem;">Phonics and Letter Sounds</div>
+  <div class="video-section" style="margin:2rem 0; text-align:center;">
+    <div class="video-card" style="max-width:650px; margin:2rem auto 2.5rem auto; background:#fffbe6; border-radius:1.5rem; box-shadow:0 6px 32px #ffd60a33; padding:2rem 1.2rem 1.5rem 1.2rem; text-align:center;">
+      <div style="display:flex; align-items:center; justify-content:center; gap:0.7rem; margin-bottom:1.2rem;">
+        <img src="https://cdn-icons-png.flaticon.com/512/189/189665.png" alt="Music" style="width:38px; height:38px; border-radius:50%; box-shadow:0 2px 8px #ffd60a22; background:#fff;">
+        <h2 style="font-family:'Baloo 2',cursive; color:#ff9800; font-size:2rem; margin:0;">Watch and Learn Phonics!</h2>
+      </div>
+      <div class="responsive-video" style="width:100%; max-width:600px; margin:auto; aspect-ratio:16/9; background:#000; border-radius:1rem; box-shadow:0 4px 24px #ffd60a22; display:flex; align-items:center; justify-content:center;">
+        {% if lesson.video_url and 'youtube.com' in lesson.video_url or 'youtu.be' in lesson.video_url %}
+          <iframe src="{{ video_embed_url }}" title="Phonics Video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="width:100%; height:100%; min-height:220px; min-width:320px; border-radius:1.5rem; background:#000; cursor:pointer; touch-action:manipulation; box-shadow:0 6px 32px #ffd60a33; transition:box-shadow 0.2s;" tabindex="0"></iframe>
+        {% elif lesson.video_url %}
+          <video controls style="width:100%; height:100%; border-radius:1rem; background:#000;" preload="metadata">
+            <source src="{{ lesson.video_url }}" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        {% else %}
+          <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:#ff4066; font-size:1.2rem;">No video available</div>
+        {% endif %}
+      </div>
+      <div style="margin-top:1.2rem; font-size:1.1rem; color:#2d6a4f; font-family:'Baloo 2',cursive;">Watch and listen to learn all the letter sounds!</div>
+    </div>
+  </div>
+  <div class="phonics-grid">
+    {% for letter, sound in phonics_sounds.items %}
+      <div class="phonics-card">
+        <img src="{{ phonics_images|get_item:letter }}" alt="{{ letter }}" class="example-img">
+        {{ letter }}<br>
+        <span style="font-size:1.1rem; color:#005f73;">{{ sound }}</span>
+        <button class="play-sound-btn" onclick="playSound('{{ sound }}')">🔊 Play Sound</button>
+      </div>
+    {% endfor %}
+  </div>
+  <div class="mt-4 text-center">
+    <a href="{% url 'phonics_quiz_game' %}" class="btn btn-lg" style="background:linear-gradient(90deg,#ffd60a 0%,#ff9800 100%); color:#2d6a4f; border-radius:1.5rem; font-size:1.3rem; font-family:'Baloo 2', cursive; font-weight:bold; box-shadow:0 2px 8px #ffd60a88; padding:0.8rem 2.2rem; transition:transform 0.2s;">
+      <span style="font-size:1.7rem; margin-right:0.7rem; vertical-align:middle;">📝</span> Take a Phonics Quiz
+    </a>
+  </div>
+</div>
+<script>
+  function playSound(sound) {
+    if ('speechSynthesis' in window) {
+      var utter = new SpeechSynthesisUtterance(sound);
+      utter.lang = 'en-US';
+      utter.pitch = 1.5;
+      utter.rate = 1.1;
+      window.speechSynthesis.speak(utter);
+    }
+  }
+</script>
+{% endblock %}

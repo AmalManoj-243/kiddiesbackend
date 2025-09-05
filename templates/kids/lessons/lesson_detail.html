@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4" style="background: linear-gradient(135deg, #f8ffae 0%, #43c6ac 100%); border-radius: 2rem; box-shadow: 0 8px 32px rgba(0,0,0,0.12); padding: 2.5rem 1.5rem;">
+  <div class="row justify-content-center">
+    <div class="col-lg-10 col-md-12">
+<div class="container py-4">
+  <h1>{{ lesson.title }}</h1>
+  <div>{{ lesson.content }}</div>
+  {% if lesson.video_url %}
+    <div class="ratio ratio-16x9 mb-3">
+      <iframe width="100%" height="360" src="{{ lesson.video_url }}" title="Lesson Video" frameborder="0" allowfullscreen></iframe>
+    </div>
+  {% endif %}
+  <h2>Images</h2>
+  <div>
+    {% for img in lesson.color_images.all %}
+      <img src="{{ img.image.url }}" alt="{{ img.color }}" style="max-height:120px; margin:8px;">
+    {% endfor %}
+    {% for img in lesson.lesson_images.all %}
+      <img src="{{ img.image.url }}" alt="{{ img.label }}" style="max-height:120px; margin:8px;">
+    {% endfor %}
+  </div>
+</div>
+      <div class="card p-4 mb-5 story-time-card animate__animated animate__flipInY animate__slow" style="background: linear-gradient(135deg, #ffe5e5 0%, #e0f7fa 50%, #fff9c4 100%); box-shadow: 0 4px 24px rgba(0,0,0,0.10); border-radius: 1.5rem; border: 2px dashed #ffd60a;">
+        <h2 class="fw-bold mb-3" style="color:#d90429; font-family: 'Comic Sans MS', 'Comic Sans', cursive; letter-spacing: 1px;">
+          <span style="font-size:2rem;">&#127752;</span> Story Time: The Color Parade
+        </h2>
+        <div>
+          <p class="story-line animate__animated animate__fadeInLeft animate__delay-1s" style="font-size:1.15rem; font-family: 'Comic Sans MS', 'Comic Sans', cursive; color:#d90429; font-weight:bold;">
+            Red waved from a fire truck,
+          </p>
+          <p class="story-line animate__animated animate__fadeInLeft animate__delay-2s" style="font-size:1.15rem; font-family: 'Comic Sans MS', 'Comic Sans', cursive; color:#005f73; font-weight:bold;">
+            Blue danced under the sky,
+          </p>
+          <p class="story-line animate__animated animate__fadeInLeft animate__delay-3s" style="font-size:1.15rem; font-family: 'Comic Sans MS', 'Comic Sans', cursive; color:#ffd60a; font-weight:bold;">
+            Yellow shone like the sun.
+          </p>
+          <p class="animate__animated animate__fadeInUp animate__delay-4s" style="font-size:1.2rem; color:#d90429;">
+            Can you spot these colors in your room?
+          </p>
+          <div class="text-center mt-4">
+            <a href="/kids/stories/" class="btn btn-lg btn-primary animate__animated animate__pulse animate__infinite" style="border-radius:2rem; font-size:1.15rem; font-weight:bold; letter-spacing:1px; box-shadow:0 2px 8px rgba(0,0,0,0.10);">
+              <span style="font-size:1.3rem;">&#128214;</span> View More Stories
+            </a>
+          </div>
+        </div>
+      </div>
+      {% if video_embed_url %}
+      <div class="row mb-5">
+        <div class="col-12">
+          <div class="card shadow-lg border-0 animate__animated animate__fadeInUp" style="background: linear-gradient(135deg, #e0f7fa 60%, #ffe5e5 100%); border-radius:1.5rem;">
+            <div class="card-body text-center">
+              <h2 class="fw-bold mb-3" style="color:#2d6a4f; font-family:'Comic Sans MS', 'Comic Sans', cursive;">
+                <span style="font-size:2rem;">🎬</span> Watch & Learn!
+              </h2>
+              <div class="ratio ratio-16x9 mb-3">
+                <iframe width="100%" height="360" src="{{ video_embed_url }}" title="Lesson Video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border-radius:1rem; box-shadow:0 4px 24px rgba(0,0,0,0.10);"></iframe>
+              </div>
+              <p class="mt-2" style="font-size:1.15rem; color:#333;">Learn with this fun video and try the activities below!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+      <div class="card p-4 mb-5 shadow-lg activity-section" style="border-radius:1.5rem; background:linear-gradient(135deg,#f8ffae 0%,#43c6ac 100%);">
+        <div class="d-flex align-items-center mb-3" style="gap:12px;">
+          <span style="font-size:2rem;">🎨</span>
+          <h2 class="fw-bold mb-0" style="color:#d90429; font-family:'Comic Sans MS', 'Comic Sans', cursive;">Activity Time!</h2>
+        </div>
+        <p class="mb-3" style="font-size:1.15rem; color:#005f73; font-family:'Comic Sans MS', 'Comic Sans', cursive;">
+          Find something <span style="color:#d90429;font-weight:bold;">red</span>, <span style="color:#005f73;font-weight:bold;">blue</span>, or <span style="color:#ffd600;font-weight:bold;">yellow</span> around you.<br>
+          <span style="background:#fffbe6; border-radius:8px; padding:2px 8px;">Draw it or upload your artwork below!</span>
+        </p>
+        <div class="row g-3 justify-content-center">
+          <div class="col-md-4 text-center mb-2">
+            <a href="/kids/digital_drawing/" class="btn btn-lg btn-warning w-100" style="border-radius:2rem; font-size:1.1rem; font-weight:bold; letter-spacing:1px; box-shadow:0 2px 8px rgba(0,0,0,0.10);">
+              <span style="font-size:1.3rem;">&#9998;</span> Draw Now (Digital Drawing Game)
+            </a>
+          </div>
+          <div class="col-md-4 text-center mb-2">
+            <a href="{% url 'upload_drawing' lesson.id %}" class="btn btn-lg btn-success w-100" style="border-radius:2rem; font-size:1.1rem; font-weight:bold; letter-spacing:1px; box-shadow:0 2px 8px rgba(0,0,0,0.10);">
+              <span style="font-size:1.3rem;">📤</span> Upload Your Drawing
+            </a>
+          </div>
+          <div class="col-md-4 text-center mb-2">
+            <a href="{% url 'drawing_gallery' lesson.id %}" class="btn btn-lg btn-info w-100" style="border-radius:2rem; font-size:1.1rem; font-weight:bold; letter-spacing:1px; box-shadow:0 2px 8px rgba(0,0,0,0.10);">
+              <span style="font-size:1.3rem;">🖼️</span> View Your Gallery
+            </a>
+          </div>
+        </div>
+      </div>
+      <!-- Improved & Smaller Game Time Section UI -->
+<div class="card game-time-card" style="max-width: 340px; margin: 18px auto 24px auto; background: linear-gradient(135deg, #ffe5e5 0%, #e0f7fa 100%); border-radius: 2rem; box-shadow: 0 8px 24px #ffd60a55; padding: 1.2rem 1rem; border: 4px dashed #ffd60a; position: relative; overflow: hidden;">
+  <div style="position: absolute; top: -18px; right: -18px; opacity: 0.18; font-size: 4.5rem; pointer-events: none;">🎨</div>
+  <h2 style="color: #d90429; font-family: 'Luckiest Guy', 'Comic Sans MS', cursive; font-size: 1.5rem; letter-spacing: 2px; text-shadow: 2px 2px 0 #ffd60a, 0 4px 12px #ff980044; margin-bottom: 0.7rem;">
+    <span style="font-size:2rem;">🧩</span> Game Time!
+  </h2>
+  <div class="game-desc" style="font-size: 1.05rem; color: #005f73; margin-bottom: 0.7rem; font-family: 'Baloo 2', cursive; background: #fffbe6; border-radius: 1rem; padding: 0.4rem 0.7rem; box-shadow: 0 2px 8px #ffd60a33;">
+    Mix colors! What do you get if you mix <span style="color:#d90429;font-weight:bold;">red</span> and <span style="color:#ffd60a;font-weight:bold;">yellow</span>? Guess before you play!
+  </div>
+  <div style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 0.7rem;">
+    <span style="font-size:1.7rem; animation: colorBounce 1.2s infinite alternate;">🔴</span>
+    <span style="font-size:1.2rem;">+</span>
+    <span style="font-size:1.7rem; animation: colorBounce 1.2s infinite alternate;">🟡</span>
+    <span style="font-size:1.2rem;">=</span>
+    <span style="font-size:1.7rem; animation: colorBounce 1.2s infinite alternate;">🟠</span>
+  </div>
+  <a href="{% url 'color_mixing_game' %}" class="game-btn" style="background: linear-gradient(90deg,#ff9800 60%,#ffd60a 100%); color: #fff; border: none; border-radius: 1.2rem; padding: 10px 18px; font-size: 1em; font-weight: bold; cursor: pointer; margin: 8px 4px; box-shadow: 0 4px 12px #ffd60a44; transition: background 0.2s, transform 0.2s, box-shadow 0.2s; animation: btnBounce 2s infinite alternate;">
+    <span style="font-size:1.2rem;">🎮</span> Play Now
+  </a>
+  <div style="position: absolute; left: -18px; bottom: -18px; opacity: 0.18; font-size: 3.5rem; pointer-events: none;">🖌️</div>
+</div>
+<style>
+@keyframes colorBounce {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.18) rotate(-4deg); }
+}
+</style>
+      {% if quiz_question %}
+      <div class="card p-4 mb-5 shadow-lg" style="border-radius:1.5rem; background:linear-gradient(135deg,#ffe5e5 0%,#e0f7fa 100%);">
+        <h2 class="fw-bold mb-3" style="color:#d90429; font-family:'Comic Sans MS', 'Comic Sans', cursive;">
+          <span style="font-size:2rem;">❓</span> Quiz Time!
+        </h2>
+        <strong>Quiz:</strong> {{ quiz_question.question }}<br>
+        <div class="mt-3">
+          <button class="btn btn-outline-primary btn-lg mx-2 quiz-btn" data-option="A" data-correct="{{ quiz_question.correct_option }}">{{ quiz_question.option_a }}</button>
+          <button class="btn btn-outline-primary btn-lg mx-2 quiz-btn" data-option="B" data-correct="{{ quiz_question.correct_option }}">{{ quiz_question.option_b }}</button>
+          {% if quiz_question.option_c %}
+          <button class="btn btn-outline-primary btn-lg mx-2 quiz-btn" data-option="C" data-correct="{{ quiz_question.correct_option }}">{{ quiz_question.option_c }}</button>
+          {% endif %}
+          {% if quiz_question.option_d %}
+          <button class="btn btn-outline-primary btn-lg mx-2 quiz-btn" data-option="D" data-correct="{{ quiz_question.correct_option }}">{{ quiz_question.option_d }}</button>
+          {% endif %}
+        </div>
+      </div>
+      <script>
+        document.querySelectorAll('.quiz-btn').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            var selected = btn.getAttribute('data-option');
+            var correct = btn.getAttribute('data-correct');
+            if (selected === correct) {
+              alert('Correct!');
+            } else {
+              alert('Try again!');
+            }
+          });
+        });
+      </script>
+      {% endif %}
+      <div class="card p-4 mb-5 shadow-lg" style="border-radius:1.5rem; background:linear-gradient(135deg,#f8ffae 0%,#43c6ac 100%);">
+        <h2 class="fw-bold mb-3" style="color:#2d6a4f; font-family:'Comic Sans MS', 'Comic Sans', cursive;">
+          <span style="font-size:2rem;">👏</span> Praise!
+        </h2>
+        <strong>Praise:</strong> Great job! You learned about colors. Can you teach someone else?
+      </div>
+      <!-- Completion Status Section -->
+<style>
+.status-complete { color: #43c6ac; font-weight: bold; }
+.status-pending { color: #ffd60a; font-weight: bold; }
+.completion-checklist-card {
+  max-width: 400px;
+  margin: 18px auto 24px auto;
+  background: linear-gradient(135deg, #e0f7fa 0%, #fff9c4 100%);
+  border-radius: 2.5rem;
+  box-shadow: 0 8px 24px #ffd60a55;
+  padding: 1.5rem 1.2rem;
+  border: 4px dashed #43c6ac;
+  position: relative;
+  overflow: hidden;
+  animation: fadeInUp 1s cubic-bezier(.68,-0.55,.27,1.55);
+}
+.completion-checklist-card h2 {
+  color: #2d6a4f;
+  font-family: 'Luckiest Guy', 'Comic Sans MS', cursive;
+  font-size: 1.3rem;
+  letter-spacing: 2px;
+  margin-bottom: 0.7rem;
+  text-shadow: 1px 1px 0 #ffd60a44;
+}
+.completion-checklist-card ul {
+  font-size: 1.1rem;
+  font-family: 'Baloo 2', cursive;
+  background: #fffbe6;
+  border-radius: 1.2rem;
+  padding: 0.7rem 1rem;
+  box-shadow: 0 2px 8px #ffd60a33;
+  margin-bottom: 0.7rem;
+}
+.completion-checklist-card li {
+  margin-bottom: 0.6rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-left: 0.2rem;
+  position: relative;
+}
+.completion-checklist-card .status-complete {
+  animation: popStatus 0.7s;
+}
+.completion-checklist-card .status-pending {
+  animation: shakeStatus 0.7s;
+}
+@keyframes popStatus {
+  0% { transform: scale(0.7); opacity: 0.5; }
+  80% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); }
+}
+@keyframes shakeStatus {
+  0% { transform: translateX(-2px); }
+  20% { transform: translateX(2px); }
+  40% { transform: translateX(-2px); }
+  60% { transform: translateX(2px); }
+  100% { transform: translateX(0); }
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>
+<!-- Progress checklist card removed as requested -->
+      <a href="{% url 'course_detail' lesson.course.id %}" class="btn btn-secondary btn-lg" style="border-radius:2rem; font-size:1.1rem; font-weight:bold; letter-spacing:1px;">Back to Course</a>
+      {% if next_lesson %}
+        <a href="{% url 'lesson_detail' next_lesson.id %}" class="btn btn-primary btn-lg ms-2" style="border-radius:2rem; font-size:1.1rem; font-weight:bold; letter-spacing:1px;">Next Lesson &rarr;</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+{% endblock %}

@@ -1,0 +1,273 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+  body {
+    background: linear-gradient(120deg, #e0f7fa 0%, #ffd6e0 100%, #f8ffae 120%);
+  }
+  .quiz-section {
+    background: linear-gradient(135deg, #fffbe6 0%, #e0f7fa 100%);
+    border-radius: 2.5rem;
+    box-shadow: 0 12px 40px #ffd60a33;
+    padding: 2.5rem 2rem 1.5rem 2rem;
+    margin-bottom: 2.5rem;
+    text-align: center;
+    position: relative;
+  }
+  .quiz-title {
+    color: #ff4066;
+    font-family: 'Baloo 2', cursive;
+    font-size: 2.3rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    letter-spacing: 2px;
+    text-shadow: 0 2px 12px #ffd60a44;
+  }
+  .quiz-desc {
+    font-size: 1.3rem;
+    color: #005f73;
+    margin-bottom: 1.5rem;
+    font-family: 'Comic Sans MS', cursive;
+  }
+  .question-card {
+    background: #fffbe6;
+    border-radius: 1.2rem;
+    box-shadow: 0 4px 18px #ffd60a33;
+    padding: 1.2rem 1rem;
+    font-size: 1.5rem;
+    font-family: 'Baloo 2', cursive;
+    color: #2d6a4f;
+    font-weight: bold;
+    margin-bottom: 1.2rem;
+    text-align: center;
+    border: 2px solid #ffd60a;
+    min-height: 70px;
+    user-select: none;
+  }
+  .option-btn {
+    display: block;
+    width: 100%;
+    background: linear-gradient(90deg,#ffd60a 0%,#ff9800 100%);
+    color: #2d6a4f;
+    border-radius: 1.2rem;
+    font-size: 1.2rem;
+    font-family: 'Baloo 2', cursive;
+    font-weight: bold;
+    box-shadow: 0 4px 18px #ffd60a88, 0 2px 8px #ff406655;
+    padding: 0.8rem 1.2rem;
+    margin: 0.5rem 0;
+    border: 2px solid #ff4066;
+    transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+    cursor: pointer;
+    text-align: left;
+    position: relative;
+  }
+  .option-btn:hover:not([disabled]) {
+    transform: scale(1.05) rotate(-2deg);
+    background: #ff4066;
+    color: #fff;
+    box-shadow: 0 8px 24px #ffd60a44;
+  }
+  .option-btn[disabled] {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+  .feedback {
+    font-size: 1.1rem;
+    color: #005f73;
+    margin-top: 0.7rem;
+    min-height: 1.2rem;
+  }
+  .confetti {
+    position: fixed;
+    left: 50vw;
+    top: 50vh;
+    font-size: 2.5rem;
+    pointer-events: none;
+    animation: confettiAnim 1.2s ease-out;
+  }
+  @keyframes confettiAnim {
+    0% { opacity: 1; transform: scale(1) translateY(0); }
+    100% { opacity: 0; transform: scale(1.5) translateY(80px); }
+  }
+  .summary-section {
+    background: #e0f7fa;
+    border-radius: 1.2rem;
+    box-shadow: 0 4px 18px #ffd60a33;
+    padding: 2rem 1.2rem;
+    margin: 2rem auto;
+    max-width: 600px;
+    text-align: center;
+    font-size: 1.3rem;
+    font-family: 'Baloo 2', cursive;
+    color: #2d6a4f;
+    position: relative;
+  }
+  .streak {
+    font-size: 1.2rem;
+    color: #ff4066;
+    font-weight: bold;
+    margin-bottom: 0.7rem;
+  }
+</style>
+<div class="container py-4">
+  <div class="quiz-section">
+    <div class="quiz-title">Blending Sounds Quiz Game</div>
+    <div class="quiz-desc">Test your blending skills! Listen, choose, and build words. Get instant feedback and see your streak!</div>
+  <div id="quizScore" style="font-size:1.1rem;color:#2d6a4f;font-weight:bold;margin-bottom:0.5rem;"></div>
+  <div id="quizArea"></div>
+  <div class="feedback" id="quizFeedback"></div>
+  <div class="streak" id="quizStreak"></div>
+  <div id="quizSummary" style="display:none;"></div>
+  </div>
+</div>
+<script>
+const quizQuestions = [
+  { type: 'mcq', question: 'Which word can you build with "c" and "at"?', options: ['cat', 'cap', 'cot'], answer: 'cat', sound: 'cat' },
+  { type: 'mcq', question: 'Which blend makes "bat"?', options: ['b + at', 'b + ap', 'b + ot'], answer: 'b + at', sound: 'bat' },
+  { type: 'fill', question: 'Fill in the missing letter: _at (animal that purrs)', answer: 'c', sound: 'cat' },
+  { type: 'image', question: 'Which word matches this image?', img: 'https://cdn-icons-png.flaticon.com/512/616/616408.png', options: ['pan', 'man', 'cat'], answer: 'cat', sound: 'cat' },
+  { type: 'mcq', question: 'Which blend makes "pen"?', options: ['p + en', 'p + an', 'p + ot'], answer: 'p + en', sound: 'pen' },
+  { type: 'fill', question: 'Fill in the missing blend: b__ (used to hit a ball)', answer: 'at', sound: 'bat' },
+  { type: 'image', question: 'Which word matches this image?', img: 'https://cdn-icons-png.flaticon.com/512/616/616408.png', options: ['bat', 'cap', 'top'], answer: 'bat', sound: 'bat' },
+  { type: 'mcq', question: 'Which word can you build with "m" and "an"?', options: ['man', 'mat', 'men'], answer: 'man', sound: 'man' },
+  { type: 'fill', question: 'Fill in the missing letter: _an (a cooking utensil)', answer: 'p', sound: 'pan' },
+  { type: 'mcq', question: 'Which blend makes "top"?', options: ['t + op', 't + ot', 't + ap'], answer: 't + op', sound: 'top' },
+  { type: 'image', question: 'Which word matches this image?', img: 'https://cdn-icons-png.flaticon.com/512/616/616408.png', options: ['top', 'pot', 'tap'], answer: 'top', sound: 'top' },
+  { type: 'mcq', question: 'Which word can you build with "r" and "an"?', options: ['ran', 'rat', 'ram'], answer: 'ran', sound: 'ran' },
+  { type: 'fill', question: 'Fill in the missing blend: t__ (used to drink water)', answer: 'ap', sound: 'tap' },
+  { type: 'image', question: 'Which word matches this image?', img: 'https://cdn-icons-png.flaticon.com/512/616/616408.png', options: ['tap', 'top', 'pot'], answer: 'tap', sound: 'tap' },
+  { type: 'mcq', question: 'Which blend makes "mat"?', options: ['m + at', 'm + ap', 'm + ot'], answer: 'm + at', sound: 'mat' },
+  { type: 'fill', question: 'Fill in the missing letter: _ap (a head covering)', answer: 'c', sound: 'cap' },
+  { type: 'image', question: 'Which word matches this image?', img: 'https://cdn-icons-png.flaticon.com/512/616/616408.png', options: ['cap', 'cat', 'pan'], answer: 'cap', sound: 'cap' },
+  { type: 'mcq', question: 'Which word can you build with "f" and "an"?', options: ['fan', 'fat', 'fin'], answer: 'fan', sound: 'fan' },
+  { type: 'fill', question: 'Fill in the missing blend: r__ (a rodent)', answer: 'at', sound: 'rat' },
+  { type: 'image', question: 'Which word matches this image?', img: 'https://cdn-icons-png.flaticon.com/512/616/616408.png', options: ['rat', 'ran', 'mat'], answer: 'rat', sound: 'rat' },
+];
+let currentQ = 0;
+let streak = 0;
+let correct = 0;
+let wrong = 0;
+let answers = [];
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+shuffle(quizQuestions);
+function renderQuestion() {
+  const area = document.getElementById('quizArea');
+  const feedback = document.getElementById('quizFeedback');
+  const streakDiv = document.getElementById('quizStreak');
+  const scoreDiv = document.getElementById('quizScore');
+  feedback.textContent = '';
+  streakDiv.textContent = 'Streak: ' + streak;
+  scoreDiv.textContent = `Score: ${correct} / ${currentQ}`;
+  if (currentQ >= quizQuestions.length) {
+    showSummary();
+    return;
+  }
+  const q = quizQuestions[currentQ];
+  let html = '';
+  html += `<div style='font-size:1.1rem;color:#ff4066;font-weight:bold;margin-bottom:0.5rem;'>Question ${currentQ+1} of ${quizQuestions.length}</div>`;
+  if (q.type === 'mcq') {
+    html += `<div class='question-card'>${q.question}</div>`;
+    q.options.forEach(opt => {
+      html += `<button class='option-btn' onclick='answerMCQ(\"${opt}\")'>${opt}</button>`;
+    });
+  } else if (q.type === 'fill') {
+    html += `<div class='question-card'>${q.question}</div>`;
+    html += `<input type='text' id='fillInput' maxlength='4' style='font-size:1.3rem; border-radius:0.7rem; border:2px solid #ffd60a; padding:0.4rem 0.7rem; margin-top:0.7rem;' />`;
+    html += `<button class='option-btn' onclick='answerFill()'>Submit</button>`;
+  } else if (q.type === 'image') {
+    html += `<div class='question-card'>${q.question}</div>`;
+    html += `<img src='${q.img}' style='max-width:90px; margin:0.7rem auto 1rem auto; border-radius:1rem; box-shadow:0 4px 16px #ffd60a33; background:#fffbe6; display:block; border:2px solid #e0f7fa;' />`;
+    q.options.forEach(opt => {
+      html += `<button class='option-btn' onclick='answerMCQ(\"${opt}\")'>${opt}</button>`;
+    });
+  }
+  area.innerHTML = html;
+  playSound(q.sound);
+}
+function answerMCQ(opt) {
+  const q = quizQuestions[currentQ];
+  const feedback = document.getElementById('quizFeedback');
+  let correctAns = (q.type === 'mcq') ? q.answer : q.answer;
+  if (opt === correctAns) {
+    feedback.textContent = 'Correct!';
+    streak++;
+    correct++;
+    answers.push({q: q.question, a: opt, correct: true});
+    showConfetti();
+  } else {
+    feedback.textContent = 'Oops! The correct answer was "' + correctAns + '".';
+    streak = 0;
+    wrong++;
+    answers.push({q: q.question, a: opt, correct: false});
+  }
+  disableOptions();
+  setTimeout(() => {
+    currentQ++;
+    renderQuestion();
+  }, 1400);
+}
+function answerFill() {
+  const q = quizQuestions[currentQ];
+  const input = document.getElementById('fillInput').value.trim().toLowerCase();
+  const feedback = document.getElementById('quizFeedback');
+  if (input === q.answer) {
+    feedback.textContent = 'Correct!';
+    streak++;
+    correct++;
+    answers.push({q: q.question, a: input, correct: true});
+    showConfetti();
+  } else {
+    feedback.textContent = 'Oops! The correct answer was "' + q.answer + '".';
+    streak = 0;
+    wrong++;
+    answers.push({q: q.question, a: input, correct: false});
+  }
+  disableOptions();
+  setTimeout(() => {
+    currentQ++;
+    renderQuestion();
+  }, 1400);
+}
+function disableOptions() {
+  document.querySelectorAll('.option-btn').forEach(btn => btn.disabled = true);
+  if (document.getElementById('fillInput')) document.getElementById('fillInput').disabled = true;
+}
+function playSound(word) {
+  if ('speechSynthesis' in window && word) {
+    var utter = new SpeechSynthesisUtterance(word);
+    utter.lang = 'en-US';
+    utter.pitch = 1.2;
+    utter.rate = 1.1;
+    window.speechSynthesis.speak(utter);
+  }
+}
+function showConfetti() {
+  var confetti = document.createElement('span');
+  confetti.className = 'confetti';
+  confetti.innerHTML = '🎉';
+  document.body.appendChild(confetti);
+  setTimeout(function(){ confetti.remove(); }, 1200);
+}
+function showSummary() {
+  document.getElementById('quizArea').style.display = 'none';
+  document.getElementById('quizFeedback').style.display = 'none';
+  document.getElementById('quizStreak').style.display = 'none';
+  const summary = document.getElementById('quizSummary');
+  summary.style.display = 'block';
+  let html = `<div class='summary-section'><div style='font-size:2rem;'>Quiz Complete!</div>`;
+  html += `<div style='margin:1rem 0;'>Correct: ${correct} | Wrong: ${wrong}</div>`;
+  html += `<div style='margin-bottom:1rem;'>Your answers:</div><ul style='text-align:left;'>`;
+  answers.forEach((ans, i) => {
+    html += `<li style='margin-bottom:0.5rem;'><b>Q${i+1}:</b> ${ans.q}<br><span style='color:${ans.correct?'#2d6a4f':'#ff4066'};'>Your answer: ${ans.a} ${ans.correct?'✅':'❌'}</span></li>`;
+  });
+  html += `</ul><div style='margin-top:1.2rem;'><a href='' onclick='window.location.reload();return false;' style='color:#ff4066;font-weight:bold;'>Play Again</a></div></div>`;
+  summary.innerHTML = html;
+}
+renderQuestion();
+</script>
+{% endblock %}

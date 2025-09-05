@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Leaderboard</h2>
+<div class="page-section">
+<table class="leaderboard-table">
+  <tr>
+    <th>User</th>
+    <th>Language</th>
+    <th>Points</th>
+    <th>Streak</th>
+  </tr>
+  {% for entry in progress %}
+  <tr>
+    <td>{{ entry.user.username }}</td>
+    <td>{{ entry.language.name }}</td>
+    <td>{{ entry.points }}</td>
+    <td>{{ entry.streak }}</td>
+  </tr>
+  {% endfor %}
+</table>
+</div>
+<style>
+.leaderboard-table { width: 100%; max-width: 600px; margin: auto; border-collapse: collapse; }
+.leaderboard-table th, .leaderboard-table td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+.leaderboard-table th { background: #f5f5f5; }
+@media (max-width: 600px) {
+  .leaderboard-table { font-size: 14px; }
+  .leaderboard-table th, .leaderboard-table td { padding: 4px; }
+}
+.page-section {
+  margin-top: 60px;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+@media (max-width: 900px) {
+  .page-section { max-width: 100%; }
+}
+@media (max-width: 768px) {
+  .page-section { margin-top: 40px; }
+}

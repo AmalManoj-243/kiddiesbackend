@@ -1,0 +1,36 @@
+{% extends "users/basic.html" %}
+{% block content %}
+<div class="container mt-5">
+  <h1 class="text-center" style="color:#2a7cff; font-weight:800;">Welcome to Kids Zone!</h1>
+  <p class="lead text-center" style="color:#ff4066;">Fun, safe, and educational content just for kids.</p>
+  <div class="row justify-content-center mt-4">
+    <div class="col-md-4 mb-4">
+      <div class="card shadow-lg" style="border-radius:18px;">
+        <img src="https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=400&q=80" class="card-img-top" alt="Kids Movie" style="height:220px; object-fit:cover; border-radius:18px 18px 0 0;">
+        <div class="card-body text-center">
+          <h5 class="card-title" style="color:#2a7cff; font-weight:700;">Kids Movies</h5>
+          <a href="/kids/movies/" class="btn btn-primary">Explore</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-4">
+      <div class="card shadow-lg" style="border-radius:18px;">
+        <img src="https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=400&q=80" class="card-img-top" alt="Kids Games" style="height:220px; object-fit:cover; border-radius:18px 18px 0 0;">
+        <div class="card-body text-center">
+          <h5 class="card-title" style="color:#ff4066; font-weight:700;">Kids Games</h5>
+          <a href="/kids/games/" class="btn btn-warning">Play</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-4">
+      <div class="card shadow-lg" style="border-radius:18px;">
+        <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80" class="card-img-top" alt="Learning" style="height:220px; object-fit:cover; border-radius:18px 18px 0 0;">
+        <div class="card-body text-center">
+          <h5 class="card-title" style="color:#ff8c40; font-weight:700;">Learning</h5>
+          <a href="/kids/learning/" class="btn btn-info">Learn</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
