@@ -37,7 +37,7 @@ DEBUG = os.getenv('DEBUG', 'False').lower() in ['true', '1', 'yes']
 
 # Allowed hosts
 ALLOWED_HOSTS = [
-    'amalkiddies.onrender.com'
+    'amalkiddies.onrender.com',
     'localhost',
     '127.0.0.1',
 ]
