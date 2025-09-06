@@ -1,3 +1,7 @@
+def start_highscore(request):
+    return render(request, 'kids/start_highscore.html')
+def level_select(request):
+    return render(request, 'kids/level_select.html')
 from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.decorators import login_required
 # Mark alphabet quiz as complete for the user

@@ -1,4 +1,5 @@
 from django.urls import path
+from django.urls import path
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
@@ -38,6 +39,8 @@ urlpatterns = [
     path('performance/', views.performance, name='student_performance'),
     path('shape-matching-game/', views.shape_matching_game, name='shape_matching_game'),
     path('alphabet-lesson/', views.alphabet_lesson_detail, name='alphabet_lesson_detail'),
+    path('level-select/', views.level_select, name='kids-level-select'),
+    path('start-highscore/', views.start_highscore, name='kids-start-highscore'),
     path('lessons/alphabet/', views.alphabet_lesson_detail, name='alphabet_lesson_detail_alt'),
     path('lessons/simple-words-quiz/', views.simple_words_quiz_game, name='simple_words_quiz_game'),
     path('lessons/sight-words-quiz/', views.sight_words_quiz_game, name='sight_words_quiz_game'),

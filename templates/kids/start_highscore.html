@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Start & High Score</title>
+    <style>
+        body { background: #222; margin: 0; }
+    .container { width: 100vw; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 32px; }
+        .start-btn { font-size: 2rem; margin: 24px; padding: 18px 48px; border-radius: 16px; border: none; cursor: pointer; font-weight: bold; background: #00eaff; color: #222; }
+        .back-btn { font-size: 1.2rem; margin: 12px; padding: 10px 28px; border-radius: 10px; border: none; cursor: pointer; background: #444; color: #fff; }
+        .score { color: #fff; font-size: 1.5rem; margin: 18px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 style="color:#fff;">Ready to Start?</h1>
+        <div id="level" class="score"></div>
+        <button class="start-btn" onclick="startGame()">▶ Start Game</button>
+        <button class="back-btn" onclick="goBack()">← Back</button>
+    </div>
+    <script>
+    const level = localStorage.getItem('selectedLevel') || 'easy';
+    document.getElementById('level').textContent = level.charAt(0).toUpperCase() + level.slice(1) + ' Level';
+    const highScore = localStorage.getItem('spaceShooterHighScore_' + level) || 0;
+    document.getElementById('highscore').textContent = 'High Score: ' + highScore;
+    function startGame() {
+        window.location.href = '/kids/space-shooter/';
+    }
+    function goBack() {
+        window.location.href = '/kids/level-select/';
+    }
+    </script>
+</body>
+</html>

@@ -3,379 +3,1241 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Space Shooter Game</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <title>Space Shooter Test</title>
     <style>
-        body { background: linear-gradient(180deg, #0f2027 0%, #2c5364 100%); }
-        #game-container { margin: 0 auto; max-width: 540px; }
-        .centered { text-align: center; }
+        body { background: #222; margin: 0; }
+        #game-container { width: 100vw; height: 80vh; min-height: 340px; display: block; margin: 0 auto; }
     </style>
 </head>
 <body>
-    <div class="container mt-4">
-        <h2 class="centered mb-3" style="font-family: 'Fredoka One', cursive; color: #00eaff;">Space Shooter</h2>
-        <div id="game-container"></div>
-        <div class="centered mt-3">
-            <a href="/kids/home/" class="btn btn-outline-primary">Back to Kids Home</a>
-        </div>
+    <div id="game-container"></div>
+    <div style="width:100vw;display:flex;justify-content:center;margin-top:12px;">
+        <button id="back-btn" style="font-size:1.2rem;padding:10px 28px;border-radius:10px;border:none;cursor:pointer;background:#444;color:#fff;">← Back</button>
     </div>
+    <script>
+    document.getElementById('back-btn').onclick = function() {
+        window.location.href = '/kids/start-highscore/';
+    };
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.js"></script>
     <script>
-    function getGameSize() {
-        let w = Math.min(window.innerWidth, 540);
-        let h = Math.max(340, Math.min(window.innerHeight * 0.7, 600));
-        return { width: w, height: h };
-    }
-    let gameSize = getGameSize();
-    let score = 0;
-    let gameOver = false;
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    class SpaceShooterScene extends Phaser.Scene {
-        constructor() { super('SpaceShooterScene'); }
-        preload() {
-            // Load normal background music
-            this.load.audio('bgMusic', '/media/movies/laserSmall_002.ogg');
-            this.load.audio('powerupMusic', '/media/movies/laserLarge_003.ogg');
-            this.load.audio('gameOverSound', '/media/movies/explosionCrunch_000.ogg');
-            // Load cake image for triple fire powerup
-            this.load.image('cakeImg', '/media/movies/cake.png');
-            // Load burger image for round fire powerup
-            this.load.image('burgerImg', '/media/movies/burger.png');
-                // Load user-provided player image
-                this.load.image('playerImg', '/media/movies/ship-1414822_640 (1).webp');
-                // Load cow image for small red enemies
-                this.load.image('cowImg', '/media/movies/cow.png');
-                // Load duck image for big round enemies
-                this.load.image('duckImg', '/media/movies/duck.png');
-                // Load buffalo image for extra big round enemies
-                this.load.image('buffaloImg', '/media/movies/buffalo.png');
-                // Load ice-cream image for double bullet powerup
-                this.load.image('iceCreamImg', '/media/movies/ice-cream.png');
-                // Debug: log image loading events
-                this.load.on('filecomplete-image-playerImg', function(key, type, data) {
-                    console.log('Player image loaded:', key);
+    const gameConfig = {
+        type: Phaser.AUTO,
+        width: Math.min(window.innerWidth, 540),
+        height: Math.max(340, Math.min(window.innerHeight * 0.8, 600)),
+        backgroundColor: '#222',
+        parent: 'game-container',
+        scene: {
+            preload: function() {
+                // Load double powerup sound
+                this.load.audio('doublePowerupSound', 'https://res.cloudinary.com/djc3qirsl/video/upload/v1757154398/laserLarge_003_siokcq.ogg');
+                // Load background sound
+                this.load.audio('bgSound', 'https://res.cloudinary.com/djc3qirsl/video/upload/v1757153777/laserSmall_003_f4sxl9.ogg');
+                this.load.image('redEnemy', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898016/media/movies/qfafrexgqh6imzkz1lmf.png');
+                this.load.image('playerImg', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1757150956/spaceShips_009_wiilhs.png');
+                this.load.image('greenEnemy', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1757109243/chicken_nnr817.png');
+                this.load.image('blueEnemy', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1757109320/zebra_ltpek3.png');
+                this.load.image('yellowEnemy', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1757109371/cow_vtgzjh.png');
+                this.load.image('magentaEnemy', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1757109440/snake_fwi6ts.png');
+                // Round powerup image
+                this.load.image('roundPowerupImg', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898004/media/movies/xw0r2dd3zksrwodc8sim.png');
+                // Explosion sound effect
+                this.load.audio('explosionSound', 'https://res.cloudinary.com/djc3qirsl/video/upload/v1757159586/explosionCrunch_003_gdckxh.ogg');
+                // Load sound for triple and round fire modes
+                this.load.audio('multiFireSound', 'https://res.cloudinary.com/djc3qirsl/video/upload/v1757154398/laserLarge_003_siokcq.ogg');
+            },
+            create: function() {
+                // Health at top right
+                this.healthText = this.add.text(this.sys.game.config.width-16, 16, 'Health: 3', {
+                    fontFamily: 'Arial, sans-serif',
+                    fontSize: '26px',
+                    color: '#ff4444',
+                    fontStyle: 'bold',
+                    stroke: '#fff',
+                    strokeThickness: 2,
+                    align: 'right'
+                }).setOrigin(1,0).setDepth(3);
+                // Pause button exactly in the middle between score and health
+                const pauseX = (16 + (this.sys.game.config.width - 16)) / 2;
+                const pauseBtn = this.add.text(pauseX, 16, '⏸️', {
+                    fontSize: '26px',
+                    fontFamily: 'Arial, sans-serif',
+                    color: '#fff',
+                    backgroundColor: '#444',
+                    padding: { x: 12, y: 8 },
+                    borderRadius: 8,
+                    fontStyle: 'bold',
+                    stroke: '#fff',
+                    strokeThickness: 1
+                }).setOrigin(0.5,0).setInteractive().setDepth(3);
+                pauseBtn.on('pointerdown', () => {
+                    this.isPaused = !this.isPaused;
+                    pauseBtn.setText(this.isPaused ? '▶️' : '⏸️');
                 });
-                this.load.on('loaderror', function(file) {
-                    console.log('Image load error:', file.src);
-                });
-        }
-        create() {
-            // Enemy speed scaling
-            this.enemySpeedScale = 1;
-            this.time.addEvent({
-                delay: 15000,
-                callback: () => {
-                    this.enemySpeedScale += 0.08;
-                },
-                callbackScope: this,
-                loop: true
-            });
-            // Prepare game over sound
-            this.gameOverSound = this.sound.add('gameOverSound', { loop: false, volume: 1 });
-            // Play normal background music in loop
-            this.bgMusic = this.sound.add('bgMusic', { loop: true, volume: 1 });
-            this.bgMusic.play();
-            // Prepare powerup music (loop)
-            this.powerupMusic = this.sound.add('powerupMusic', { loop: true, volume: 1 });
-            this.bg = this.add.rectangle(0, 0, gameSize.width, gameSize.height, 0x0f2027).setOrigin(0);
-            // Player as user-provided image (smaller scale for better fit)
-            this.player = this.add.image(gameSize.width/2, gameSize.height-60, 'playerImg').setScale(0.11);
-            this.player.speed = 6;
-            this.cursors = this.input.keyboard.createCursorKeys();
-            this.bullets = [];
-            this.enemies = [];
-            this.powerups = [];
-            this.scoreText = this.add.text(20, 20, 'Score: 0', { fontSize: '24px', fill: '#00eaff', fontFamily: 'Fredoka One' });
-            this.time.addEvent({ delay: 900, callback: this.spawnEnemy, callbackScope: this, loop: true });
-            // In create(), spawn all powerups at random intervals (10-30s)
-            this.powerups = [];
-            this.spawnAnyPowerup = () => {
-                const nextDelay = Phaser.Math.Between(10000, 30000);
-                this.spawnPowerup(['double','triple','round']);
-                this.time.addEvent({ delay: nextDelay, callback: this.spawnAnyPowerup, callbackScope: this });
-            };
-            this.spawnAnyPowerup();
-            this.input.keyboard.on('keydown-SPACE', () => this.shoot(), this);
+                // Read selected level from localStorage and start game in that mode
+                const selectedLevel = localStorage.getItem('selectedLevel') || 'easy';
+                this.selectedLevel = selectedLevel;
+                if (selectedLevel === 'easy') {
+                    this.enemySpeed = 1.5;
+                    this.enemySpawnInterval = 9000;
+                } else if (selectedLevel === 'medium') {
+                    this.enemySpeed = 2.5;
+                    this.enemySpawnInterval = 6000;
+                } else if (selectedLevel === 'hard') {
+                    this.enemySpeed = 4;
+                    this.enemySpawnInterval = 3500;
+                }
+                this.doublePowerupSound = this.sound.add('doublePowerupSound', { volume: 0.7, loop: true });
+                // Play background sound in a loop
+                this.bgSound = this.sound.add('bgSound', { loop: true, volume: 0.5 });
+                this.bgSound.play();
+                // Plain dark background
+                this.cameras.main.setBackgroundColor('#222');
 
-            // Automatic firing every 350ms
-            this.shootTimer = this.time.addEvent({ delay: 350, callback: this.shoot, callbackScope: this, loop: true });
-
-            // Touch controls for mobile
-            if (isMobile) {
-                this.leftBtn = this.add.text(30, gameSize.height-60, '◀', { fontSize: '38px', fill: '#fff', backgroundColor:'#00eaff', padding:{x:12,y:8}, borderRadius:12 }).setInteractive().setDepth(2);
-                this.rightBtn = this.add.text(gameSize.width-70, gameSize.height-60, '▶', { fontSize: '38px', fill: '#fff', backgroundColor:'#00eaff', padding:{x:12,y:8}, borderRadius:12 }).setInteractive().setDepth(2);
-                this.leftBtn.on('pointerdown', () => { this.player.moveLeft = true; });
-                this.leftBtn.on('pointerup', () => { this.player.moveLeft = false; });
-                this.rightBtn.on('pointerdown', () => { this.player.moveRight = true; });
-                this.rightBtn.on('pointerup', () => { this.player.moveRight = false; });
-            }
-            this.fireMode = 'single';
-        }
-        shoot() {
-            if (gameOver) return;
-            if (this.fireMode === 'single') {
-                const bullet = this.add.rectangle(this.player.x, this.player.y-30, 6, 18, 0xffffff);
-                bullet.speed = 400;
-                this.bullets.push(bullet);
-            } else if (this.fireMode === 'double') {
-                const bullet1 = this.add.rectangle(this.player.x-12, this.player.y-30, 6, 18, 0xffffff);
-                const bullet2 = this.add.rectangle(this.player.x+12, this.player.y-30, 6, 18, 0xffffff);
-                bullet1.speed = bullet2.speed = 400;
-                this.bullets.push(bullet1, bullet2);
-            } else if (this.fireMode === 'triple') {
-                const bullet1 = this.add.rectangle(this.player.x-16, this.player.y-30, 6, 18, 0xffffff);
-                const bullet2 = this.add.rectangle(this.player.x, this.player.y-30, 6, 18, 0xffffff);
-                const bullet3 = this.add.rectangle(this.player.x+16, this.player.y-30, 6, 18, 0xffffff);
-                bullet1.speed = bullet2.speed = bullet3.speed = 400;
-                this.bullets.push(bullet1, bullet2, bullet3);
-            } else if (this.fireMode === 'round') {
-                // Fire in 5 directions
-                for (let angle = -60; angle <= 60; angle += 30) {
-                    const rad = Phaser.Math.DegToRad(angle);
-                    const bullet = this.add.rectangle(this.player.x, this.player.y-30, 6, 18, 0xffffff);
-                    bullet.speed = 400;
-                    bullet.vx = Math.sin(rad) * bullet.speed;
-                    bullet.vy = -Math.cos(rad) * bullet.speed;
-                    this.bullets.push(bullet);
-                }
-            }
-        }
-        spawnEnemy() {
-            if (gameOver) return;
-            const x = Phaser.Math.Between(30, gameSize.width-30);
-            // Randomly choose enemy type: small, big, or extra big (6 hitpoints)
-            const rand = Math.random();
-            let enemy;
-            if (rand < 0.2) {
-                // Extra big round enemy with 6 hitpoints, use buffalo image
-                enemy = this.add.image(x, -20, 'buffaloImg').setScale(0.52);
-                enemy.isBig = true;
-                enemy.isExtraBig = true;
-                enemy.health = 6;
-                enemy.speed = 60 * this.enemySpeedScale;
-                enemy.healthText = this.add.text(x-18, -60, '6', { fontSize: '24px', fill: '#222', fontWeight: 'bold', backgroundColor: '#ffe066', padding: { left: 8, right: 8, top: 2, bottom: 2 } });
-                // Glow effect for healthText
-                enemy.healthText.setShadow(2, 2, '#ff9800', 8, true, true);
-            } else if (rand < 0.5) {
-                // Use duck image for big round enemies
-                enemy = this.add.image(x, -20, 'duckImg').setScale(0.42);
-                enemy.isBig = true;
-                enemy.health = 3;
-                enemy.speed = 80 * this.enemySpeedScale;
-                enemy.healthText = this.add.text(x-10, -40, '3', { fontSize: '18px', fill: '#222', fontWeight: 'bold', backgroundColor: '#ffe066', padding: { left: 6, right: 6, top: 2, bottom: 2 } });
-                // Glow effect for healthText
-                enemy.healthText.setShadow(2, 2, '#ff9800', 8, true, true);
-            } else {
-                // Use cow image for small red enemies
-                enemy = this.add.image(x, -20, 'cowImg').setScale(0.30);
-                enemy.isBig = false;
-                enemy.health = 1;
-                enemy.speed = 120 * this.enemySpeedScale;
-            }
-            this.enemies.push(enemy);
-        }
-        spawnPowerup(allowedTypes) {
-            if (gameOver) return;
-            const x = Phaser.Math.Between(40, gameSize.width-40);
-            let type, color;
-            if (!allowedTypes || allowedTypes.length === 0) {
-                type = 'double'; color = 0x00ffea;
-            } else {
-                const idx = Math.floor(Math.random() * allowedTypes.length);
-                type = allowedTypes[idx];
-                if (type === 'double') color = 0x00ffea;
-                else if (type === 'triple') color = 0xff00ea;
-                else if (type === 'round') color = 0x00ff00;
-            }
-            let powerup;
-            if (type === 'double') {
-                powerup = this.add.image(x, -20, 'iceCreamImg').setScale(0.88);
-            } else if (type === 'triple') {
-                powerup = this.add.image(x, -20, 'cakeImg').setScale(0.88);
-            } else if (type === 'round') {
-                powerup = this.add.image(x, -20, 'burgerImg').setScale(0.89);
-            } else {
-                powerup = this.add.circle(x, -20, 16, color);
-            }
-            powerup.glowTween = this.tweens.add({ targets: powerup, alpha: 0.3, yoyo: true, repeat: -1, duration: 400 });
-            powerup.type = type;
-            powerup.speed = 100;
-            this.powerups.push(powerup);
-        }
-        hitEnemy(bullet, enemy) {
-            bullet.destroy();
-            enemy.destroy();
-            // Award different points for different enemy types
-            let points = 10;
-            if (enemy.isExtraBig) {
-                points = 60;
-            } else if (enemy.isBig) {
-                points = 30;
-            } else {
-                points = 10;
-            }
-            score += points;
-            this.scoreText.setText('Score: ' + score);
-        }
-        hitPlayer(player, enemy) {
-            if (gameOver) return;
-            gameOver = true;
-            if (this.shootTimer) this.shootTimer.remove();
-            // Flash player image red
-            this.tweens.add({
-                targets: player,
-                tint: 0xff3333,
-                duration: 300,
-                yoyo: true,
-                repeat: 2
-            });
-            this.add.text(gameSize.width/2, gameSize.height/2, 'Game Over!\nScore: '+score, {
-                fontSize: '32px', fill: '#ff3333', fontFamily: 'Fredoka One', align: 'center'
-            }).setOrigin(0.5).setDepth(3);
-            // Stop all music
-            if (this.bgMusic && this.bgMusic.isPlaying) this.bgMusic.stop();
-            if (this.powerupMusic && this.powerupMusic.isPlaying) this.powerupMusic.stop();
-            // Play game over sound, then stop it after it finishes
-            if (this.gameOverSound) {
-                this.gameOverSound.play();
-                this.gameOverSound.once('complete', () => {
-                    this.gameOverSound.stop();
-                });
-            }
-            this.time.delayedCall(15000, () => location.reload(), [], this);
-        }
-        activatePowerup(type) {
-            // Stop normal bg music and play powerup music in loop
-            if (this.bgMusic && this.bgMusic.isPlaying) this.bgMusic.stop();
-            if (this.powerupMusic) this.powerupMusic.play();
-            // Cancel previous timer and switch fire mode immediately
-            if (this.fireModeTimer) this.fireModeTimer.remove();
-            // Set timer to revert music after powerup duration
-            let duration = 6000;
-            if (type === 'double' || type === 'triple') duration = 12000;
-            if (type === 'round') duration = 15000;
-            this.musicTimer = this.time.delayedCall(duration, () => {
-                if (this.powerupMusic && this.powerupMusic.isPlaying) this.powerupMusic.stop();
-                if (this.bgMusic && !this.bgMusic.isPlaying) this.bgMusic.play();
-            }, [], this);
-            // Cancel previous timer and switch fire mode immediately
-            if (this.fireModeTimer) this.fireModeTimer.remove();
-            if (type === 'double') {
-                this.fireMode = 'double';
-                this.fireModeTimer = this.time.delayedCall(12000, () => { this.fireMode = 'single'; }, [], this);
-            } else if (type === 'triple') {
-                this.fireMode = 'triple';
-                this.fireModeTimer = this.time.delayedCall(12000, () => { this.fireMode = 'single'; }, [], this);
-            } else if (type === 'round') {
-                this.fireMode = 'round';
-                this.fireModeTimer = this.time.delayedCall(15000, () => { this.fireMode = 'single'; }, [], this);
-            }
-        }
-        update() {
-            if (gameOver) return;
-            // Player movement
-            let moveLeft = this.cursors.left.isDown || (isMobile && this.player.moveLeft);
-            let moveRight = this.cursors.right.isDown || (isMobile && this.player.moveRight);
-            if (moveLeft) {
-                this.player.x -= this.player.speed;
-            } else if (moveRight) {
-                this.player.x += this.player.speed;
-            }
-            // Keep player in bounds
-            this.player.x = Phaser.Math.Clamp(this.player.x, 22, gameSize.width-22);
-            // Move bullets
-            for (let i = this.bullets.length-1; i >= 0; i--) {
-                let bullet = this.bullets[i];
-                if (this.fireMode === 'round' && bullet.vx !== undefined && bullet.vy !== undefined) {
-                    bullet.x += bullet.vx * this.game.loop.delta / 1000;
-                    bullet.y += bullet.vy * this.game.loop.delta / 1000;
-                } else {
-                    bullet.y -= bullet.speed * this.game.loop.delta / 1000;
-                }
-                if (bullet.y < -20 || bullet.x < -20 || bullet.x > gameSize.width+20) {
-                    bullet.destroy();
-                    this.bullets.splice(i, 1);
-                }
-            }
-            // Move enemies
-            for (let i = this.enemies.length-1; i >= 0; i--) {
-                let enemy = this.enemies[i];
-                enemy.y += enemy.speed * this.game.loop.delta / 1000;
-                if (enemy.isBig && enemy.healthText) {
-                    enemy.healthText.x = enemy.x-10;
-                    enemy.healthText.y = enemy.y-40;
-                }
-                if (enemy.y > gameSize.height+40) {
-                    if (enemy.isBig && enemy.healthText) enemy.healthText.destroy();
-                    enemy.destroy();
-                    this.enemies.splice(i, 1);
-                }
-            }
-            // Move powerups
-            for (let i = this.powerups.length-1; i >= 0; i--) {
-                let powerup = this.powerups[i];
-                powerup.y += powerup.speed * this.game.loop.delta / 1000;
-                if (powerup.y > gameSize.height+40) {
-                    powerup.glowTween.stop();
-                    powerup.destroy();
-                    this.powerups.splice(i, 1);
-                }
-                // Collision with player
-                let dx = powerup.x - this.player.x;
-                let dy = powerup.y - this.player.y;
-                if (Math.sqrt(dx*dx + dy*dy) < 38) {
-                    this.activatePowerup(powerup.type);
-                    powerup.glowTween.stop();
-                    powerup.destroy();
-                    this.powerups.splice(i, 1);
-                }
-            }
-            // Collision detection
-            for (let i = this.enemies.length-1; i >= 0; i--) {
-                let enemy = this.enemies[i];
-                let enemyRadius = enemy.isBig ? 32 : 18;
-                // Player collision
-                let dx = enemy.x - this.player.x;
-                let dy = enemy.y - this.player.y;
-                if (Math.sqrt(dx*dx + dy*dy) < enemyRadius + 22) {
-                    this.hitPlayer(this.player, enemy);
-                }
-                // Bullet collision
-                for (let j = this.bullets.length-1; j >= 0; j--) {
-                    let bullet = this.bullets[j];
-                    let dx2 = enemy.x - bullet.x;
-                    let dy2 = enemy.y - bullet.y;
-                    if (Math.sqrt(dx2*dx2 + dy2*dy2) < enemyRadius + 6) {
-                        // Reduce health for big enemies
-                        if (enemy.isBig) {
-                            enemy.health--;
-                            enemy.healthText.setText(enemy.health);
-                            bullet.destroy();
-                            this.bullets.splice(j, 1);
-                            if (enemy.health <= 0) {
-                                enemy.healthText.destroy();
-                                this.hitEnemy(bullet, enemy);
-                                this.enemies.splice(i, 1);
+                this.score = 0;
+                this.health = 3;
+                // Score at top left
+                this.scoreText = this.add.text(16, 16, 'Score: 0', {
+                    fontFamily: 'Arial, sans-serif',
+                    fontSize: '26px',
+                    color: '#00eaff',
+                    fontStyle: 'bold',
+                    stroke: '#fff',
+                    strokeThickness: 2
+                }).setDepth(3);
+                // Health at top right
+                this.healthText = this.add.text(this.sys.game.config.width-16, 16, 'Health: 3', {
+                    fontFamily: 'Arial, sans-serif',
+                    fontSize: '26px',
+                    color: '#ff4444',
+                    fontStyle: 'bold',
+                    stroke: '#fff',
+                    strokeThickness: 2,
+                    align: 'right'
+                }).setOrigin(1,0).setDepth(3);
+                this.player = this.add.image(this.sys.game.config.width/2, this.sys.game.config.height-100, 'playerImg');
+                this.player.setDisplaySize(50, 50);
+                this.player.setOrigin(0.5, 0.5);
+                // Make player bright
+                if (this.player.setTint) this.player.setTint(0xffffff);
+                this.player.setAlpha(1);
+                // Only show pulsing glow effect when health is 1
+                this.playerGlowTween = null;
+                this.playerSpeed = 6;
+                this.cursors = this.input.keyboard.createCursorKeys();
+                this.bullets = [];
+                this.fireMode = 'single';
+                // Automatic firing based on fire mode
+                this.shootTimer = this.time.addEvent({
+                    delay: 350,
+                    callback: () => {
+                        if (this.fireMode === 'single') {
+                            const bullet = this.add.rectangle(this.player.x, this.player.y-20, 6, 18, 0xffffff);
+                            bullet.isRound = false;
+                            this.bullets.push(bullet);
+                        } else if (this.fireMode === 'double') {
+                            const bullet1 = this.add.rectangle(this.player.x-12, this.player.y-20, 6, 18, 0xffffff);
+                            const bullet2 = this.add.rectangle(this.player.x+12, this.player.y-20, 6, 18, 0xffffff);
+                            bullet1.isRound = false;
+                            bullet2.isRound = false;
+                            this.bullets.push(bullet1, bullet2);
+                        } else if (this.fireMode === 'triple') {
+                            if (this.multiFireSound) this.multiFireSound.play();
+                            const bullet1 = this.add.rectangle(this.player.x-16, this.player.y-20, 6, 18, 0xffffff);
+                            const bullet2 = this.add.rectangle(this.player.x, this.player.y-20, 6, 18, 0xffffff);
+                            const bullet3 = this.add.rectangle(this.player.x+16, this.player.y-20, 6, 18, 0xffffff);
+                            bullet1.isRound = false;
+                            bullet2.isRound = false;
+                            bullet3.isRound = false;
+                            this.bullets.push(bullet1, bullet2, bullet3);
+                        } else if (this.fireMode === 'round') {
+                            if (this.multiFireSound) this.multiFireSound.play();
+                            // Fire 5 round bullets in a spread
+                            for (let i = 0; i < 5; i++) {
+                                const angle = Phaser.Math.DegToRad(-40 + i * 20); // Spread from -40 to +40 degrees
+                                const bullet = this.add.circle(this.player.x, this.player.y-20, 10, 0xffa500);
+                                bullet.isRound = true;
+                                bullet.spreadAngle = angle;
+                                this.bullets.push(bullet);
                             }
-                        } else {
-                            this.hitEnemy(bullet, enemy);
-                            this.enemies.splice(i, 1);
-                            this.bullets.splice(j, 1);
                         }
-                        break;
+                    },
+                    callbackScope: this,
+                    loop: true
+                });
+                // Enemies array with hitpoints and increased size
+                this.enemies = [
+                    (() => { let e = this.add.image(100, 100, 'redEnemy'); e.displayWidth = 32; e.displayHeight = 32; e.hitpoints = 1; e.isRed = true; e.isGreen = false; e.isBlue = false; e.isYellow = false; e.isMagenta = false; return e; })(),
+                    (() => { let e = this.add.image(200, 100, 'greenEnemy'); e.displayWidth = 38; e.displayHeight = 38; e.hitpoints = 2; e.isRed = false; e.isGreen = true; e.isBlue = false; e.isYellow = false; e.isMagenta = false; return e; })()
+                ];
+                // enemySpeed and enemySpawnInterval are set by selected level above
+                // Spawn new enemy every 9 seconds (limit max 2, avoid overlap)
+                this.time.addEvent({
+                    delay: this.enemySpawnInterval,
+                    callback: () => {
+                        if (this.enemies.length >= 2) return; // Limit to 2 enemies for smoother gameplay
+                        const colors = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00, 0xff00ff];
+                        const hitpointsMap = {
+                            0xff0000: {hp: 1, size: 32}, // red
+                            0x00ff00: {hp: 2, size: 38}, // green
+                            0x0000ff: {hp: 3, size: 44}, // blue
+                            0xffff00: {hp: 4, size: 50}, // yellow
+                            0xff00ff: {hp: 5, size: 56}  // magenta
+                        };
+                        let tries = 0;
+                        let x, overlap;
+                        do {
+                            x = Phaser.Math.Between(30, this.sys.game.config.width-30);
+                            overlap = false;
+                            for (let e of this.enemies) {
+                                let minDist = (e.displayWidth || 50) / 2 + (hitpointsMap[color]?.size || 50) / 2 + 10; // 10px buffer
+                                if (Math.abs(e.x - x) < minDist && Math.abs(e.y - 0) < minDist) {
+                                    overlap = true;
+                                    break;
+                                }
+                            }
+                            tries++;
+                        } while (overlap && tries < 50);
+                        if (!overlap) {
+                            const color = colors[Math.floor(Math.random() * colors.length)];
+                            let enemy, info = hitpointsMap[color];
+                            if (color === 0xff0000) {
+                                enemy = this.add.image(x, 0, 'redEnemy');
+                                enemy.displayWidth = info.size;
+                                enemy.displayHeight = info.size;
+                                enemy.isRed = true;
+                                enemy.isGreen = false;
+                                enemy.isBlue = false;
+                                enemy.isYellow = false;
+                                enemy.isMagenta = false;
+                            } else if (color === 0x00ff00) {
+                                enemy = this.add.image(x, 0, 'greenEnemy');
+                                enemy.displayWidth = info.size;
+                                enemy.displayHeight = info.size;
+                                enemy.isRed = false;
+                                enemy.isGreen = true;
+                                enemy.isBlue = false;
+                                enemy.isYellow = false;
+                                enemy.isMagenta = false;
+                            } else if (color === 0x0000ff) {
+                                enemy = this.add.image(x, 0, 'blueEnemy');
+                                enemy.displayWidth = info.size;
+                                enemy.displayHeight = info.size;
+                                enemy.isRed = false;
+                                enemy.isGreen = false;
+                                enemy.isBlue = true;
+                                enemy.isYellow = false;
+                                enemy.isMagenta = false;
+                            } else if (color === 0xffff00) {
+                                enemy = this.add.image(x, 0, 'yellowEnemy');
+                                enemy.displayWidth = info.size;
+                                enemy.displayHeight = info.size;
+                                enemy.isRed = false;
+                                enemy.isGreen = false;
+                                enemy.isBlue = false;
+                                enemy.isYellow = true;
+                                enemy.isMagenta = false;
+                            } else if (color === 0xff00ff) {
+                                enemy = this.add.image(x, 0, 'magentaEnemy');
+                                enemy.displayWidth = info.size;
+                                enemy.displayHeight = info.size;
+                                enemy.isRed = false;
+                                enemy.isGreen = false;
+                                enemy.isBlue = false;
+                                enemy.isYellow = false;
+                                enemy.isMagenta = true;
+                            }
+                            enemy.hitpoints = info.hp;
+                            this.enemies.push(enemy);
+                        }
+                    },
+                    callbackScope: this,
+                    loop: true
+                });
+                this.powerups = [];
+                // Helper to find non-overlapping x position for powerup
+                const getNonOverlappingX = (scene) => {
+                    let tries = 0;
+                    let x, overlap;
+                    do {
+                        x = Phaser.Math.Between(30, scene.sys.game.config.width-30);
+                        overlap = false;
+                        for (let p of scene.powerups) {
+                            if (Math.abs(p.x - x) < 25 && Math.abs(p.y - 0) < 25) {
+                                overlap = true;
+                                break;
+                            }
+                        }
+                        tries++;
+                    } while (overlap && tries < 10);
+                    return x;
+                };
+                // Spawn non-health powerups at random intervals between 12 and 30 seconds
+                const spawnPowerup = () => {
+                    const types = ['double', 'triple', 'round', 'shield'];
+                    const type = types[Math.floor(Math.random() * types.length)];
+                    const x = getNonOverlappingX(this);
+                    let powerup;
+                    if (type === 'double') {
+                        powerup = this.add.text(x, 0, '💥', {
+                            fontSize: '28px',
+                            fontFamily: 'Arial, sans-serif',
+                            align: 'center'
+                        });
+                        powerup.type = 'double';
+                        powerup.setOrigin(0.5, 0.5);
+                        // Glow effect
+                        this.tweens.add({
+                            targets: powerup,
+                            alpha: { from: 1, to: 0.7 },
+                            duration: 400,
+                            yoyo: true,
+                            repeat: -1,
+                            ease: 'Sine.easeInOut'
+                        });
+                    } else if (type === 'triple') {
+                        powerup = this.add.text(x, 0, '⚡', {
+                            fontSize: '28px',
+                            fontFamily: 'Arial, sans-serif',
+                            align: 'center'
+                        });
+                        powerup.type = 'triple';
+                        powerup.setOrigin(0.5, 0.5);
+                        // Glow effect
+                        this.tweens.add({
+                            targets: powerup,
+                            alpha: { from: 1, to: 0.7 },
+                            duration: 400,
+                            yoyo: true,
+                            repeat: -1,
+                            ease: 'Sine.easeInOut'
+                        });
+                    } else if (type === 'round') {
+                        powerup = this.add.text(x, 0, '🔥', {
+                            fontSize: '28px',
+                            fontFamily: 'Arial, sans-serif',
+                            align: 'center'
+                        });
+                        powerup.type = 'round';
+                        powerup.setOrigin(0.5, 0.5);
+                        // Glow effect
+                        this.tweens.add({
+                            targets: powerup,
+                            alpha: { from: 1, to: 0.7 },
+                            duration: 400,
+                            yoyo: true,
+                            repeat: -1,
+                            ease: 'Sine.easeInOut'
+                        });
+                    } else if (type === 'shield') {
+                        powerup = this.add.text(x, 0, '🛡️', {
+                            fontSize: '28px',
+                            fontFamily: 'Arial, sans-serif',
+                            align: 'center'
+                        });
+                        powerup.type = 'shield';
+                        powerup.setOrigin(0.5, 0.5);
+                        // Glow effect
+                        this.tweens.add({
+                            targets: powerup,
+                            alpha: { from: 1, to: 0.7 },
+                            duration: 400,
+                            yoyo: true,
+                            repeat: -1,
+                            ease: 'Sine.easeInOut'
+                        });
+                    }
+                    this.powerups.push(powerup);
+                    // Schedule next powerup
+                    const nextDelay = Phaser.Math.Between(12000, 30000);
+                    this.time.delayedCall(nextDelay, spawnPowerup, [], this);
+                };
+                spawnPowerup();
+                // Spawn health powerup at random intervals between 20 and 40 seconds
+                const spawnHealthPowerup = () => {
+                    const x = getNonOverlappingX(this);
+                    const powerup = this.add.text(x, 0, '❤️', {
+                        fontSize: '28px',
+                        fontFamily: 'Arial, sans-serif',
+                        align: 'center'
+                    });
+                    powerup.type = 'health';
+                    powerup.setOrigin(0.5, 0.5);
+                    // Glow effect
+                    this.tweens.add({
+                        targets: powerup,
+                        alpha: { from: 1, to: 0.7 },
+                        duration: 400,
+                        yoyo: true,
+                        repeat: -1,
+                        ease: 'Sine.easeInOut'
+                    });
+                    // Pulsing glow effect
+                    this.tweens.add({
+                        targets: powerup,
+                        alpha: { from: 1, to: 0.7 },
+                        scale: { from: 1, to: 1.15 },
+                        duration: 500,
+                        yoyo: true,
+                        repeat: -1,
+                        ease: 'Sine.easeInOut'
+                    });
+                    this.powerups.push(powerup);
+                    const nextDelay = Phaser.Math.Between(20000, 40000);
+                    this.time.delayedCall(nextDelay, spawnHealthPowerup, [], this);
+                };
+                spawnHealthPowerup();
+                this.gameOver = false;
+
+                // At game start, spawn bomb enemy
+                this.bombEnemy = this.add.text(this.sys.game.config.width/2, 0, '💣', {
+                    fontSize: '38px',
+                    fontFamily: 'Arial, sans-serif',
+                    align: 'center'
+                }).setOrigin(0.5, 0.5);
+                this.bombEnemy.type = 'bomb';
+                // Add pulsing red glow effect
+                this.bombGlowTween = this.tweens.add({
+                    targets: this.bombEnemy,
+                    alpha: { from: 1, to: 0.5 },
+                    duration: 400,
+                    yoyo: true,
+                    repeat: -1,
+                    ease: 'Sine.easeInOut'
+                });
+                // Remove bomb from enemies array if present
+                this.enemies = this.enemies.filter(e => e.type !== 'bomb');
+
+                // Touch controls for mobile
+                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                if (isMobile) {
+                    const arrowSize = 48;
+                    // Left Arrow (round)
+                    const leftCircle = this.add.circle(60, this.sys.game.config.height-60, arrowSize/2, 0x00eaff).setInteractive().setDepth(10);
+                    this.add.text(60, this.sys.game.config.height-60, '⬅️', { fontSize: '32px', color: '#222' }).setOrigin(0.5).setDepth(11);
+                    leftCircle.on('pointerdown', () => { this.player.moveLeft = true; });
+                    leftCircle.on('pointerup', () => { this.player.moveLeft = false; });
+                    // Right Arrow (round)
+                    const rightCircle = this.add.circle(this.sys.game.config.width-60, this.sys.game.config.height-60, arrowSize/2, 0x00eaff).setInteractive().setDepth(10);
+                    this.add.text(this.sys.game.config.width-60, this.sys.game.config.height-60, '➡️', { fontSize: '32px', color: '#222' }).setOrigin(0.5).setDepth(11);
+                    rightCircle.on('pointerdown', () => { this.player.moveRight = true; });
+                    rightCircle.on('pointerup', () => { this.player.moveRight = false; });
+                }
+
+                // In create function, ensure sound context resumes after any user gesture
+                const resumeAudio = () => {
+                    if (this.sound.context && this.sound.context.state === 'suspended') {
+                        this.sound.context.resume();
+                    }
+                };
+                this.input.once('pointerdown', resumeAudio);
+                this.input.keyboard.once('keydown', resumeAudio);
+                window.addEventListener('touchstart', resumeAudio, { once: true });
+            },
+            update: function() {
+                if (this.gameOver || this.isPaused) return;
+                // Move player left/right
+                if (this.cursors.left.isDown) {
+                    this.player.x -= this.playerSpeed;
+                } else if (this.cursors.right.isDown) {
+                    this.player.x += this.playerSpeed;
+                }
+                // Mobile touch movement
+                if (this.player.moveLeft) {
+                    this.player.x -= this.playerSpeed;
+                }
+                if (this.player.moveRight) {
+                    this.player.x += this.playerSpeed;
+                }
+                // Keep player within bounds
+                this.player.x = Phaser.Math.Clamp(this.player.x, 25, this.sys.game.config.width-25);
+                // Move bullets
+                for (let i = this.bullets.length - 1; i >= 0; i--) {
+                    if (this.bullets[i].isRound && this.bullets[i].spreadAngle !== undefined) {
+                        this.bullets[i].x += Math.sin(this.bullets[i].spreadAngle) * 7;
+                        this.bullets[i].y -= Math.cos(this.bullets[i].spreadAngle) * 10;
+                        if (this.bullets[i].y < 0 || this.bullets[i].x < 0 || this.bullets[i].x > this.sys.game.config.width) {
+                            this.bullets[i].destroy();
+                            this.bullets.splice(i, 1);
+                        }
+                    } else {
+                        this.bullets[i].y -= 10;
+                        if (this.bullets[i].y < 0) {
+                            this.bullets[i].destroy();
+                            this.bullets.splice(i, 1);
+                        }
+                    }
+                }
+                // Move enemies down
+                for (let e of this.enemies) {
+                    e.y += this.enemySpeed;
+                    if (e.y > this.sys.game.config.height) {
+                        let tries = 0, newX, overlap;
+                        do {
+                            newX = Phaser.Math.Between(30, this.sys.game.config.width-30);
+                            overlap = false;
+                            for (let other of this.enemies) {
+                                if (other !== e) {
+                                    let minDist = (other.displayWidth || 50) / 2 + (e.displayWidth || 50) / 2 + 10;
+                                    if (Math.abs(other.x - newX) < minDist && Math.abs(other.y - 0) < minDist) {
+                                        overlap = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            tries++;
+                        } while (overlap && tries < 50);
+                        e.y = 0; // Always respawn at top
+                        e.x = newX;
+                    }
+                    // Collision detection: enemy vs player
+                    if (Phaser.Geom.Intersects.RectangleToRectangle(this.player.getBounds(), e.getBounds())) {
+                        if (e.type === 'bomb') {
+                            this.health -= 3;
+                            this.healthText.setText('Health: ' + this.health);
+                            // Flash player red for feedback
+                            if (this.player.setTint) this.player.setTint(0xff4444);
+                            this.time.delayedCall(200, () => {
+                                if (this.player.clearTint) this.player.clearTint();
+                            });
+                            // Bomb explosion effect
+                            const explosion = this.add.text(this.player.x, this.player.y-40, '💥', {
+                                fontSize: '40px',
+                                fontFamily: 'Arial, sans-serif',
+                                align: 'center'
+                            }).setOrigin(0.5);
+                            this.tweens.add({
+                                targets: explosion,
+                                scale: 2,
+                                alpha: 0,
+                                duration: 600,
+                                ease: 'Cubic.easeOut',
+                                onComplete: () => explosion.destroy()
+                            });
+                            // Respawn bomb at top after random delay
+                            this.bombEnemy.waiting = true;
+                            this.bombEnemy.setVisible(false);
+                            if (this.bombGlowTween) this.bombGlowTween.pause();
+                            const delay = Phaser.Math.Between(10000, 25000);
+                            this.time.delayedCall(delay, () => {
+                                this.bombEnemy.y = 0;
+                                this.bombEnemy.x = Phaser.Math.Between(30, this.sys.game.config.width-30);
+                                this.bombEnemy.setVisible(true);
+                                if (this.bombGlowTween) this.bombGlowTween.resume();
+                                this.bombEnemy.waiting = false;
+                            });
+                            if (this.health <= 0) {
+                                this.gameOver = true;
+                                if (this.bgSound && this.bgSound.isPlaying) this.bgSound.stop();
+                                if (this.explosionSound) this.explosionSound.play();
+                                // Player destroyed effect
+                                const playerExplosion = this.add.text(this.player.x, this.player.y, '💥', {
+                                    fontSize: '64px',
+                                    fontFamily: 'Arial, sans-serif',
+                                    align: 'center'
+                                }).setOrigin(0.5).setDepth(20);
+                                this.tweens.add({
+                                    targets: playerExplosion,
+                                    scale: 2,
+                                    alpha: 0,
+                                    duration: 900,
+                                    ease: 'Cubic.easeOut',
+                                    onComplete: () => playerExplosion.destroy()
+                                });
+                                this.tweens.add({
+                                    targets: this.player,
+                                    alpha: 0,
+                                    duration: 700,
+                                    ease: 'Cubic.easeOut'
+                                });
+                                // High score logic
+                                var hsLevel = this.selectedLevel || 'easy';
+                                var hsKey = 'spaceShooterHighScore_' + hsLevel;
+                                var hsPrev = parseInt(localStorage.getItem(hsKey) || '0');
+                                if (this.score > hsPrev) {
+                                    localStorage.setItem(hsKey, this.score);
+                                }
+                                // High score logic
+                                const level = this.selectedLevel || 'easy';
+                                const highScoreKey = 'spaceShooterHighScore_' + level;
+                                const prevHighScore = parseInt(localStorage.getItem(highScoreKey) || '0');
+                                if (this.score > prevHighScore) {
+                                    localStorage.setItem(highScoreKey, this.score);
+                                }
+                                // Improved Game Over UI
+                                // Removed game over card, only showing text
+                                // Responsive UI scaling
+                                const baseWidth = 400;
+                                const scale = Math.min(1, this.sys.game.config.width / baseWidth);
+                                const gameOverText = this.add.text(this.sys.game.config.width/2, 160 * scale, 'GAME OVER', {
+                                    fontSize: Math.round(38 * scale) + 'px',
+                                    fontFamily: 'Arial Black, Arial, sans-serif',
+                                    color: '#fff',
+                                    fontStyle: 'bold',
+                                    stroke: '#ff4444',
+                                    strokeThickness: Math.round(5 * scale),
+                                    shadow: {
+                                        offsetX: 0,
+                                        offsetY: Math.round(3 * scale),
+                                        color: '#ff4444',
+                                        blur: Math.round(8 * scale),
+                                        fill: true
+                                    }
+                                }).setOrigin(0.5).setDepth(11);
+                                gameOverText.setAlpha(0);
+                                const scoreText = this.add.text(this.sys.game.config.width/2, 215 * scale, `Your Score: ${this.score}`, {
+                                    fontSize: Math.round(24 * scale) + 'px',
+                                    fontFamily: 'Arial, sans-serif',
+                                    color: '#00eaff',
+                                    fontStyle: 'bold',
+                                    stroke: '#fff',
+                                    strokeThickness: Math.round(2 * scale),
+                                    shadow: {
+                                        offsetX: 0,
+                                        offsetY: Math.round(1 * scale),
+                                        color: '#00eaff',
+                                        blur: Math.round(5 * scale),
+                                        fill: true
+                                    }
+                                }).setOrigin(0.5).setDepth(11);
+                                scoreText.setAlpha(0);
+                                const restartBtn = this.add.text(this.sys.game.config.width/2, 270 * scale, '⟳ Restart', {
+                                    fontSize: Math.round(22 * scale) + 'px',
+                                    fontFamily: 'Arial, sans-serif',
+                                    color: '#fff',
+                                    backgroundColor: '#00eaff',
+                                    padding: { x: Math.round(16 * scale), y: Math.round(8 * scale) },
+                                    borderRadius: Math.round(12 * scale),
+                                    fontStyle: 'bold',
+                                    stroke: '#fff',
+                                    strokeThickness: Math.round(1 * scale),
+                                    shadow: {
+                                        offsetX: 0,
+                                        offsetY: Math.round(1 * scale),
+                                        color: '#00eaff',
+                                        blur: Math.round(5 * scale),
+                                        fill: true
+                                    }
+                                }).setOrigin(0.5).setInteractive().setDepth(11);
+                                restartBtn.setAlpha(0);
+                                restartBtn.on('pointerdown', () => {
+                                    // Restart the current level directly, do NOT show overlays
+                                    const lvl = this.selectedLevel || 'easy';
+                                    // Remove all game over UI elements
+                                    [gameOverBox, gameOverText, scoreText, restartBtn].forEach(el => el.destroy());
+                                    // Reset game state
+                                    this.score = 0;
+                                    this.health = 3;
+                                    this.scoreText.setText('Score: 0');
+                                    this.healthText.setText('Health: 3');
+                                    this.player.x = this.sys.game.config.width/2;
+                                    this.player.y = this.sys.game.config.height-100;
+                                    this.player.setAlpha(1);
+                                    if (this.player.clearTint) this.player.clearTint();
+                                    if (this.playerGlowTween) { this.playerGlowTween.stop(); this.playerGlowTween = null; }
+                                    this.bullets.forEach(b => b.destroy());
+                                    this.bullets = [];
+                                    this.enemies.forEach(e => { e.x = Phaser.Math.Between(30, this.sys.game.config.width-30); e.y = 0; e.hitpoints = e.isRed ? 1 : e.isGreen ? 2 : e.isBlue ? 3 : e.isYellow ? 4 : e.isMagenta ? 5 : 1; });
+                                    this.powerups.forEach(p => p.destroy());
+                                    this.powerups = [];
+                                    if (this.player.shieldCircle) { this.player.shieldCircle.destroy(); this.player.shieldCircle = null; }
+                                    this.player.isShielded = false;
+                                    this.fireMode = 'single';
+                                    if (this.firePowerupTimer) { this.firePowerupTimer.remove(false); this.firePowerupTimer = null; }
+                                    this.gameOver = false;
+                                    // Set difficulty
+                                    if (lvl === 'easy') {
+                                        this.enemySpeed = 1.5;
+                                        this.enemySpawnInterval = 9000;
+                                    } else if (lvl === 'medium') {
+                                        this.enemySpeed = 2.5;
+                                        this.enemySpawnInterval = 6000;
+                                    } else if (lvl === 'hard') {
+                                        this.enemySpeed = 4;
+                                        this.enemySpawnInterval = 3500;
+                                    }
+                                    if (this.enemySpawnTimer) {
+                                        this.enemySpawnTimer.delay = this.enemySpawnInterval;
+                                    }
+                                    // Resume background sound
+                                    if (this.bgSound && !this.bgSound.isPlaying) this.bgSound.play();
+                                    // Do NOT call any overlay or selection functions
+                                });
+                                // Fade in all UI elements smoothly
+                                this.tweens.add({ targets: [gameOverText, scoreText, restartBtn], alpha: 1, duration: 1200, ease: 'Cubic.easeOut' });
+                            }
+                        } else if (!this.player.isShielded) {
+                            if (this.explosionSound) this.explosionSound.play();
+                            console.log('Explosion sound played');
+                            this.health--;
+                            this.healthText.setText('Health: ' + this.health);
+                            // If health is 1, start pulsing glow effect
+                            if (this.health === 1 && !this.playerGlowTween) {
+                                this.playerGlowTween = this.tweens.add({
+                                    targets: this.player,
+                                    alpha: { from: 1, to: 0.7 },
+                                    duration: 400,
+                                    yoyo: true,
+                                    repeat: -1,
+                                    ease: 'Sine.easeInOut'
+                                });
+                            }
+                            // If health goes above 1, remove pulsing glow effect
+                            if (this.health > 1 && this.playerGlowTween) {
+                                this.playerGlowTween.stop();
+                                this.player.setAlpha(1);
+                                this.playerGlowTween = null;
+                            }
+                            e.y = 0;
+                            e.x = Phaser.Math.Between(30, this.sys.game.config.width-30);
+                            // Flash player red for feedback
+                            if (this.player.setTint) this.player.setTint(0xff4444);
+                            this.time.delayedCall(200, () => {
+                                if (this.player.clearTint) this.player.clearTint();
+                                if (this.player.clearTint) this.player.clearTint();
+                            });
+                            if (this.health <= 0) {
+                                this.gameOver = true;
+                                if (this.bgSound && this.bgSound.isPlaying) this.bgSound.stop();
+                                if (this.explosionSound) this.explosionSound.play();
+                                // Player destroyed effect
+                                const playerExplosion = this.add.text(this.player.x, this.player.y, '💥', {
+                                    fontSize: '64px',
+                                    fontFamily: 'Arial, sans-serif',
+                                    align: 'center'
+                                }).setOrigin(0.5).setDepth(20);
+                                this.tweens.add({
+                                    targets: playerExplosion,
+                                    scale: 2,
+                                    alpha: 0,
+                                    duration: 900,
+                                    ease: 'Cubic.easeOut',
+                                    onComplete: () => playerExplosion.destroy()
+                                });
+                                this.tweens.add({
+                                    targets: this.player,
+                                    alpha: 0,
+                                    duration: 700,
+                                    ease: 'Cubic.easeOut'
+                                });
+                                // Improved Game Over UI
+                                const gameOverBox = this.add.rectangle(this.sys.game.config.width/2, 220, 340, 200, 0x1a1a2e, 0.92).setOrigin(0.5).setDepth(10);
+                                gameOverBox.setStrokeStyle(4, 0xff4444, 0.8);
+                                gameOverBox.setAlpha(0);
+                                // Responsive UI scaling
+                                const baseWidth = 400;
+                                const scale = Math.min(1, this.sys.game.config.width / baseWidth);
+                                const gameOverText = this.add.text(this.sys.game.config.width/2, 160 * scale, 'GAME OVER', {
+                                    fontSize: Math.round(38 * scale) + 'px',
+                                    fontFamily: 'Arial Black, Arial, sans-serif',
+                                    color: '#fff',
+                                    fontStyle: 'bold',
+                                    stroke: '#ff4444',
+                                    strokeThickness: Math.round(5 * scale),
+                                    shadow: {
+                                        offsetX: 0,
+                                        offsetY: Math.round(3 * scale),
+                                        color: '#ff4444',
+                                        blur: Math.round(8 * scale),
+                                        fill: true
+                                    }
+                                }).setOrigin(0.5).setDepth(11);
+                                gameOverText.setAlpha(0);
+                                const scoreText = this.add.text(this.sys.game.config.width/2, 215 * scale, `Your Score: ${this.score}`, {
+                                    fontSize: Math.round(24 * scale) + 'px',
+                                    fontFamily: 'Arial, sans-serif',
+                                    color: '#00eaff',
+                                    fontStyle: 'bold',
+                                    stroke: '#fff',
+                                    strokeThickness: Math.round(2 * scale),
+                                    shadow: {
+                                        offsetX: 0,
+                                        offsetY: Math.round(1 * scale),
+                                        color: '#00eaff',
+                                        blur: Math.round(5 * scale),
+                                        fill: true
+                                    }
+                                }).setOrigin(0.5).setDepth(11);
+                                scoreText.setAlpha(0);
+                                const restartBtn = this.add.text(this.sys.game.config.width/2, 270 * scale, '⟳ Restart', {
+                                    fontSize: Math.round(22 * scale) + 'px',
+                                    fontFamily: 'Arial, sans-serif',
+                                    color: '#fff',
+                                    backgroundColor: '#00eaff',
+                                    padding: { x: Math.round(16 * scale), y: Math.round(8 * scale) },
+                                    borderRadius: Math.round(12 * scale),
+                                    fontStyle: 'bold',
+                                    stroke: '#fff',
+                                    strokeThickness: Math.round(1 * scale),
+                                    shadow: {
+                                        offsetX: 0,
+                                        offsetY: Math.round(1 * scale),
+                                        color: '#00eaff',
+                                        blur: Math.round(5 * scale),
+                                        fill: true
+                                    }
+                                }).setOrigin(0.5).setInteractive().setDepth(11);
+                                restartBtn.setAlpha(0);
+                                restartBtn.on('pointerdown', () => {
+                                    // Restart the current level directly, do NOT show overlays
+                                    const lvl = this.selectedLevel || 'easy';
+                                    [gameOverText, scoreText, restartBtn].forEach(el => el.destroy());
+                                    this.score = 0;
+                                    this.health = 3;
+                                    this.scoreText.setText('Score: 0');
+                                    this.healthText.setText('Health: 3');
+                                    this.player.x = this.sys.game.config.width/2;
+                                    this.player.y = this.sys.game.config.height-100;
+                                    this.player.setAlpha(1);
+                                    if (this.player.clearTint) this.player.clearTint();
+                                    if (this.playerGlowTween) { this.playerGlowTween.stop(); this.playerGlowTween = null; }
+                                    this.bullets.forEach(b => b.destroy());
+                                    this.bullets = [];
+                                    this.enemies.forEach(e => { e.x = Phaser.Math.Between(30, this.sys.game.config.width-30); e.y = 0; e.hitpoints = e.isRed ? 1 : e.isGreen ? 2 : e.isBlue ? 3 : e.isYellow ? 4 : e.isMagenta ? 5 : 1; });
+                                    this.powerups.forEach(p => p.destroy());
+                                    this.powerups = [];
+                                    if (this.player.shieldCircle) { this.player.shieldCircle.destroy(); this.player.shieldCircle = null; }
+                                    this.player.isShielded = false;
+                                    this.fireMode = 'single';
+                                    if (this.firePowerupTimer) { this.firePowerupTimer.remove(false); this.firePowerupTimer = null; }
+                                    this.gameOver = false;
+                                    // Set difficulty
+                                    if (lvl === 'easy') {
+                                        this.enemySpeed = 1.5;
+                                        this.enemySpawnInterval = 9000;
+                                    } else if (lvl === 'medium') {
+                                        this.enemySpeed = 2.5;
+                                        this.enemySpawnInterval = 6000;
+                                    } else if (lvl === 'hard') {
+                                        this.enemySpeed = 4;
+                                        this.enemySpawnInterval = 3500;
+                                    }
+                                    if (this.enemySpawnTimer) {
+                                        this.enemySpawnTimer.delay = this.enemySpawnInterval;
+                                    }
+                                    // Resume background sound
+                                    if (this.bgSound && !this.bgSound.isPlaying) this.bgSound.play();
+                                });
+                                // Fade in all UI elements smoothly
+                                this.tweens.add({ targets: [gameOverBox, gameOverText, scoreText, restartBtn], alpha: 1, duration: 1200, ease: 'Cubic.easeOut' });
+                            }
+                        }
+                    }
+                }
+                // Collision detection: bullets vs enemies
+                for (let i = this.bullets.length - 1; i >= 0; i--) {
+                    for (let j = 0; j < this.enemies.length; j++) {
+                        let b = this.bullets[i], e = this.enemies[j];
+                        if (e.type === 'bomb') continue; // Bomb cannot be shot
+                        let bounds = e.getBounds();
+                        if (Phaser.Geom.Intersects.RectangleToRectangle(b.getBounds(), bounds)) {
+                            e.hitpoints--;
+                            b.destroy();
+                            this.bullets.splice(i, 1);
+                            if (e.hitpoints <= 0) {
+                                // Split enemy image into halves effect
+                                if (e.texture && e.texture.key) {
+                                    const halfW = (e.displayWidth || 50) / 2;
+                                    const halfH = (e.displayHeight || 50);
+                                    // Left half
+                                    const leftHalf = this.add.image(e.x - halfW / 2, e.y, e.texture.key);
+                                    leftHalf.displayWidth = halfW;
+                                    leftHalf.displayHeight = halfH;
+                                    leftHalf.setCrop(0, 0, halfW, halfH);
+                                    // Right half
+                                    const rightHalf = this.add.image(e.x + halfW / 2, e.y, e.texture.key);
+                                    rightHalf.displayWidth = halfW;
+                                    rightHalf.displayHeight = halfH;
+                                    rightHalf.setCrop(halfW, 0, halfW, halfH);
+                                    // Animate halves moving apart and fading out
+                                    this.tweens.add({
+                                        targets: leftHalf,
+                                        x: leftHalf.x - 30,
+                                        alpha: 0,
+                                        duration: 500,
+                                        ease: 'Cubic.easeOut',
+                                        onComplete: () => leftHalf.destroy()
+                                    });
+                                    this.tweens.add({
+                                        targets: rightHalf,
+                                        x: rightHalf.x + 30,
+                                        alpha: 0,
+                                        duration: 500,
+                                        ease: 'Cubic.easeOut',
+                                        onComplete: () => rightHalf.destroy()
+                                    });
+                                }
+                                let tries = 0, newX, overlap;
+                                const colors = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00, 0xff00ff];
+                                const hitpointsMap = {
+                                    0xff0000: {hp: 1, size: 32},
+                                    0x00ff00: {hp: 2, size: 38},
+                                    0x0000ff: {hp: 3, size: 44},
+                                    0xffff00: {hp: 4, size: 50},
+                                    0xff00ff: {hp: 5, size: 56}
+                                };
+                                const color = colors[Math.floor(Math.random() * colors.length)];
+                                let info = hitpointsMap[color];
+                                do {
+                                    newX = Phaser.Math.Between(30, this.sys.game.config.width-30);
+                                    overlap = false;
+                                    for (let other of this.enemies) {
+                                        if (other !== e) {
+                                            let minDist = (other.displayWidth || 50) / 2 + (info.size || 50) / 2 + 10;
+                                            if (Math.abs(other.x - newX) < minDist && Math.abs(other.y - 0) < minDist) {
+                                                overlap = true;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    tries++;
+                                } while (overlap && tries < 50);
+                                e.y = 0;
+                                e.x = newX;
+                                if (color === 0xff0000) {
+                                    e.setTexture('redEnemy');
+                                    e.displayWidth = info.size;
+                                    e.displayHeight = info.size;
+                                    e.isRed = true;
+                                    e.isGreen = false;
+                                    e.isBlue = false;
+                                    e.isYellow = false;
+                                    e.isMagenta = false;
+                                } else if (color === 0x00ff00) {
+                                    e.setTexture('greenEnemy');
+                                    e.displayWidth = info.size;
+                                    e.displayHeight = info.size;
+                                    e.isRed = false;
+                                    e.isGreen = true;
+                                    e.isBlue = false;
+                                    e.isYellow = false;
+                                    e.isMagenta = false;
+                                } else if (color === 0x0000ff) {
+                                    e.setTexture('blueEnemy');
+                                    e.displayWidth = info.size;
+                                    e.displayHeight = info.size;
+                                    e.isRed = false;
+                                    e.isGreen = false;
+                                    e.isBlue = true;
+                                    e.isYellow = false;
+                                    e.isMagenta = false;
+                                } else if (color === 0xffff00) {
+                                    e.setTexture('yellowEnemy');
+                                    e.displayWidth = info.size;
+                                    e.displayHeight = info.size;
+                                    e.isRed = false;
+                                    e.isGreen = false;
+                                    e.isBlue = false;
+                                    e.isYellow = true;
+                                    e.isMagenta = false;
+                                } else if (color === 0xff00ff) {
+                                    e.setTexture('magentaEnemy');
+                                    e.displayWidth = info.size;
+                                    e.displayHeight = info.size;
+                                    e.isRed = false;
+                                    e.isGreen = false;
+                                    e.isBlue = false;
+                                    e.isYellow = false;
+                                    e.isMagenta = true;
+                                }
+                                e.hitpoints = info.hp;
+                                this.score++;
+                                this.scoreText.setText('Score: ' + this.score);
+                        // Animate score text for feedback
+                        this.tweens.add({
+                            targets: this.scoreText,
+                            scale: 1.25,
+                            duration: 120,
+                            yoyo: true,
+                            onComplete: () => this.scoreText.setScale(1)
+                        });
+                            }
+                            break;
+                        }
+                    }
+                }
+                // Move powerups down and handle collection
+                for (let i = this.powerups.length - 1; i >= 0; i--) {
+                    const p = this.powerups[i];
+                    p.y += 2;
+                    if (p.y > this.sys.game.config.height) {
+                        p.destroy();
+                        this.powerups.splice(i, 1);
+                    } else if (Phaser.Geom.Intersects.RectangleToRectangle(this.player.getBounds(), p.getBounds())) {
+                        if (p.type === 'double' || p.type === 'double2') {
+                            this.fireMode = 'double';
+                            // Pause background sound
+                            if (this.bgSound && this.bgSound.isPlaying) this.bgSound.pause();
+                            // Play double powerup sound in loop
+                            if (this.doublePowerupSound) {
+                                this.doublePowerupSound.stop();
+                                this.doublePowerupSound.play({ loop: true });
+                            }
+                            if (this.firePowerupTimer) this.firePowerupTimer.remove(false);
+                            this.firePowerupTimer = this.time.delayedCall(15000, () => {
+                                this.fireMode = 'single';
+                                this.firePowerupTimer = null;
+                                if (this.doublePowerupSound && this.doublePowerupSound.isPlaying) this.doublePowerupSound.stop();
+                                // Resume background sound
+                                if (this.bgSound && this.bgSound.isPaused) this.bgSound.resume();
+                            });
+                        } else if (p.type === 'triple') {
+                            this.fireMode = 'triple';
+                            if (this.multiFireSound) {
+                                this.multiFireSound.stop();
+                                this.multiFireSound.play({ loop: true });
+                            }
+                            if (this.firePowerupTimer) this.firePowerupTimer.remove(false);
+                            this.firePowerupTimer = this.time.delayedCall(15000, () => {
+                                this.fireMode = 'single';
+                                if (this.multiFireSound && this.multiFireSound.isPlaying) this.multiFireSound.stop();
+                                this.firePowerupTimer = null;
+                            });
+                        } else if (p.type === 'round') {
+                            this.fireMode = 'round';
+                            if (this.multiFireSound) {
+                                this.multiFireSound.stop();
+                                this.multiFireSound.play({ loop: true });
+                            }
+                            if (this.firePowerupTimer) this.firePowerupTimer.remove(false);
+                            this.firePowerupTimer = this.time.delayedCall(15000, () => {
+                                this.fireMode = 'single';
+                                if (this.multiFireSound && this.multiFireSound.isPlaying) this.multiFireSound.stop();
+                                this.firePowerupTimer = null;
+                            });
+                        } else if (p.type === 'shield') {
+                            this.player.isShielded = true;
+                            // Remove old shield if exists
+                            if (this.player.shieldCircle) this.player.shieldCircle.destroy();
+                            // Create transparent ball (circle) around player
+                            this.player.shieldCircle = this.add.circle(this.player.x, this.player.y, 32, 0x00eaff, 0.25);
+                            this.player.shieldCircle.setDepth(1);
+                            // Remove shield after 20 seconds
+                            this.time.delayedCall(20000, () => {
+                                this.player.isShielded = false;
+                                if (this.player.shieldCircle) this.player.shieldCircle.destroy();
+                            });
+                        } else if (p.type === 'health') {
+                            this.health++;
+                            this.healthText.setText('Health: ' + this.health);
+                            // Pop and fade effect for love emoji
+                            this.tweens.add({
+                                targets: p,
+                                scale: 2,
+                                alpha: 0,
+                                duration: 400,
+                                ease: 'Cubic.easeOut',
+                                onComplete: () => p.destroy()
+                            });
+                            // Smooth '+1 Health' popup
+                            const popup = this.add.text(this.player.x, this.player.y-60, '+1 Health', {
+                                fontSize: '18px',
+                                fontFamily: 'Arial, sans-serif',
+                                color: '#00eaff',
+                                fontStyle: 'bold',
+                                stroke: '#fff',
+                                strokeThickness: 2
+                            }).setOrigin(0.5);
+                            this.tweens.add({
+                                targets: popup,
+                                y: popup.y-30,
+                                alpha: 0,
+                                scale: 1.15,
+                                duration: 3500,
+                                ease: 'Cubic.easeOut',
+                                onComplete: () => popup.destroy()
+                            });
+                            this.powerups.splice(i, 1);
+                            continue;
+                        }
+                        if (p.type !== 'health') {
+                            p.destroy();
+                            this.powerups.splice(i, 1);
+                        }
+                    }
+                }
+                // Show hitpoints bar above each enemy
+                for (let e of this.enemies) {
+                    // Remove old bar if exists
+                    if (e.hpBar) e.hpBar.destroy();
+                    // Only show if enemy is alive
+                    if (e.hitpoints > 0) {
+                        const maxHp = e.isRed ? 1 : e.isGreen ? 2 : e.isBlue ? 3 : e.isYellow ? 4 : e.isMagenta ? 5 : 1;
+                        const barWidth = (e.displayWidth || 50);
+                        const hpRatio = Math.max(e.hitpoints / maxHp, 0);
+                        const barX = e.x - barWidth / 2;
+                        const barY = e.y - (e.displayHeight || 50) / 2 - 14;
+                        const barHeight = 8;
+                        const barColor = hpRatio > 0.5 ? 0x00ff00 : (hpRatio > 0.25 ? 0xffff00 : 0xff0000);
+                        e.hpBar = this.add.graphics();
+                        e.hpBar.fillStyle(0x222222, 1);
+                        e.hpBar.fillRect(barX, barY, barWidth, barHeight);
+                        e.hpBar.fillStyle(barColor, 1);
+                        e.hpBar.fillRect(barX, barY, barWidth * hpRatio, barHeight);
+                    }
+                }
+                // Update shield circle position
+                if (this.player.isShielded && this.player.shieldCircle) {
+                    this.player.shieldCircle.x = this.player.x;
+                    this.player.shieldCircle.y = this.player.y;
+                }
+
+                // In update loop, move bomb enemy down independently
+                if (this.bombEnemy) {
+                    if (!this.bombEnemy.waiting) {
+                        this.bombEnemy.y += this.enemySpeed;
+                        if (this.bombEnemy.y > this.sys.game.config.height) {
+                            this.bombEnemy.waiting = true;
+                            this.bombEnemy.setVisible(false);
+                            const delay = Phaser.Math.Between(10000, 25000);
+                            this.time.delayedCall(delay, () => {
+                                this.bombEnemy.y = 0;
+                                this.bombEnemy.x = Phaser.Math.Between(30, this.sys.game.config.width-30);
+                                this.bombEnemy.setVisible(true);
+                                this.bombEnemy.waiting = false;
+                            });
+                        }
+                        // Bomb collision with player
+                        if (Phaser.Geom.Intersects.RectangleToRectangle(this.player.getBounds(), this.bombEnemy.getBounds())) {
+                            this.health -= 3;
+                            this.healthText.setText('Health: ' + this.health);
+                            // Flash player red for feedback
+                            if (this.player.setTint) this.player.setTint(0xff4444);
+                            this.time.delayedCall(200, () => {
+                                if (this.player.clearTint) this.player.clearTint();
+                            });
+                            // Bomb explosion effect
+                            const explosion = this.add.text(this.player.x, this.player.y-40, '💥', {
+                                fontSize: '40px',
+                                fontFamily: 'Arial, sans-serif',
+                                align: 'center'
+                            }).setOrigin(0.5);
+                            this.tweens.add({
+                                targets: explosion,
+                                scale: 2,
+                                alpha: 0,
+                                duration: 600,
+                                ease: 'Cubic.easeOut',
+                                onComplete: () => explosion.destroy()
+                            });
+                            // Respawn bomb at top after random delay
+                            this.bombEnemy.waiting = true;
+                            this.bombEnemy.setVisible(false);
+                            if (this.bombGlowTween) this.bombGlowTween.pause();
+                            const delay = Phaser.Math.Between(10000, 25000);
+                            this.time.delayedCall(delay, () => {
+                                this.bombEnemy.y = 0;
+                                this.bombEnemy.x = Phaser.Math.Between(30, this.sys.game.config.width-30);
+                                this.bombEnemy.setVisible(true);
+                                if (this.bombGlowTween) this.bombGlowTween.resume();
+                                this.bombEnemy.waiting = false;
+                            });
+                            if (this.health <= 0) {
+                                this.gameOver = true;
+                                if (this.bgSound && this.bgSound.isPlaying) this.bgSound.stop();
+                                if (this.explosionSound) this.explosionSound.play();
+                                // Player destroyed effect
+                                const playerExplosion = this.add.text(this.player.x, this.player.y, '💥', {
+                                    fontSize: '64px',
+                                    fontFamily: 'Arial, sans-serif',
+                                    align: 'center'
+                                }).setOrigin(0.5).setDepth(20);
+                                this.tweens.add({
+                                    targets: playerExplosion,
+                                    scale: 2,
+                                    alpha: 0,
+                                    duration: 900,
+                                    ease: 'Cubic.easeOut',
+                                    onComplete: () => playerExplosion.destroy()
+                                });
+                                this.tweens.add({
+                                    targets: this.player,
+                                    alpha: 0,
+                                    duration: 700,
+                                    ease: 'Cubic.easeOut'
+                                });
+                                // Improved Game Over UI
+                                const gameOverBox = this.add.rectangle(this.sys.game.config.width/2, 220, 340, 200, 0x1a1a2e, 0.92).setOrigin(0.5).setDepth(10);
+                                gameOverBox.setStrokeStyle(4, 0xff4444, 0.8);
+                                gameOverBox.setAlpha(0);
+                                // Responsive UI scaling
+                                const baseWidth = 400;
+                                const scale = Math.min(1, this.sys.game.config.width / baseWidth);
+                                const gameOverText = this.add.text(this.sys.game.config.width/2, 160 * scale, 'GAME OVER', {
+                                    fontSize: Math.round(38 * scale) + 'px',
+                                    fontFamily: 'Arial Black, Arial, sans-serif',
+                                    color: '#fff',
+                                    fontStyle: 'bold',
+                                    stroke: '#ff4444',
+                                    strokeThickness: Math.round(5 * scale),
+                                    shadow: {
+                                        offsetX: 0,
+                                        offsetY: Math.round(3 * scale),
+                                        color: '#ff4444',
+                                        blur: Math.round(8 * scale),
+                                        fill: true
+                                    }
+                                }).setOrigin(0.5).setDepth(11);
+                                gameOverText.setAlpha(0);
+                                const scoreText = this.add.text(this.sys.game.config.width/2, 215 * scale, `Your Score: ${this.score}`, {
+                                    fontSize: Math.round(24 * scale) + 'px',
+                                    fontFamily: 'Arial, sans-serif',
+                                    color: '#00eaff',
+                                    fontStyle: 'bold',
+                                    stroke: '#fff',
+                                    strokeThickness: Math.round(2 * scale),
+                                    shadow: {
+                                        offsetX: 0,
+                                        offsetY: Math.round(1 * scale),
+                                        color: '#00eaff',
+                                        blur: Math.round(5 * scale),
+                                        fill: true
+                                    }
+                                }).setOrigin(0.5).setDepth(11);
+                                scoreText.setAlpha(0);
+                                const restartBtn = this.add.text(this.sys.game.config.width/2, 270 * scale, '⟳ Restart', {
+                                    fontSize: Math.round(22 * scale) + 'px',
+                                    fontFamily: 'Arial, sans-serif',
+                                    color: '#fff',
+                                    backgroundColor: '#00eaff',
+                                    padding: { x: Math.round(16 * scale), y: Math.round(8 * scale) },
+                                    borderRadius: Math.round(12 * scale),
+                                    fontStyle: 'bold',
+                                    stroke: '#fff',
+                                    strokeThickness: Math.round(1 * scale),
+                                    shadow: {
+                                        offsetX: 0,
+                                        offsetY: Math.round(1 * scale),
+                                        color: '#00eaff',
+                                        blur: Math.round(5 * scale),
+                                        fill: true
+                                    }
+                                }).setOrigin(0.5).setInteractive().setDepth(11);
+                                restartBtn.setAlpha(0);
+                                restartBtn.on('pointerdown', () => window.location.reload());
+                                // Fade in all UI elements smoothly
+                                this.tweens.add({ targets: [gameOverBox, gameOverText, scoreText, restartBtn], alpha: 1, duration: 1200, ease: 'Cubic.easeOut' });
+                            }
+                        }
+                    }
+                }
+                // In update loop, increase difficulty over time
+                this.difficultyTimer += this.game.loop.delta;
+                if (this.difficultyTimer > 10000) { // every 10 seconds
+                    this.difficultyTimer = 0;
+                    // Increase enemy speed, up to a max
+                    this.enemySpeed = Math.min(this.enemySpeed + 0.5, 8);
+                    // Decrease spawn interval, down to a min
+                    this.enemySpawnInterval = Math.max(this.enemySpawnInterval - 100, 600);
+                    // If you have a spawn timer, update its delay
+                    if (this.enemySpawnTimer) {
+                        this.enemySpawnTimer.delay = this.enemySpawnInterval;
                     }
                 }
             }
         }
-    }
-    new Phaser.Game({
-        type: Phaser.AUTO,
-        width: gameSize.width,
-        height: gameSize.height,
-        parent: 'game-container',
-        physics: { default: 'arcade', arcade: { debug: false } },
-        scene: SpaceShooterScene
-    });
+    };
+    new Phaser.Game(gameConfig);
     </script>
 </body>
 </html>
