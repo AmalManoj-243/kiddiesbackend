@@ -6,16 +6,33 @@
     <title>Space Shooter Test</title>
     <style>
         body { background: #222; margin: 0; }
-        #game-container { width: 100vw; height: 80vh; min-height: 340px; display: block; margin: 0 auto; }
+            #game-container { width: 100vw; height: calc(96vh + 4cm); min-height: 340px; display: block; margin: 0 auto; }
+            #back-btn-mobile {
+                position: absolute;
+                left: 50%;
+                transform: translateX(-50%);
+                bottom: 48px;
+                z-index: 20;
+                font-size: 1.2rem;
+                padding: 10px 28px;
+                border-radius: 10px;
+                border: none;
+                cursor: pointer;
+                background: #444;
+                color: #fff;
+            }
     </style>
 </head>
 <body>
     <div id="game-container"></div>
-    <div style="width:100vw;display:flex;justify-content:center;margin-top:12px;">
-        <button id="back-btn" style="font-size:1.2rem;padding:10px 28px;border-radius:10px;border:none;cursor:pointer;background:#444;color:#fff;">← Back</button>
-    </div>
+        <div id="game-container"></div>
+        <button id="back-btn-mobile" style="display:none;">← Back</button>
     <script>
-    document.getElementById('back-btn').onclick = function() {
+    // Show mobile back button below arrows if on mobile
+    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        document.getElementById('back-btn-mobile').style.display = 'block';
+    }
+    document.getElementById('back-btn-mobile').onclick = function() {
         window.location.href = '/kids/start-highscore/';
     };
     </script>
@@ -24,7 +41,7 @@
     const gameConfig = {
         type: Phaser.AUTO,
         width: Math.min(window.innerWidth, 540),
-        height: Math.max(340, Math.min(window.innerHeight * 0.8, 600)),
+    height: Math.max(340, Math.min(window.innerHeight * 0.8 + 114, 600 + 114)),
         backgroundColor: '#222',
         parent: 'game-container',
         scene: {
@@ -47,16 +64,6 @@
                 this.load.audio('multiFireSound', 'https://res.cloudinary.com/djc3qirsl/video/upload/v1757154398/laserLarge_003_siokcq.ogg');
             },
             create: function() {
-                // Health at top right
-                this.healthText = this.add.text(this.sys.game.config.width-16, 16, 'Health: 3', {
-                    fontFamily: 'Arial, sans-serif',
-                    fontSize: '26px',
-                    color: '#ff4444',
-                    fontStyle: 'bold',
-                    stroke: '#fff',
-                    strokeThickness: 2,
-                    align: 'right'
-                }).setOrigin(1,0).setDepth(3);
                 // Pause button exactly in the middle between score and health
                 const pauseX = (16 + (this.sys.game.config.width - 16)) / 2;
                 const pauseBtn = this.add.text(pauseX, 16, '⏸️', {
@@ -412,14 +419,16 @@
                 const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
                 if (isMobile) {
                     const arrowSize = 48;
+                    const bottomEdge = arrowSize/2 + 4;
+                    const sideOffset = 72;
                     // Left Arrow (round)
-                    const leftCircle = this.add.circle(60, this.sys.game.config.height-60, arrowSize/2, 0x00eaff).setInteractive().setDepth(10);
-                    this.add.text(60, this.sys.game.config.height-60, '⬅️', { fontSize: '32px', color: '#222' }).setOrigin(0.5).setDepth(11);
+                    const leftCircle = this.add.circle(sideOffset, this.sys.game.config.height-bottomEdge, arrowSize/2, 0x00eaff).setInteractive().setDepth(10);
+                    this.add.text(sideOffset, this.sys.game.config.height-bottomEdge, '⬅️', { fontSize: '32px', color: '#222' }).setOrigin(0.5).setDepth(11);
                     leftCircle.on('pointerdown', () => { this.player.moveLeft = true; });
                     leftCircle.on('pointerup', () => { this.player.moveLeft = false; });
                     // Right Arrow (round)
-                    const rightCircle = this.add.circle(this.sys.game.config.width-60, this.sys.game.config.height-60, arrowSize/2, 0x00eaff).setInteractive().setDepth(10);
-                    this.add.text(this.sys.game.config.width-60, this.sys.game.config.height-60, '➡️', { fontSize: '32px', color: '#222' }).setOrigin(0.5).setDepth(11);
+                    const rightCircle = this.add.circle(this.sys.game.config.width-sideOffset, this.sys.game.config.height-bottomEdge, arrowSize/2, 0x00eaff).setInteractive().setDepth(10);
+                    this.add.text(this.sys.game.config.width-sideOffset, this.sys.game.config.height-bottomEdge, '➡️', { fontSize: '32px', color: '#222' }).setOrigin(0.5).setDepth(11);
                     rightCircle.on('pointerdown', () => { this.player.moveRight = true; });
                     rightCircle.on('pointerup', () => { this.player.moveRight = false; });
                 }
@@ -624,7 +633,8 @@
                                     // Restart the current level directly, do NOT show overlays
                                     const lvl = this.selectedLevel || 'easy';
                                     // Remove all game over UI elements
-                                    [gameOverBox, gameOverText, scoreText, restartBtn].forEach(el => el.destroy());
+                                    [gameOverText, scoreText, restartBtn].forEach(el => el.destroy());
+                                    if (typeof gameOverBox !== 'undefined' && gameOverBox && gameOverBox.destroy) gameOverBox.destroy();
                                     // Reset game state
                                     this.score = 0;
                                     this.health = 3;
@@ -721,9 +731,7 @@
                                     ease: 'Cubic.easeOut'
                                 });
                                 // Improved Game Over UI
-                                const gameOverBox = this.add.rectangle(this.sys.game.config.width/2, 220, 340, 200, 0x1a1a2e, 0.92).setOrigin(0.5).setDepth(10);
-                                gameOverBox.setStrokeStyle(4, 0xff4444, 0.8);
-                                gameOverBox.setAlpha(0);
+                                // Removed gameOverBox completely
                                 // Responsive UI scaling
                                 const baseWidth = 400;
                                 const scale = Math.min(1, this.sys.game.config.width / baseWidth);
@@ -819,7 +827,7 @@
                                     if (this.bgSound && !this.bgSound.isPlaying) this.bgSound.play();
                                 });
                                 // Fade in all UI elements smoothly
-                                this.tweens.add({ targets: [gameOverBox, gameOverText, scoreText, restartBtn], alpha: 1, duration: 1200, ease: 'Cubic.easeOut' });
+                                this.tweens.add({ targets: [gameOverText, scoreText, restartBtn], alpha: 1, duration: 1200, ease: 'Cubic.easeOut' });
                             }
                         }
                     }
