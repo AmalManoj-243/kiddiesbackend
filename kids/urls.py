@@ -5,6 +5,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
+    path('snakes_ladders_player_select/', views.snakes_ladders_player_select, name='snakes-ladders-player-select'),
+    path('snakes_ladders_mode/', views.snakes_ladders_mode, name='snakes-ladders-mode'),
     path('lesson/<int:lesson_id>/fill-blank-test/', views.fill_blank_test, name='fill_blank_test'),
     path('lesson/<int:lesson_id>/alphabet-quiz/', views.lesson_alphabet_quiz, name='lesson_alphabet_quiz'),
     path('alphabet-quiz/', views.alphabet_quiz, name='alphabet_quiz'),
@@ -46,4 +48,6 @@ urlpatterns = [
     path('lessons/sight-words-quiz/', views.sight_words_quiz_game, name='sight_words_quiz_game'),
     path('lessons/blending-sounds/', views.blending_sounds_lesson, name='blending_sounds_lesson'),
     path('lessons/blending-quiz/', views.blending_sounds_quiz_game, name='blending_sounds_quiz_game'),
+    path('entertainment/snakes-ladders/start/', views.snakes_ladders_start, name='snakes-ladders-start'),
+    path('entertainment/snakes-ladders/', views.entertainment_snakes_ladders, name='entertainment-snakes-ladders'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

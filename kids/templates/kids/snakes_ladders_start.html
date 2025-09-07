@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snakes & Ladders - Start</title>
+    <style>
+        body { background: #222; color: #fff; margin: 0; font-family: Arial, sans-serif; }
+        .container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
+        h2 { color: #ffaa00; margin-bottom: 32px; }
+        .start-btn { font-size: 1.1rem; padding: 14px 38px; border-radius: 10px; border: none; background: #ffaa00; color: #222; margin: 16px 0; cursor: pointer; font-weight: bold; transition: background 0.2s; }
+        .start-btn:hover { background: #ffcc44; }
+        .back-btn { font-size: 0.95rem; padding: 4px 12px; border-radius: 6px; border: none; background: #ffaa00; color: #222; cursor: pointer; font-weight: bold; box-shadow: 0 1px 4px #0001; margin-bottom: 24px; float: right; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="width:100vw;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;position:absolute;top:0;left:0;margin-top:24px;z-index:2;">
+            <button class="start-btn" id="resume-btn" style="margin-bottom:8px;">Resume Game</button>
+            <button class="start-btn" id="newgame-btn" style="margin-bottom:18px;">New Game</button>
+            <button class="back-btn" onclick="window.history.back()" style="margin-top:0;">← Back</button>
+        </div>
+        <script>
+        // Get mode and players from URL
+        function getParam(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+        const mode = getParam('mode') || '';
+        const players = getParam('players') || '';
+        const baseUrl = '/kids/entertainment/snakes-ladders/';
+        const resumeUrl = `${baseUrl}?resume=1${mode ? `&mode=${mode}` : ''}${players ? `&players=${players}` : ''}`;
+        const newGameUrl = `${baseUrl}?newgame=1${mode ? `&mode=${mode}` : ''}${players ? `&players=${players}` : ''}`;
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('resume-btn').onclick = function() {
+                window.location.href = resumeUrl;
+            };
+            document.getElementById('newgame-btn').onclick = function() {
+                window.location.href = newGameUrl;
+            };
+        });
+        </script>
+    </div>
+</body>
+</html>

@@ -1,3 +1,11 @@
+def snakes_ladders_player_select(request):
+    return render(request, 'kids/snakes_ladders_player_select.html')
+def snakes_ladders_mode(request):
+    return render(request, 'kids/snakes_ladders_mode.html')
+def snakes_ladders_start(request):
+    return render(request, 'kids/snakes_ladders_start.html')
+def entertainment_snakes_ladders(request):
+    return render(request, 'kids/entertainment_snakes_ladders.html')
 def start_highscore(request):
     return render(request, 'kids/start_highscore.html')
 def level_select(request):
