@@ -10,12 +10,12 @@
             #back-btn-mobile {
                 position: absolute;
                 left: 50%;
+                top: 16px;
                 transform: translateX(-50%);
-                bottom: 48px;
                 z-index: 20;
-                font-size: 1.2rem;
-                padding: 10px 28px;
-                border-radius: 10px;
+                font-size: 1rem;
+                padding: 4px 14px;
+                border-radius: 8px;
                 border: none;
                 cursor: pointer;
                 background: #444;
@@ -26,12 +26,8 @@
 <body>
     <div id="game-container"></div>
         <div id="game-container"></div>
-        <button id="back-btn-mobile" style="display:none;">← Back</button>
+    <button id="back-btn-mobile">← Back</button>
     <script>
-    // Show mobile back button below arrows if on mobile
-    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        document.getElementById('back-btn-mobile').style.display = 'block';
-    }
     document.getElementById('back-btn-mobile').onclick = function() {
         window.location.href = '/kids/start-highscore/';
     };
@@ -41,7 +37,7 @@
     const gameConfig = {
         type: Phaser.AUTO,
         width: Math.min(window.innerWidth, 540),
-    height: Math.max(340, Math.min(window.innerHeight * 0.8 + 114, 600 + 114)),
+    height: Math.max(340, Math.min(window.innerHeight * 0.8 + 77, 600 + 77)),
         backgroundColor: '#222',
         parent: 'game-container',
         scene: {
@@ -64,15 +60,16 @@
                 this.load.audio('multiFireSound', 'https://res.cloudinary.com/djc3qirsl/video/upload/v1757154398/laserLarge_003_siokcq.ogg');
             },
             create: function() {
-                // Pause button exactly in the middle between score and health
-                const pauseX = (16 + (this.sys.game.config.width - 16)) / 2;
-                const pauseBtn = this.add.text(pauseX, 16, '⏸️', {
-                    fontSize: '26px',
+                // Pause button below score
+                const pauseX = 40; // slightly right of score
+                const pauseY = 48; // 32px below score
+                const pauseBtn = this.add.text(pauseX, pauseY, '⏸️', {
+                    fontSize: '18px',
                     fontFamily: 'Arial, sans-serif',
                     color: '#fff',
                     backgroundColor: '#444',
-                    padding: { x: 12, y: 8 },
-                    borderRadius: 8,
+                    padding: { x: 6, y: 4 },
+                    borderRadius: 6,
                     fontStyle: 'bold',
                     stroke: '#fff',
                     strokeThickness: 1
