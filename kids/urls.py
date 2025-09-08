@@ -28,6 +28,7 @@ urlpatterns = [
     path('course/<int:course_id>/', views.course_detail, name='course_detail'),
     path('lesson/<int:lesson_id>/', views.lesson_detail, name='lesson_detail'),
     path('lesson/<int:lesson_id>/complete_quiz/', views.complete_alphabet_quiz, name='complete_alphabet_quiz'),
+    path('lesson/<int:lesson_id>/complete_phonics_quiz/', views.complete_phonics_quiz, name='complete_phonics_quiz'),
     path('lesson/order/<int:order>/', views.lesson_by_order, name='lesson_by_order'),
     path('stories/', views.stories, name='kids_stories'),
     path('leaderboard/', views.leaderboard, name='kids_leaderboard'),

@@ -1,3 +1,18 @@
+from django.views.decorators.csrf import csrf_protect
+from django.contrib.auth.decorators import login_required
+
+@login_required
+@csrf_protect
+def complete_phonics_quiz(request, lesson_id):
+    if request.method == 'POST':
+        from .models import Lesson, LessonCompletion
+        lesson = Lesson.objects.get(id=lesson_id)
+        completion, created = LessonCompletion.objects.get_or_create(user=request.user, lesson=lesson)
+        completion.completed_quiz = True
+        completion.save()
+        print(f"[DEBUG] PhonicsCompletion: user={request.user.id}, lesson={lesson.id}, completed_quiz={completion.completed_quiz}, created={created}")
+        return redirect('lesson_detail', lesson_id=lesson.id)
+    return redirect('lesson_detail', lesson_id=lesson_id)
 def snakes_ladders_player_select(request):
     return render(request, 'kids/snakes_ladders_player_select.html')
 def snakes_ladders_mode(request):
@@ -125,7 +140,9 @@ def blending_sounds_quiz_game(request):
     return render(request, 'kids/lessons/blending_sounds_quiz_game.html')
 def phonics_quiz_game(request):
     # Renders the interactive phonics quiz game template
-    return render(request, 'kids/phonics_quiz_game.html', {})
+    from .models import Lesson
+    lesson = Lesson.objects.filter(lesson_type='phonics').first()
+    return render(request, 'kids/phonics_quiz_game.html', {'lesson': lesson})
 def phonics_quiz(request):
     # Simple placeholder view for phonics quiz
     return render(request, 'kids/phonics_quiz.html', {})
@@ -276,6 +293,7 @@ def lesson_by_order(request, order):
 # Lesson detail view for rich lesson modules
 @login_required
 def lesson_detail(request, lesson_id):
+    from kids.models import LessonCompletion
     lesson = get_object_or_404(Lesson, id=lesson_id)
     course = lesson.course
     userprofile = getattr(request.user, 'kids_userprofile', None)
@@ -464,16 +482,66 @@ def lesson_detail(request, lesson_id):
             'U': 'u (as in umbrella)', 'V': 'v (as in violin)', 'W': 'w (as in wolf)', 'X': 'ks (as in xylophone)',
             'Y': 'y (as in yak)', 'Z': 'z (as in zebra)'
         }
-        phonics_images = {
-            'A': '/media/movies/apple-439397_640.webp',
-            'B': '/media/movies/download.jpeg',
-            'C': '/media/movies/f5VK0h2bprRhR6iRrixcuEfRxSUF4l14F66vQYrsJGmKZ5nTA1.jpg',
-            'D': '/media/movies/feUv2SYumXlT8E2RhzlYbZxfEGLG5AVrCPxP1gmAaCusxyPnA1.jpg',
-            'E': '/media/movies/IQsBhg9t747dLhjXfsChIGZy4XfugER8BF0Gw5MDhIcnY5nTA1.jpg',
+        phonics_example_words = {
+            'A': 'apple', 'B': 'ball', 'C': 'cat', 'D': 'dog',
+            'E': 'elephant', 'F': 'fish', 'G': 'goat', 'H': 'hat',
+            'I': 'ice', 'J': 'jug', 'K': 'kite', 'L': 'lion',
+            'M': 'monkey', 'N': 'nest', 'O': 'orange', 'P': 'pig',
+            'Q': 'queen', 'R': 'rabbit', 'S': 'sun', 'T': 'tiger',
+            'U': 'umbrella', 'V': 'violin', 'W': 'wolf', 'X': 'xylophone',
+            'Y': 'yak', 'Z': 'zebra'
         }
-        for letter in 'FGHIJKLMNOPQRSTUVWXYZ':
-            phonics_images[letter] = '/media/movies/635217f73e372771013edb4c-the-avengers-poster-marvel-movie-canvas1.jpg'
+        phonics_images = {
+            'A': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756897998/media/movies/i4oczrducxr2t5qbrbfu.png',
+            'B': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898010/media/movies/i1fqxpcn3bldkw8ulsio.webp',
+            'C': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898005/media/movies/x3agqhuwtfagt68hanwd.png',
+            'D': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898011/media/movies/o7hrufhngj8f9hxsajsj.jpg',
+            'E': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898011/media/movies/s9ctpql1wycxwbsj4lpq.avif',
+            'F': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898027/media/movies/zbf0yrgo0zy9rqcfyn48.webp',
+            'G': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898018/media/movies/yi4fm9p514fad7rezunq.jpg',
+            'H': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898019/media/movies/tlkkyxbmxhbu6qzu7qfj.jpg',
+            'I': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898021/media/movies/wy537j26inkld2p6b5x2.png',
+            'J': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898023/media/movies/bh3vnwskzqulfnqckxam.avif',
+            'K': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898023/media/movies/cn28mvhevguscg0vjntf.png',
+            'L': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898025/media/movies/iuo7nebclrypfzqdcrsa.webp',
+            'M': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898025/media/movies/lpgdyr3vsirvaiw14vrc.jpg',
+            'N': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898000/media/movies/mpnm1aus5ya5tfh0pq36.avif',
+            'O': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898027/media/movies/mecsar9knhpbcc3mdllu.webp',
+            'P': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898030/media/movies/xzjqurvs0wljhrtshyfk.png',
+            'Q': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898033/media/movies/ntoskuxdsc5xylvehhxd.jpg',
+            'R': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898031/media/movies/skkshefanbml3rmqnsva.png',
+            'S': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898003/media/movies/bc6pvssiund7iqo9xnpv.jpg',
+            'T': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898035/media/movies/t8wetww5upa60dxjaw0c.jpg',
+            'U': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898044/media/movies/cuwl7lb0mc2o7dg6rqql.jpg',
+            'V': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898044/media/movies/eobgwabd9sc7bqctlkfz.avif',
+            'W': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898012/media/movies/yquxjntuydpmftb3yaqc.avif',
+            'X': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898040/media/movies/hh9rp22seid9kpdhp8pd.jpg',
+            'Y': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898013/media/movies/pxxebjccqxidetww4oke.jpg',
+            'Z': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898014/media/movies/likwz6y1fn3jj3kxzbjw.jpg',
+        }
         template_name = 'kids/phonics_and_letter_sounds.html'
+        lesson_videos = []
+        if hasattr(lesson, 'videos'):
+            for video in lesson.videos.all().order_by('order'):
+                url = video.video_url
+                embed_url = url
+                if url:
+                    if 'youtu.be/' in url:
+                        embed_url = url.replace('https://youtu.be/', 'https://www.youtube.com/embed/')
+                    elif 'youtube.com/watch?v=' in url:
+                        embed_url = url.replace('watch?v=', 'embed/')
+                video.video_embed_url = embed_url
+                lesson_videos.append(video)
+        # Build completion_map for current user
+        completion_map = {}
+        if request.user.is_authenticated:
+            from kids.models import LessonCompletion
+            completions = LessonCompletion.objects.filter(user=request.user)
+            for comp in completions:
+                completion_map[comp.lesson_id] = comp
+        # Get the phonics lesson id for badge lookup
+        phonics_lesson = Lesson.objects.filter(lesson_type='phonics').first()
+        phonics_lesson_id = phonics_lesson.id if phonics_lesson else None
         return render(request, template_name, {
             'lesson': lesson,
             'completion': completion,
@@ -481,6 +549,10 @@ def lesson_detail(request, lesson_id):
             'next_lesson': next_lesson,
             'phonics_sounds': phonics_sounds,
             'phonics_images': phonics_images,
+            'phonics_example_words': phonics_example_words,
+            'lesson_videos': lesson_videos,
+            'completion_map': completion_map,
+            'phonics_lesson_id': phonics_lesson_id,
         })
     elif lesson.order == 2:
         template_name = 'kids/lessons/shape_lesson_detail.html'

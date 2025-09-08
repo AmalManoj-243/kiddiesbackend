@@ -1,6 +1,9 @@
 {% extends 'base.html' %}
 {% load alphabet_extras %}
+{% load dict_extras %}
 {% block content %}
+
+</div>
 <style>
   .phonics-grid {
     display: grid;
@@ -11,35 +14,47 @@
     max-width: 900px;
   }
   .phonics-card {
-    background: linear-gradient(135deg, #e0f7fa 60%, #ffd6e0 100%);
+    background: linear-gradient(135deg, #f8ffae 60%, #e0f7fa 100%);
     border-radius: 1.2rem;
     box-shadow: 0 2px 12px #ffd60a22;
     border: 2px solid #ff9800;
     text-align: center;
     padding: 1.2rem 0.5rem;
-    font-size: 2rem;
+    font-size: 2.2rem;
     font-family: 'Baloo 2', cursive;
     color: #2d6a4f;
     font-weight: bold;
-    transition: transform 0.25s, box-shadow 0.25s;
+    transition: transform 0.25s cubic-bezier(.4,0,.2,1), box-shadow 0.25s cubic-bezier(.4,0,.2,1), background 0.25s cubic-bezier(.4,0,.2,1), border-color 0.25s cubic-bezier(.4,0,.2,1);
     cursor: pointer;
     position: relative;
-    will-change: transform, box-shadow;
+    will-change: transform, box-shadow, background, border-color;
+    width: 100%;
+    max-width: 180px;
+    min-width: 120px;
+    min-height: 180px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0 auto;
   }
   .phonics-card:hover {
     transform: scale(1.06);
-    box-shadow: 0 12px 32px #ffd60a55;
+    box-shadow: 0 12px 32px #ffd60a55, 0 2px 8px #e0f7fa88;
     background: linear-gradient(135deg, #fffbe6 60%, #ffe066 100%);
     z-index: 2;
   }
   .example-img {
-    width: 38px;
-    height: 38px;
+    width: 100px;
+    height: 100px;
+    max-width: 120px;
+    max-height: 120px;
     object-fit: contain;
     margin-bottom: 0.2rem;
-    border-radius: 0.5rem;
+    border-radius: 1.2rem;
     background: #fffbe6;
-    box-shadow: 0 2px 8px #ffd60a22;
+    box-shadow: 0 4px 16px #ffd60a44;
     display: block;
     margin-left: auto;
     margin-right: auto;
@@ -65,11 +80,17 @@
 </style>
 <div class="container py-4">
   <div class="lesson-title" style="font-size:2.2rem; color:#ff4066; font-family:'Baloo 2',cursive; font-weight:bold; text-align:center; margin-bottom:1.2rem;">Phonics and Letter Sounds</div>
+  <div style="max-width:700px;margin:0 auto 1.5rem auto;padding:1.2rem 1.5rem;background:#fffbe6;border-radius:1.2rem;box-shadow:0 2px 12px #ffd60a22;text-align:center;">
+    <h2 style="color:#ff4066;font-family:'Baloo 2',cursive;font-size:2rem;margin-bottom:0.7rem;">What Are Letter Sounds?</h2>
+    <div style="font-size:1.15rem;color:#2d6a4f;font-family:'Baloo 2',cursive;line-height:1.6;">
+      Letter sounds are the basic sounds each letter of the alphabet makes. Learning these sounds helps children recognize letters and begin to read words. For example, the letter "A" says /a/ as in "apple". Practicing letter sounds is the first step in learning to read!
+    </div>
+  </div>
   <div class="video-section" style="margin:2rem 0; text-align:center;">
     <div class="video-card" style="max-width:650px; margin:2rem auto 2.5rem auto; background:#fffbe6; border-radius:1.5rem; box-shadow:0 6px 32px #ffd60a33; padding:2rem 1.2rem 1.5rem 1.2rem; text-align:center;">
       <div style="display:flex; align-items:center; justify-content:center; gap:0.7rem; margin-bottom:1.2rem;">
-        <img src="https://cdn-icons-png.flaticon.com/512/189/189665.png" alt="Music" style="width:38px; height:38px; border-radius:50%; box-shadow:0 2px 8px #ffd60a22; background:#fff;">
-        <h2 style="font-family:'Baloo 2',cursive; color:#ff9800; font-size:2rem; margin:0;">Watch and Learn Phonics!</h2>
+  <img src="https://cdn-icons-png.flaticon.com/512/189/189665.png" alt="Music" style="width:38px; height:38px; border-radius:50%; box-shadow:0 2px 8px #ffd60a22; background:#fff;">
+  <h2 style="font-family:'Baloo 2',cursive; color:#ff9800; font-size:2rem; margin:0;">Watch and Learn Letter Sounds!</h2>
       </div>
       <div class="responsive-video" style="width:100%; max-width:600px; margin:auto; aspect-ratio:16/9; background:#000; border-radius:1rem; box-shadow:0 4px 24px #ffd60a22; display:flex; align-items:center; justify-content:center;">
         {% if lesson.video_url and 'youtube.com' in lesson.video_url or 'youtu.be' in lesson.video_url %}
@@ -85,30 +106,112 @@
       </div>
       <div style="margin-top:1.2rem; font-size:1.1rem; color:#2d6a4f; font-family:'Baloo 2',cursive;">Watch and listen to learn all the letter sounds!</div>
     </div>
+    </div>
+
+  <div style="max-width:900px;margin:2rem auto 1.5rem auto;padding:1.2rem 1.5rem;background:#fffbe6;border-radius:1.2rem;box-shadow:0 2px 12px #ffd60a22;">
   </div>
-  <div class="phonics-grid">
-    {% for letter, sound in phonics_sounds.items %}
-      <div class="phonics-card">
-        <img src="{{ phonics_images|get_item:letter }}" alt="{{ letter }}" class="example-img">
-        {{ letter }}<br>
-        <span style="font-size:1.1rem; color:#005f73;">{{ sound }}</span>
-        <button class="play-sound-btn" onclick="playSound('{{ sound }}')">🔊 Play Sound</button>
-      </div>
-    {% endfor %}
+  <div style="max-width:700px;margin:2rem auto 1.5rem auto;padding:1.2rem 1.5rem;background:#e0f7fa;border-radius:1.2rem;box-shadow:0 2px 12px #ffd60a22;text-align:center;">
+    <h2 style="color:#ff4066;font-family:'Baloo 2',cursive;font-size:1.7rem;margin-bottom:0.7rem;">What is Phonics?</h2>
+    <div style="font-size:1.15rem;color:#2d6a4f;font-family:'Baloo 2',cursive;line-height:1.6;">
+      Phonics is the method of teaching children how to connect letters and sounds to read and write words. After learning letter sounds, children use phonics to recognize and decode new words, helping them become confident readers. Blending sounds is taught as a separate lesson after phonics.
+    </div>
+  {% if lesson_videos %}
+    <div class="video-section" style="margin:2rem 0; text-align:center;">
+      {% for video in lesson_videos %}
+        <div class="video-card" style="max-width:650px; margin:2rem auto 2.5rem auto; background:#fffbe6; border-radius:1.5rem; box-shadow:0 6px 32px #ffd60a33; padding:2rem 1.2rem 1.5rem 1.2rem; text-align:center;">
+          <h2 style="font-family:'Baloo 2',cursive; color:#ff9800; font-size:2rem; margin-bottom:1.2rem;">{{ video.title }}</h2>
+          <div class="responsive-video" style="width:100%; max-width:600px; margin:auto; aspect-ratio:16/9; background:#000; border-radius:1rem; box-shadow:0 4px 24px #ffd60a22; display:flex; align-items:center; justify-content:center;">
+            {% if video.video_url and 'youtube.com' in video.video_url or 'youtu.be' in video.video_url %}
+              <iframe src="{{ video.video_embed_url }}" title="{{ video.title }}" frameborder="0" allowfullscreen style="width:100%; height:100%; min-height:220px; min-width:320px; border-radius:1.5rem; background:#000; display:block; margin:0 auto;"></iframe>
+            {% else %}
+              <video controls style="width:100%; height:auto; border-radius:1rem; background:#000; display:block; margin:0 auto;" preload="metadata">
+                <source src="{{ video.video_url }}" type="video/mp4">
+                Your browser does not support the video tag.
+              </video>
+              <div style="margin-top:0.7rem;">
+                <a href="{{ video.video_url }}" target="_blank" style="color:#ff9800; font-size:1rem; text-decoration:underline;">Open video in new tab</a>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
   </div>
   <div class="mt-4 text-center">
-    <a href="{% url 'phonics_quiz_game' %}" class="btn btn-lg" style="background:linear-gradient(90deg,#ffd60a 0%,#ff9800 100%); color:#2d6a4f; border-radius:1.5rem; font-size:1.3rem; font-family:'Baloo 2', cursive; font-weight:bold; box-shadow:0 2px 8px #ffd60a88; padding:0.8rem 2.2rem; transition:transform 0.2s;">
-      <span style="font-size:1.7rem; margin-right:0.7rem; vertical-align:middle;">📝</span> Take a Phonics Quiz
-    </a>
+  <div style="max-width:900px;margin:2rem auto 1.5rem auto;padding:1.2rem 1.5rem;background:#fffbe6;border-radius:1.2rem;box-shadow:0 2px 12px #ffd60a22;">
+  <h2 style="text-align:center;color:#ff9800;font-family:'Baloo 2',cursive;font-size:1.7rem;margin-bottom:1.2rem;">Learn Phonics Cards</h2>
+    <div class="phonics-grid">
+      {% for letter, sound in phonics_sounds.items %}
+        {% with example_word=phonics_example_words|get_item:letter %}
+        <div class="phonics-card">
+          <div style="width:100%; display:flex; justify-content:center; align-items:center; margin-bottom:0.5rem;">
+            <img src="{{ phonics_images|get_item:letter }}" alt="{{ letter }}" class="example-img">
+          </div>
+          <div style="width:100%; text-align:center;">
+            <div style="font-family:'Baloo 2',cursive; font-weight:bold; font-size:2.7rem; color:#ff4066; text-shadow:0 2px 12px #ffd60a88; margin-bottom:0.2rem;">
+              {{ letter|lower }}
+            </div>
+            <span style="display:block; margin-bottom:0.6rem; font-size:1.1rem; color:#005f73; font-family:'Comic Sans MS', cursive;">{{ sound }}</span>
+            {% if example_word %}
+              <span style="display:block; margin-bottom:0.3rem; font-size:1.1rem; color:#ff4066; font-family:'Comic Sans MS', cursive;">
+                {% with lower_letter=letter|lower %}
+                  {% for char in example_word %}
+                    {% if char|lower == lower_letter %}
+                      <span style="background: #ffd60a; color: #ff4066; border-radius: 0.3rem; padding: 0 0.2rem; font-weight: bold;">{{ char }}</span>
+                    {% else %}
+                      {{ char }}
+                    {% endif %}
+                  {% endfor %}
+                {% endwith %}
+              </span>
+            {% endif %}
+          </div>
+          <div style="width:100%; display:flex; justify-content:center; align-items:center; margin-top:auto;">
+            <button class="play-sound-btn" onclick="playSound('{{ sound }}')">🔊 Play Sound</button>
+          </div>
+        </div>
+        {% endwith %}
+      {% endfor %}
+    </div>
+  </div>
+  <div class="mt-4 text-center">
+    <div id="phonics-quiz-btn-panel" style="display:inline-block; background:linear-gradient(90deg,#43e97b 0%,#38f9d7 100%); border-radius:2rem; box-shadow:0 4px 18px #38f9d799; padding:1.2rem 2.2rem; margin-bottom:1rem; position:relative;">
+      <a href="{% url 'phonics_quiz_game' %}" id="take-phonics-quiz-btn" class="btn btn-lg" style="background:linear-gradient(90deg,#ffd60a 0%,#ff9800 100%); color:#2d6a4f; border-radius:1rem; font-size:1.05rem; font-family:'Baloo 2', cursive; font-weight:bold; box-shadow:0 2px 8px #ffd60a88; padding:0.4rem 1.1rem; transition:transform 0.2s; display:flex; align-items:center; gap:0.5rem;">
+        <span style="font-size:1.7rem; vertical-align:middle;">📝</span>
+        <span>Take a Phonics Quiz</span>
+        {% if completion and completion.completed_quiz %}
+          <span id="phonics-quiz-status-badge" style="margin-left:1rem; font-size:1.1rem; font-weight:bold; padding:0.3rem 1rem; border-radius:1rem; background:#d4f7c5; color:#388e3c; box-shadow:0 2px 8px #ffd60a44; border:2px solid #43e97b;">Completed</span>
+        {% else %}
+          <span id="phonics-quiz-status-badge" style="margin-left:1rem; font-size:1.1rem; font-weight:bold; padding:0.3rem 1rem; border-radius:1rem; background:#ffd6e0; color:#ff4066; box-shadow:0 2px 8px #ffd60a44; border:2px solid #ff4066;">Not Completed</span>
+        {% endif %}
+      </a>
+    </div>
   </div>
 </div>
 <script>
+  // ...existing code for playSound and voice logic...
+  let sweetVoice = null;
+  function loadSweetVoice() {
+    var voices = window.speechSynthesis.getVoices();
+    sweetVoice = voices.find(function(v) {
+      return v.name.toLowerCase().includes('child') || v.name.toLowerCase().includes('kids') || v.name.toLowerCase().includes('girl') || v.name.toLowerCase().includes('boy') || v.name.toLowerCase().includes('sweet') || v.name.toLowerCase().includes('samantha') || v.name.toLowerCase().includes('zira');
+    });
+  }
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.onvoiceschanged = loadSweetVoice;
+    loadSweetVoice();
+  }
+
   function playSound(sound) {
     if ('speechSynthesis' in window) {
       var utter = new SpeechSynthesisUtterance(sound);
       utter.lang = 'en-US';
       utter.pitch = 1.5;
       utter.rate = 1.1;
+      if (sweetVoice) {
+        utter.voice = sweetVoice;
+      }
       window.speechSynthesis.speak(utter);
     }
   }

@@ -91,7 +91,7 @@
             <div class="lesson-grid">
               {% for lesson in lessons %}
                 {% with completion=completion_map|dict_get:lesson.id %}
-                <div class="lesson-card p-3 position-relative">
+                <div class="lesson-card p-3 position-relative" data-lesson-title="{{ lesson.title }}"{% if 'phonics' in lesson.title|lower %} id="phonics-quiz-card"{% endif %}>
                   <div class="progress-bar mb-2">
                     <div class="progress-bar-inner" style="width:100%"></div>
                   </div>
@@ -110,11 +110,19 @@
                   {% if enrolled %}
                     <div class="lesson-action-btn" style="position:absolute; right:18px; bottom:18px; display:flex; align-items:center; gap:8px;">
                       {% if completion and completion.completed_quiz %}
-                        <span style="background:#38d39f; color:white; font-weight:600; border-radius:8px; padding:4px 14px; font-size:0.95rem; box-shadow:0 2px 8px rgba(44,62,80,0.10);">Completed</span>
-                        <a href="{% url 'lesson_detail' lesson.id %}" class="btn btn-outline-success btn-sm">Review Lesson <i class="bi bi-check2"></i></a>
+                        <span class="phonics-lesson-status-badge" style="background:#38d39f; color:white; font-weight:600; border-radius:8px; padding:4px 14px; font-size:0.95rem; box-shadow:0 2px 8px rgba(44,62,80,0.10);">Completed</span>
+                        <a href="{% url 'lesson_detail' lesson.id %}" class="btn btn-outline-success btn-sm review-phonics-btn">Review Lesson <i class="bi bi-check2"></i></a>
                       {% else %}
-                        <span style="background:#38d39f; color:white; font-weight:600; border-radius:8px; padding:4px 14px; font-size:0.95rem; box-shadow:0 2px 8px rgba(44,62,80,0.10);">Unlocked</span>
-                        <a href="{% url 'lesson_detail' lesson.id %}" class="btn btn-primary btn-sm">Go to Lesson <i class="bi bi-arrow-right"></i></a>
+                        {% if lesson.title|lower == 'phonics quiz' %}
+                          <span class="phonics-lesson-status-badge" style="background:#ffd6e0; color:#ff4066; font-weight:600; border-radius:8px; padding:4px 14px; font-size:0.95rem; box-shadow:0 2px 8px rgba(44,62,80,0.10);">Unlocked</span>
+                          <a href="{% url 'lesson_detail' lesson.id %}" class="btn btn-outline-success btn-sm review-phonics-btn" style="display:none;">Review Lesson <i class="bi bi-check2"></i></a>
+                        {% elif lesson.title|lower == 'introduction to alphabet' or lesson.title|lower == 'alphabet lesson' %}
+                          <span class="alphabet-lesson-status-badge" style="background:#ffd6e0; color:#ff4066; font-weight:600; border-radius:8px; padding:4px 14px; font-size:0.95rem; box-shadow:0 2px 8px rgba(44,62,80,0.10);">Unlocked</span>
+                          <a href="{% url 'lesson_detail' lesson.id %}" class="btn btn-outline-success btn-sm review-alphabet-btn" style="display:none;">Review Lesson <i class="bi bi-check2"></i></a>
+                        {% else %}
+                          <span style="background:#38d39f; color:white; font-weight:600; border-radius:8px; padding:4px 14px; font-size:0.95rem; box-shadow:0 2px 8px rgba(44,62,80,0.10);">Unlocked</span>
+                          <a href="{% url 'lesson_detail' lesson.id %}" class="btn btn-primary btn-sm">Go to Lesson <i class="bi bi-arrow-right"></i></a>
+                        {% endif %}
                       {% endif %}
                     </div>
                   {% else %}
@@ -125,6 +133,97 @@
                 </div>
                 {% endwith %}
               {% endfor %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Scroll to phonics quiz section if ?scroll=phonics-quiz is in URL
+  if (window.location.search.includes('scroll=quiz') || window.location.search.includes('scroll=phonics-quiz')) {
+    var quizCard = document.getElementById('phonics-quiz-card');
+    if (quizCard) {
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          quizCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          quizCard.style.transition = 'box-shadow 0.5s, border 0.5s';
+          quizCard.style.boxShadow = '0 0 0 4px #ffd60a, 0 8px 32px rgba(44,62,80,0.18)';
+          quizCard.style.border = '2px solid #ffd60a';
+          setTimeout(function() {
+            quizCard.style.boxShadow = '';
+            quizCard.style.border = '';
+          }, 1800);
+        }, 300);
+      });
+    }
+  }
+  // ...existing code for other badge logic...
+  // Removed localStorage-based phonics badge logic for persistent display
+  // Alphabet badge logic
+  var alphabetBadges = document.querySelectorAll('.lesson-card[data-lesson-title] .alphabet-lesson-status-badge');
+  alphabetBadges.forEach(function(badge) {
+    var card = badge.closest('.lesson-card');
+    var title = card ? card.getAttribute('data-lesson-title') : '';
+    if (title && (title.toLowerCase().includes('alphabet') || title.toLowerCase().includes('introduction to alphabet'))) {
+      var completed = localStorage.getItem('alphabetQuizCompleted');
+      var reviewBtn = card.querySelector('.review-alphabet-btn');
+      if (completed === 'true') {
+        badge.textContent = 'Completed';
+        badge.style.background = '#38d39f';
+        badge.style.color = 'white';
+        badge.style.border = '2px solid #43e97b';
+        if (reviewBtn) {
+          reviewBtn.style.display = '';
+        }
+      } else {
+        if (reviewBtn) {
+          reviewBtn.style.display = 'none';
+        }
+      }
+    }
+  });
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var phonicsBadges = document.querySelectorAll('.lesson-card[data-lesson-title] .phonics-lesson-status-badge');
+  phonicsBadges.forEach(function(badge) {
+    var card = badge.closest('.lesson-card');
+    var title = card ? card.getAttribute('data-lesson-title') : '';
+    if (title && title.toLowerCase().includes('phonics')) {
+      var completed = localStorage.getItem('phonicsQuizCompleted');
+      var reviewBtn = card.querySelector('.review-phonics-btn');
+      if (completed === 'true') {
+        badge.textContent = 'Completed';
+        badge.style.background = '#38d39f';
+        badge.style.color = 'white';
+        badge.style.border = '2px solid #43e97b';
+        if (reviewBtn) {
+          reviewBtn.style.display = '';
+        }
+      } else {
+        if (reviewBtn) {
+          reviewBtn.style.display = 'none';
+        }
+      }
+    }
+  });
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var phonicsBadges = document.querySelectorAll('.lesson-card[data-lesson-title] .phonics-lesson-status-badge');
+  phonicsBadges.forEach(function(badge) {
+    var card = badge.closest('.lesson-card');
+    var title = card ? card.getAttribute('data-lesson-title') : '';
+    if (title && title.toLowerCase().includes('phonics')) {
+      var completed = localStorage.getItem('phonicsQuizCompleted');
+      if (completed === 'true') {
+        badge.textContent = 'Completed';
+        badge.style.background = '#38d39f';
+        badge.style.color = 'white';
+        badge.style.border = '2px solid #43e97b';
+      }
+    }
+  });
+});
+</script>
             </div>
           {% else %}
             <div class="alert alert-info">No lessons available yet for this course.</div>
