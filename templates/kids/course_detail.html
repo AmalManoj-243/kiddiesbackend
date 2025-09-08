@@ -135,93 +135,14 @@
               {% endfor %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Scroll to phonics quiz section if ?scroll=phonics-quiz is in URL
-  if (window.location.search.includes('scroll=quiz') || window.location.search.includes('scroll=phonics-quiz')) {
-    var quizCard = document.getElementById('phonics-quiz-card');
-    if (quizCard) {
-      window.addEventListener('load', function() {
-        setTimeout(function() {
-          quizCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          quizCard.style.transition = 'box-shadow 0.5s, border 0.5s';
-          quizCard.style.boxShadow = '0 0 0 4px #ffd60a, 0 8px 32px rgba(44,62,80,0.18)';
-          quizCard.style.border = '2px solid #ffd60a';
-          setTimeout(function() {
-            quizCard.style.boxShadow = '';
-            quizCard.style.border = '';
-          }, 1800);
-        }, 300);
-      });
-    }
-  }
-  // ...existing code for other badge logic...
-  // Removed localStorage-based phonics badge logic for persistent display
-  // Alphabet badge logic
-  var alphabetBadges = document.querySelectorAll('.lesson-card[data-lesson-title] .alphabet-lesson-status-badge');
-  alphabetBadges.forEach(function(badge) {
-    var card = badge.closest('.lesson-card');
-    var title = card ? card.getAttribute('data-lesson-title') : '';
-    if (title && (title.toLowerCase().includes('alphabet') || title.toLowerCase().includes('introduction to alphabet'))) {
-      var completed = localStorage.getItem('alphabetQuizCompleted');
-      var reviewBtn = card.querySelector('.review-alphabet-btn');
-      if (completed === 'true') {
-        badge.textContent = 'Completed';
-        badge.style.background = '#38d39f';
-        badge.style.color = 'white';
-        badge.style.border = '2px solid #43e97b';
-        if (reviewBtn) {
-          reviewBtn.style.display = '';
-        }
-      } else {
-        if (reviewBtn) {
-          reviewBtn.style.display = 'none';
-        }
-      }
-    }
-  });
 });
 </script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  var phonicsBadges = document.querySelectorAll('.lesson-card[data-lesson-title] .phonics-lesson-status-badge');
-  phonicsBadges.forEach(function(badge) {
-    var card = badge.closest('.lesson-card');
-    var title = card ? card.getAttribute('data-lesson-title') : '';
-    if (title && title.toLowerCase().includes('phonics')) {
-      var completed = localStorage.getItem('phonicsQuizCompleted');
-      var reviewBtn = card.querySelector('.review-phonics-btn');
-      if (completed === 'true') {
-        badge.textContent = 'Completed';
-        badge.style.background = '#38d39f';
-        badge.style.color = 'white';
-        badge.style.border = '2px solid #43e97b';
-        if (reviewBtn) {
-          reviewBtn.style.display = '';
-        }
-      } else {
-        if (reviewBtn) {
-          reviewBtn.style.display = 'none';
-        }
-      }
-    }
-  });
 });
 </script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  var phonicsBadges = document.querySelectorAll('.lesson-card[data-lesson-title] .phonics-lesson-status-badge');
-  phonicsBadges.forEach(function(badge) {
-    var card = badge.closest('.lesson-card');
-    var title = card ? card.getAttribute('data-lesson-title') : '';
-    if (title && title.toLowerCase().includes('phonics')) {
-      var completed = localStorage.getItem('phonicsQuizCompleted');
-      if (completed === 'true') {
-        badge.textContent = 'Completed';
-        badge.style.background = '#38d39f';
-        badge.style.color = 'white';
-        badge.style.border = '2px solid #43e97b';
-      }
-    }
-  });
 });
 </script>
             </div>

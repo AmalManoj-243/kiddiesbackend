@@ -204,20 +204,19 @@
     const cellSize = canvas.width / boardSize;
     const snakes = { 28: 10, 37: 3, 48: 16, 75: 32, 94: 71, 96: 42 };
     const ladders = { 4: 56, 12: 50, 14: 55, 22: 58, 41: 79, 54: 88 };
-    // Get player count from URL (?players=3)
-    function getPlayerCount() {
+    // Always use URL parameters for mode and player count
+    function getParam(name) {
         const params = new URLSearchParams(window.location.search);
-        let n = parseInt(params.get('players'));
-        if (isNaN(n) || n < 1 || n > 5) n = 2;
-        return n;
+        return params.get(name);
     }
     const playerColors = ['#00eaff', '#ff4444', '#44ff44', '#ffaa00', '#aa00ff'];
-    let playerCount = getPlayerCount();
+    let mode = getParam('mode') || '';
+    let playerCount = parseInt(getParam('players'));
+    if (isNaN(playerCount) || playerCount < 1 || playerCount > 5) playerCount = 2;
+    let isSinglePlayer = (mode === 'single' || playerCount === 1);
     let players;
     let currentPlayer = 0;
-    let isSinglePlayer = (playerCount === 1);
     if (isSinglePlayer) {
-        // Player 1 is human, Player 2 is computer
         players = [
             { pos: 1, color: playerColors[0], name: 'You' },
             { pos: 1, color: playerColors[1], name: 'Computer', isComputer: true }

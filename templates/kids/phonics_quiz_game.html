@@ -666,6 +666,10 @@
       <div id='completion-action-row' style='display:flex;justify-content:center;align-items:flex-end;gap:0.7rem;margin-top:1.2rem;'></div>
     </div>`;
     quizGame.innerHTML = html;
+    // Ensure localStorage is set for review button logic
+    try {
+      localStorage.setItem('phonicsQuizCompleted', 'true');
+    } catch (e) {}
     // Add action buttons to completion-action-row
     let actionRow = document.getElementById('completion-action-row');
     // Play Again button
