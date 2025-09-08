@@ -216,17 +216,35 @@
     let isSinglePlayer = (mode === 'single' || playerCount === 1);
     let players;
     let currentPlayer = 0;
-    // Always override with URL params, ignore any stale localStorage state
-    if (isSinglePlayer) {
-        players = [
-            { pos: 1, color: playerColors[0], name: 'You' },
-            { pos: 1, color: playerColors[1], name: 'Computer', isComputer: true }
-        ];
-        playerCount = 2;
+    if (getParam('resume') === '1') {
+        // Resume previous game state from localStorage
+        if (!loadGameState()) {
+            alert('No saved game to resume.');
+            // Fallback to new game setup
+            if (isSinglePlayer) {
+                players = [
+                    { pos: 1, color: playerColors[0], name: 'You' },
+                    { pos: 1, color: playerColors[1], name: 'Computer', isComputer: true }
+                ];
+                playerCount = 2;
+            } else {
+                players = Array.from({length: playerCount}, (_, i) => ({ pos: 1, color: playerColors[i], name: `Player ${i+1}` }));
+            }
+        }
+        setTimeout(() => { drawBoard(); updateTurnIndicator(); }, 0);
     } else {
-        players = Array.from({length: playerCount}, (_, i) => ({ pos: 1, color: playerColors[i], name: `Player ${i+1}` }));
+        // Always use URL params for new game
+        if (isSinglePlayer) {
+            players = [
+                { pos: 1, color: playerColors[0], name: 'You' },
+                { pos: 1, color: playerColors[1], name: 'Computer', isComputer: true }
+            ];
+            playerCount = 2;
+        } else {
+            players = Array.from({length: playerCount}, (_, i) => ({ pos: 1, color: playerColors[i], name: `Player ${i+1}` }));
+        }
+        setTimeout(() => { drawBoard(); updateTurnIndicator(); }, 0);
     }
-    setTimeout(() => { drawBoard(); updateTurnIndicator(); }, 0);
     const boardImg = new window.Image();
     boardImg.src = 'https://res.cloudinary.com/djc3qirsl/image/upload/v1757239050/snakes-and-ladders-board-game-boardgame-vector_peaeer.jpg';
     // Show mode banner
