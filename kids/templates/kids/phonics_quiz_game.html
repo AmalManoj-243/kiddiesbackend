@@ -1,5 +1,46 @@
 {% extends 'base.html' %}
 {% block content %}
+{% if lesson_videos %}
+  <div class="video-section">
+    {% if lesson_videos|length > 0 %}
+      <div class="video-card" style="max-width:650px; margin:2rem auto 2.5rem auto; text-align:center; border:2px solid #ffd60a; border-radius:1.5rem; box-shadow:0 4px 24px #ffd60a22; background:#fffbe6; padding:1.5rem;">
+        <h2 style="font-family:'Baloo 2',cursive; color:#ff4066; font-size:2rem; margin-bottom:1.2rem;">What is Phonics?</h2>
+    <p style="font-family:'Baloo 2',cursive; color:#2d6a4f; font-size:1.15rem; margin-bottom:1.2rem; max-width:540px; margin-left:auto; margin-right:auto;">Phonics is a method for teaching reading and writing by developing learners' phonemic awareness—the ability to hear, identify, and manipulate sounds—to help them understand the relationship between letters and sounds.</p>
+        <div class="responsive-video" style="width:100%; max-width:600px; margin:auto; aspect-ratio:16/9; background:#000; border-radius:1rem; display:flex; align-items:center; justify-content:center;">
+          {% if lesson_videos.0.video_url and 'youtube.com' in lesson_videos.0.video_url or 'youtu.be' in lesson_videos.0.video_url %}
+            <iframe src="{{ lesson_videos.0.video_embed_url }}" title="What is Phonics?" frameborder="0" allowfullscreen style="width:100%; height:100%; min-height:220px; min-width:320px; border-radius:1.5rem; background:#000; display:block; margin:0 auto;"></iframe>
+          {% else %}
+            <video controls style="width:100%; height:auto; border-radius:1rem; background:#000; display:block; margin:0 auto;" preload="metadata">
+              <source src="{{ lesson_videos.0.video_url }}" type="video/mp4">
+              Your browser does not support the video tag.
+            </video>
+            <div style="margin-top:0.7rem;">
+              <a href="{{ lesson_videos.0.video_url }}" target="_blank" style="color:#ff9800; font-size:1rem; text-decoration:underline;">Open video in new tab</a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+    {% if lesson_videos|length > 1 %}
+      <div class="video-card" style="max-width:650px; margin:2rem auto 2.5rem auto; text-align:center; border:2px solid #43e97b; border-radius:1.5rem; box-shadow:0 4px 24px #38f9d799; background:#e0f7fa; padding:1.5rem;">
+        <h2 style="font-family:'Baloo 2',cursive; color:#43e97b; font-size:2rem; margin-bottom:1.2rem;">Phonics Song</h2>
+        <div class="responsive-video" style="width:100%; max-width:600px; margin:auto; aspect-ratio:16/9; background:#000; border-radius:1rem; display:flex; align-items:center; justify-content:center;">
+          {% if lesson_videos.1.video_url and 'youtube.com' in lesson_videos.1.video_url or 'youtu.be' in lesson_videos.1.video_url %}
+            <iframe src="{{ lesson_videos.1.video_embed_url }}" title="Phonics Song" frameborder="0" allowfullscreen style="width:100%; height:100%; min-height:220px; min-width:320px; border-radius:1.5rem; background:#000; display:block; margin:0 auto;"></iframe>
+          {% else %}
+            <video controls style="width:100%; height:auto; border-radius:1rem; background:#000; display:block; margin:0 auto;" preload="metadata">
+              <source src="{{ lesson_videos.1.video_url }}" type="video/mp4">
+              Your browser does not support the video tag.
+            </video>
+            <div style="margin-top:0.7rem;">
+              <a href="{{ lesson_videos.1.video_url }}" target="_blank" style="color:#43e97b; font-size:1rem; text-decoration:underline;">Open video in new tab</a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+  </div>
+{% endif %}
 <style>
   body {
     background: linear-gradient(120deg, #f8ffae 0%, #e0f7fa 100%, #ffd6e0 120%);
@@ -141,7 +182,7 @@
 <script>
   // Example questions data (replace with context from Django)
   const questions = [
-    { type: 'multiple_choice', question: 'What sound does the letter "A" make in "Apple"?', options: ['/æ/', '/ɑː/', '/eɪ/', '/ə/'], answer: 0 },
+  { type: 'multiple_choice', question: 'What sound does the letter "A" make in "Apple"?', options: ['/æ/ (aah, as in apple)', '/ɑː/ (ahh, as in father)', '/eɪ/ (ay, as in cake)', '/ə/ (uh, as in about)'], answer: 0 },
     { type: 'fill_blank', question: 'The word "Ball" starts with the letter ___', answer: 'B' },
     { type: 'matching', question: 'Match the word to its starting sound: Cat', options: ['/k/', '/s/', '/t/', '/d/'], answer: 0 },
     { type: 'true_false', question: 'The letter "E" in "Elephant" makes the /e/ sound.', answer: false },
@@ -179,8 +220,24 @@
     if (q.type === 'multiple_choice' || q.type === 'matching' || q.type === 'odd_one_out') {
       html += `<div class='quiz-options'>`;
       q.options.forEach((opt, i) => {
-        html += `<button class='quiz-option' onclick='checkAnswer(${i})' id='option${i}'>${opt}</button>`;
+        let speakHint = opt;
+        // For first question, extract only the pronunciation hint
+        if (current === 0) {
+          const match = opt.match(/\(([^)]+)\)/);
+          speakHint = match ? match[1] : opt;
+        }
+  html += `<button class='quiz-option' onclick='checkAnswer(${i}); speakOptionHint(${JSON.stringify(speakHint)});' id='option${i}'>${opt}</button>`;
       });
+// Speak only the kid-friendly hint for first question options
+function speakOptionHint(hint) {
+  if ('speechSynthesis' in window) {
+    var utter = new SpeechSynthesisUtterance(hint);
+    utter.lang = 'en-US';
+    utter.pitch = 1.3;
+    utter.rate = 1.1;
+    window.speechSynthesis.speak(utter);
+  }
+}
       html += `</div>`;
     } else if (q.type === 'fill_blank' || q.type === 'rearrangement') {
       html += `<input type='text' id='fillInput' class='quiz-option' placeholder='Type your answer'>`;

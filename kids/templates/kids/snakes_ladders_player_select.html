@@ -29,10 +29,17 @@
         </div>
         <h2 style="text-align:center;color:#ffaa00;margin-bottom:18px;">Select Number of Players</h2>
         <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
-            <button class="player-btn" onclick="window.location.href='/kids/entertainment/snakes-ladders/start/?mode=multi&players=2'">2 Players</button>
-            <button class="player-btn" onclick="window.location.href='/kids/entertainment/snakes-ladders/start/?mode=multi&players=3'">3 Players</button>
-            <button class="player-btn" onclick="window.location.href='/kids/entertainment/snakes-ladders/start/?mode=multi&players=4'">4 Players</button>
-            <button class="player-btn" onclick="window.location.href='/kids/entertainment/snakes-ladders/start/?mode=multi&players=5'">5 Players</button>
+            <button class="player-btn" onclick="setPlayersAndGo(2)">2 Players</button>
+            <button class="player-btn" onclick="setPlayersAndGo(3)">3 Players</button>
+            <button class="player-btn" onclick="setPlayersAndGo(4)">4 Players</button>
+            <button class="player-btn" onclick="setPlayersAndGo(5)">5 Players</button>
         </div>
+        <script>
+        function setPlayersAndGo(num) {
+            sessionStorage.setItem('snl_resume_mode', 'multi');
+            sessionStorage.setItem('snl_resume_players', num);
+            window.location.href = `/kids/entertainment/snakes-ladders/start/?mode=multi&players=${num}`;
+        }
+        </script>
 </body>
 </html>

@@ -21,22 +21,43 @@
             <button class="back-btn" onclick="window.history.back()" style="margin-top:0;">← Back</button>
         </div>
         <script>
-        // Get mode and players from URL
+        // Always use the latest selected mode and players for resume
         function getParam(name) {
             const urlParams = new URLSearchParams(window.location.search);
             return urlParams.get(name);
         }
-        const mode = getParam('mode') || '';
-        const players = getParam('players') || '';
+        let mode = getParam('mode') || '';
+        let players = getParam('players') || '';
         const baseUrl = '/kids/entertainment/snakes-ladders/';
-        const resumeUrl = `${baseUrl}?resume=1${mode ? `&mode=${mode}` : ''}${players ? `&players=${players}` : ''}`;
-        const newGameUrl = `${baseUrl}?newgame=1${mode ? `&mode=${mode}` : ''}${players ? `&players=${players}` : ''}`;
+        function getLatestResumeUrl() {
+            // If user has selected new mode/players, use those
+            mode = getParam('mode') || mode;
+            players = getParam('players') || players;
+            return `${baseUrl}?resume=1${mode ? `&mode=${mode}` : ''}${players ? `&players=${players}` : ''}`;
+        }
+        function getLatestNewGameUrl() {
+            mode = getParam('mode') || mode;
+            players = getParam('players') || players;
+            return `${baseUrl}?newgame=1${mode ? `&mode=${mode}` : ''}${players ? `&players=${players}` : ''}`;
+        }
         document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('resume-btn').onclick = function() {
-                window.location.href = resumeUrl;
-            };
+            // Always use sessionStorage values for resume
+            // Store and load resume state per mode/player combination
+            const resumeBtn = document.getElementById('resume-btn');
+            const resumeKey = `snl_resume_${mode}_${players}`;
+            // Enable resume only if a state exists for this mode/player
+            if (sessionStorage.getItem(resumeKey)) {
+                resumeBtn.disabled = false;
+                resumeBtn.onclick = function() {
+                    const resumeUrl = `${baseUrl}?resume=1&mode=${mode}&players=${players}`;
+                    window.location.href = resumeUrl;
+                };
+            } else {
+                resumeBtn.disabled = true;
+                resumeBtn.title = "No game to resume for this mode/player.";
+            }
             document.getElementById('newgame-btn').onclick = function() {
-                window.location.href = newGameUrl;
+                window.location.href = getLatestNewGameUrl();
             };
         });
         </script>

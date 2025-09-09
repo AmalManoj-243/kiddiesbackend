@@ -40,57 +40,113 @@
         </div>
     </div>
     <script>
+    // --- Save/Load game state per mode/player combination ---
+    function saveGameStateForMode(mode, playersCount) {
+        const state = {
+            players: players.map(p => ({ pos: p.pos, color: p.color, name: p.name, isComputer: p.isComputer })),
+            currentPlayer,
+            playerCount: playersCount,
+            isSinglePlayer
+        };
+        const key = `snl_resume_${mode}_${playersCount}`;
+        sessionStorage.setItem(key, JSON.stringify(state));
+    }
+
+    function loadGameStateForMode(mode, playersCount) {
+        const key = `snl_resume_${mode}_${playersCount}`;
+        const raw = sessionStorage.getItem(key);
+        if (!raw) return false;
+        try {
+            const state = JSON.parse(raw);
+            if (!state.players || !Array.isArray(state.players)) return false;
+            players = state.players.map((p, i) => ({
+                pos: p.pos,
+                color: p.color,
+                name: p.name,
+                isComputer: p.isComputer
+            }));
+            currentPlayer = state.currentPlayer || 0;
+            playerCount = state.playerCount || players.length;
+            isSinglePlayer = !!state.isSinglePlayer;
+            return true;
+        } catch(e) { return false; }
+    }
     // Resume and New Game button logic via URL query params
     function getQueryParam(name) {
         const urlParams = new URLSearchParams(window.location.search);
         return urlParams.get(name);
     }
     window.addEventListener('DOMContentLoaded', function() {
+        let mode = getQueryParam('mode');
+        let playersCount = getQueryParam('players');
+        if (!mode) {
+            mode = (getQueryParam('players') === '1' || playerCount === 1) ? 'single' : 'multi';
+        }
+        if (!playersCount) {
+            playersCount = (mode === 'single') ? 1 : (playerCount || 2);
+        }
         if (getQueryParam('resume') === '1') {
-            if (loadGameState()) {
+            if (loadGameStateForMode(mode, playersCount)) {
                 drawBoard();
                 updateTurnIndicator();
             } else {
                 alert('No saved game to resume.');
+                // Initialize default state and draw board immediately
+                if (mode === 'single' || playersCount == 1) {
+                    players = [
+                        { pos: 1, color: playerColors[0], name: 'You' },
+                        { pos: 1, color: playerColors[1], name: 'Computer', isComputer: true }
+                    ];
+                    playerCount = 2;
+                } else {
+                    players = Array.from({length: playersCount}, (_, i) => ({ pos: 1, color: playerColors[i], name: `Player ${i+1}` }));
+                }
+                currentPlayer = 0;
+                drawBoard();
+                updateTurnIndicator();
             }
         } else if (getQueryParam('newgame') === '1') {
-            localStorage.removeItem(SNL_STATE_KEY);
-            if (isSinglePlayer) {
+            if (mode === 'single' || playersCount == 1) {
                 players = [
                     { pos: 1, color: playerColors[0], name: 'You' },
                     { pos: 1, color: playerColors[1], name: 'Computer', isComputer: true }
                 ];
                 playerCount = 2;
             } else {
-                players = Array.from({length: playerCount}, (_, i) => ({ pos: 1, color: playerColors[i], name: `Player ${i+1}` }));
+                players = Array.from({length: playersCount}, (_, i) => ({ pos: 1, color: playerColors[i], name: `Player ${i+1}` }));
             }
             currentPlayer = 0;
             document.getElementById('roll-btn').disabled = false;
             document.getElementById('dice-result').textContent = '';
             drawBoard();
             updateTurnIndicator();
-            saveGameState();
+            saveGameStateForMode(mode, playersCount);
         } else {
-            // Always try to restore state and draw tokens on normal load
-            if (loadGameState()) {
-                drawBoard();
-                updateTurnIndicator();
-            } else {
-                drawBoard();
-                updateTurnIndicator();
+            // Always restore state and draw tokens on normal load
+            if (!loadGameStateForMode(mode, playersCount)) {
+                // If no saved state, initialize default and draw
+                if (mode === 'single' || playersCount == 1) {
+                    players = [
+                        { pos: 1, color: playerColors[0], name: 'You' },
+                        { pos: 1, color: playerColors[1], name: 'Computer', isComputer: true }
+                    ];
+                    playerCount = 2;
+                } else {
+                    players = Array.from({length: playersCount}, (_, i) => ({ pos: 1, color: playerColors[i], name: `Player ${i+1}` }));
+                }
+                currentPlayer = 0;
             }
+            drawBoard();
+            updateTurnIndicator();
         }
     });
     // Local storage keys
     const SNL_STATE_KEY = 'snl_game_state';
     function saveGameState() {
-        const state = {
-            players: players.map(p => ({ pos: p.pos, color: p.color, name: p.name, isComputer: p.isComputer })),
-            currentPlayer,
-            playerCount,
-            isSinglePlayer
-        };
-        localStorage.setItem(SNL_STATE_KEY, JSON.stringify(state));
+    // Only save per mode/player
+    const mode = getQueryParam('mode') || (isSinglePlayer ? 'single' : 'multi');
+    const playersCount = getQueryParam('players') || playerCount || 2;
+    saveGameStateForMode(mode, playersCount);
     }
     function loadGameState() {
         const raw = localStorage.getItem(SNL_STATE_KEY);
@@ -217,8 +273,8 @@
     let players;
     let currentPlayer = 0;
     if (getParam('resume') === '1') {
-        // Resume previous game state from localStorage
-        if (!loadGameState()) {
+        // Resume previous game state from sessionStorage per mode/player
+        if (!loadGameStateForMode(mode, playerCount)) {
             alert('No saved game to resume.');
             // Fallback to new game setup
             if (isSinglePlayer) {
@@ -247,6 +303,23 @@
     }
     const boardImg = new window.Image();
     boardImg.src = 'https://res.cloudinary.com/djc3qirsl/image/upload/v1757239050/snakes-and-ladders-board-game-boardgame-vector_peaeer.jpg';
+    boardImg.onload = function() {
+        // Ensure players array is initialized before drawing
+        if (!players || !Array.isArray(players) || players.length === 0) {
+            if (isSinglePlayer) {
+                players = [
+                    { pos: 1, color: playerColors[0], name: 'You' },
+                    { pos: 1, color: playerColors[1], name: 'Computer', isComputer: true }
+                ];
+                playerCount = 2;
+            } else {
+                players = Array.from({length: playerCount}, (_, i) => ({ pos: 1, color: playerColors[i], name: `Player ${i+1}` }));
+            }
+            currentPlayer = 0;
+        }
+        drawBoard();
+        updateTurnIndicator();
+    };
     // Show mode banner
     const modeBanner = document.getElementById('mode-banner');
     if (isSinglePlayer) {
@@ -371,55 +444,63 @@
     }
     document.getElementById('roll-btn').onclick = function() {
     if (rolling || paused) return;
-        let p = players[currentPlayer];
-        if (isSinglePlayer && p.isComputer) return; // Only human can click
-        // Multiplayer: random dice for each player, no animation
-        if (!isSinglePlayer) {
-            let dice = Math.floor(Math.random() * 6) + 1;
-            document.getElementById('dice-result').textContent = `Dice: ${dice}`;
-            let newPos = p.pos + dice;
-            if (newPos > 100) newPos = p.pos;
-            if (ladders[newPos]) newPos = ladders[newPos];
-            if (snakes[newPos]) newPos = snakes[newPos];
-            p.pos = newPos;
-            drawBoard();
-            if (p.pos === 100) {
-                setTimeout(() => alert(`${p.name} wins!`), 100);
-                document.getElementById('roll-btn').disabled = true;
-            } else {
-                currentPlayer = (currentPlayer+1)%players.length;
-                updateTurnIndicator();
-            }
-            return;
+    let p = players[currentPlayer];
+    if (isSinglePlayer && p.isComputer) return; // Only human can click
+    // Multiplayer: random dice for each player, no animation
+    if (!isSinglePlayer) {
+        let dice = Math.floor(Math.random() * 6) + 1;
+        document.getElementById('dice-result').textContent = `Dice: ${dice}`;
+        let newPos = p.pos + dice;
+        if (newPos > 100) newPos = p.pos;
+        if (ladders[newPos]) newPos = ladders[newPos];
+        if (snakes[newPos]) newPos = snakes[newPos];
+        p.pos = newPos;
+        drawBoard();
+        // Save game state for current mode/player after every move
+        const mode = getQueryParam('mode') || (isSinglePlayer ? 'single' : 'multi');
+        const playersCount = getQueryParam('players') || playerCount || 2;
+        saveGameStateForMode(mode, playersCount);
+        if (p.pos === 100) {
+            setTimeout(() => alert(`${p.name} wins!`), 100);
+            document.getElementById('roll-btn').disabled = true;
+        } else {
+            currentPlayer = (currentPlayer+1)%players.length;
+            updateTurnIndicator();
         }
-        // Single player: keep dice animation and computer logic
-        rollDiceAnim(function(dice) {
-            document.getElementById('dice-result').textContent = `Dice: ${dice}`;
-            let newPos = p.pos + dice;
-            if (newPos > 100) newPos = p.pos;
-            if (ladders[newPos]) newPos = ladders[newPos];
-            if (snakes[newPos]) newPos = snakes[newPos];
-            p.pos = newPos;
-            drawBoard();
-            if (p.pos === 100) {
-                setTimeout(() => alert(`${p.name} wins!`), 100);
-                document.getElementById('roll-btn').disabled = true;
-            } else {
-                currentPlayer = (currentPlayer+1)%players.length;
-                updateTurnIndicator(); // Show next player's turn after move
-                // If next is computer, auto-roll after short delay
-                if (isSinglePlayer && players[currentPlayer].isComputer) {
-                    // Show computer's turn only after player's move animation and board update
-                    setTimeout(() => {
-                        updateTurnIndicator(); // Now show computer's turn
-                        // Computer selects a random dice value
-                        let dice2 = Math.floor(Math.random() * 6) + 1;
-                        document.getElementById('dice-result').textContent = `Dice: ${dice2}`;
-                        let cp = players[currentPlayer];
-                        let newPos2 = cp.pos + dice2;
-                        if (newPos2 > 100) newPos2 = cp.pos;
-                        if (ladders[newPos2]) newPos2 = ladders[newPos2];
-                        if (snakes[newPos2]) newPos2 = snakes[newPos2];
+        return;
+    }
+    // Single player: keep dice animation and computer logic
+    rollDiceAnim(function(dice) {
+        document.getElementById('dice-result').textContent = `Dice: ${dice}`;
+        let newPos = p.pos + dice;
+        if (newPos > 100) newPos = p.pos;
+        if (ladders[newPos]) newPos = ladders[newPos];
+        if (snakes[newPos]) newPos = snakes[newPos];
+        p.pos = newPos;
+        drawBoard();
+        // Save game state for current mode/player after every move
+        const mode = getQueryParam('mode') || (isSinglePlayer ? 'single' : 'multi');
+        const playersCount = getQueryParam('players') || playerCount || 2;
+        saveGameStateForMode(mode, playersCount);
+        if (p.pos === 100) {
+            setTimeout(() => alert(`${p.name} wins!`), 100);
+            document.getElementById('roll-btn').disabled = true;
+        } else {
+            currentPlayer = (currentPlayer+1)%players.length;
+            updateTurnIndicator(); // Show next player's turn after move
+            // If next is computer, auto-roll after short delay
+            if (isSinglePlayer && players[currentPlayer].isComputer) {
+                // Show computer's turn only after player's move animation and board update
+                setTimeout(() => {
+                    updateTurnIndicator(); // Now show computer's turn
+                    // Computer selects a random dice value
+                    let dice2 = Math.floor(Math.random() * 6) + 1;
+                    document.getElementById('dice-result').textContent = `Dice: ${dice2}`;
+                    let cp = players[currentPlayer];
+                    let newPos2 = cp.pos + dice2;
+                    if (newPos2 > 100) newPos2 = cp.pos;
+                    if (ladders[newPos2]) newPos2 = ladders[newPos2];
+                    if (snakes[newPos2]) newPos2 = snakes[newPos2];
                         cp.pos = newPos2;
                         drawBoard();
                         if (cp.pos === 100) {
