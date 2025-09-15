@@ -8,7 +8,7 @@ if defined _OLD_CODEPAGE (
     "%SystemRoot%\System32\chcp.com" 65001 > nul
 )
 
-set VIRTUAL_ENV=C:\Users\sulab\Desktop\djnago-bookmyshow-clone-master\booksenvv
+set VIRTUAL_ENV=C:\Users\sulab\Desktop\amalkiddies-master (1)\booksenvv
 
 if not defined PROMPT set PROMPT=$P$G
 
