@@ -1,0 +1,22 @@
+{% extends "kids/base.html" %}
+{% block content %}
+<div class="container mt-5">
+  <h1 class="text-center" style="color:#2a7cff; font-weight:800;">Kids Movies</h1>
+  <p class="lead text-center" style="color:#ff4066;">Watch movies curated for kids!</p>
+  <div class="row justify-content-center mt-4">
+    {% for movie in movies %}
+    <div class="col-md-4 mb-4">
+      <div class="card shadow-lg" style="border-radius:18px;">
+        {% if movie.poster %}
+        <img src="{{ movie.poster.url }}" class="card-img-top" alt="{{ movie.title }}" style="height:220px; object-fit:cover; border-radius:18px 18px 0 0;">
+        {% endif %}
+        <div class="card-body text-center">
+          <h5 class="card-title" style="color:#2a7cff; font-weight:700;">{{ movie.title }}</h5>
+          <p class="card-text">{{ movie.description }}</p>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

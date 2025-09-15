@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-section">
+<h2>{{ challenge.title }} Quiz</h2>
+<form method="post" class="quiz-form">
+  {% csrf_token %}
+  {% for quiz in quizzes %}
+    <div class="quiz-question">
+      <strong>{{ quiz.question }}</strong><br>
+      <div class="quiz-options">
+        <label><input type="radio" name="q{{ quiz.id }}" value="A"> {{ quiz.option_a }}</label>
+        <label><input type="radio" name="q{{ quiz.id }}" value="B"> {{ quiz.option_b }}</label>
+        <label><input type="radio" name="q{{ quiz.id }}" value="C"> {{ quiz.option_c }}</label>
+        <label><input type="radio" name="q{{ quiz.id }}" value="D"> {{ quiz.option_d }}</label>
+      </div>
+    </div>
+    <hr>
+  {% endfor %}
+  <button type="submit" class="btn btn-primary">Submit Answers</button>
+</form>
+</div>
+<style>
+.page-section {
+  margin-top: 60px;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+@media (max-width: 900px) {
+  .page-section { max-width: 100%; }
+}
+@media (max-width: 768px) {
+  .page-section { margin-top: 40px; }
+}
+.quiz-form { max-width: 500px; margin: auto; }
+.quiz-question { margin-bottom: 20px; }
+.quiz-options label { display: block; margin: 5px 0; }
+@media (max-width: 600px) {
+  .quiz-form { width: 100%; padding: 10px; }
+  .btn { width: 100%; }
+}
+</style>
+{% endblock %}

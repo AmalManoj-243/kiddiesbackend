@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+.page-section {
+  margin-top: 60px;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+@media (max-width: 900px) {
+  .page-section { max-width: 100%; }
+}
+@media (max-width: 768px) {
+  .page-section { margin-top: 40px; }
+}
+</style>
+<div class="page-section">
+<h2>Challenges for {{ language.name }}</h2>
+<ul>
+  {% for challenge in challenges %}
+    <li><a href="{% url 'quiz_view' challenge.id %}">{{ challenge.title }} ({{ challenge.difficulty }})</a>
+      <button class="btn btn-info btn-sm" onclick="alert('Invite friends to this challenge coming soon!')">Invite Friends</button>
+    </li>
+  {% endfor %}
+</ul>
+</div>
+{% endblock %}

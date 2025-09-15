@@ -1,0 +1,591 @@
+<div id="game-root">
+  <div id="game-overlay" style="display:flex;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.7);z-index:9999;align-items:center;justify-content:center;">
+    <div style="background:#fff;padding:2.5rem 2rem;border-radius:2.5rem;max-width:400px;text-align:center;box-shadow:0 8px 32px #2d6a4f55;">
+  <h2 style="color:#ff4066;font-family:'Comic Neue', 'Baloo 2', cursive;font-size:2.8rem;margin-bottom:1.2rem;letter-spacing:2px;text-shadow:2px 2px 0 #ffd60a, 0 2px 8px #43c6ac44;">🧩 Shape Matching Game</h2>
+  <div id="level-indicator" style="font-weight:bold;color:#43c6ac;font-size:2.1rem;margin-bottom:1rem;font-family:'Comic Neue',cursive;text-shadow:1px 1px 0 #ffd60a;">Level 1</div>
+  <h3 style="color:#2d6a4f;font-family:'Comic Neue',cursive;font-size:2rem;letter-spacing:1px;">How to Play</h3>
+  <ul style="text-align:left;font-size:1.3rem;margin-bottom:1.2rem;font-family:'Comic Neue',cursive;">
+        <li>Drag or move each object to its matching shape.</li>
+        <li>Each correct match scores a point.</li>
+        <li>Complete all levels to win!</li>
+      </ul>
+      <button id="start-btn" class="btn btn-success mt-2" style="border-radius:1.2rem;font-size:1.2rem;padding:0.7rem 2.2rem;font-weight:bold;">Start Game</button>
+    </div>
+  </div>
+  <div id="game-ui" style="display:none;">
+    <div class="d-flex justify-content-between align-items-center mb-3" style="background:linear-gradient(90deg,#f9f871 0%,#a7ffeb 100%);border-radius:1.5rem;padding:0.7rem 1.2rem;box-shadow:0 2px 12px #ffd60a33;">
+  <div id="score" style="font-size:2.2rem;color:#ff4066;font-family:'Comic Neue',cursive;font-weight:bold;text-shadow:1px 1px 0 #ffd60a;">🏆 Score: 0</div>
+  <div id="attempts" style="font-size:2.2rem;color:#2d6a4f;font-family:'Comic Neue',cursive;font-weight:bold;text-shadow:1px 1px 0 #ffd60a;">🎯 Attempts: 0</div>
+  <button id="reset-btn" class="btn btn-warning btn-lg" style="border-radius:1.2rem;font-weight:bold;box-shadow:0 2px 8px #ffd60a22;font-size:2rem;font-family:'Comic Neue',cursive;">🔄 Reset</button>
+    </div>
+    <div id="game-area" class="mb-4"></div>
+  <div id="game-message" class="text-center fw-bold" style="font-size:2.2rem;color:#ff4066;margin-top:1.2rem;font-family:'Comic Neue',cursive;text-shadow:1px 1px 0 #ffd60a;"></div>
+    <audio id="audio-correct" src="https://cdn.pixabay.com/audio/2022/03/15/audio_115b6b2b7b.mp3"></audio>
+    <audio id="audio-wrong" src="https://cdn.pixabay.com/audio/2022/03/15/audio_115b6b2b7b.mp3"></audio>
+  </div>
+</div>
+  #reset-btn {
+    font-size: 2.5rem !important;
+    padding: 0.8rem 2.2rem !important;
+    border-radius: 1.5rem !important;
+  }
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@700&display=swap');
+html, body {
+  height: 100vh;
+  width: 100vw;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  <style>
+  @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@700&display=swap');
+  html, body {
+    height: 100vh;
+    width: 100vw;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    background: linear-gradient(120deg,#f9f871 0%,#ffd6e0 50%,#a7ffeb 100%);
+  }
+  #game-root {
+    min-height: 100vh;
+    width: 100vw;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  #game-area {
+    width: 100vw;
+    min-height: 70vh;
+    margin: 0 auto;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .game-row {
+    display: flex;
+    flex-direction: row;
+    gap: 120px;
+    align-items: flex-start;
+    justify-content: center;
+    width: 100vw;
+    box-sizing: border-box;
+  }
+  .drop-col, .obj-col {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    align-items: center;
+  }
+  .shape-drop {
+    width: 280px;
+    height: 280px;
+    border-radius: 60px;
+    background: linear-gradient(135deg,#e0f7fa 60%,#ffd60a 100%);
+    border: 8px solid #43c6ac;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    box-shadow: 0 16px 48px #43c6ac44,0 2px 12px #ffd60a33;
+    transition: background 0.3s;
+    font-size: 2.2rem;
+  }
+  .shape-drop[data-shape="square"] {
+    background: linear-gradient(135deg,#ffe5e5 60%,#ff4066 100%);
+    border: 8px solid #ff4066;
+  }
+  .shape-drop[data-shape="triangle"] {
+    background: linear-gradient(135deg,#fff9c4 60%,#ffd60a 100%);
+    border: 8px solid #ffd60a;
+  }
+  .shape-drop[data-shape="rectangle"] {
+    width: 360px;
+    height: 180px;
+    background: linear-gradient(135deg,#e0ffe5 60%,#2d6a4f 100%);
+    border: 8px solid #2d6a4f;
+  }
+  .shape-drop span {
+    font-size: 2.6rem;
+    font-family: 'Comic Neue', 'Baloo 2', cursive;
+    color: #2d6a4f;
+    margin-top: 18px;
+    line-height: 1.1;
+    letter-spacing: 1px;
+    text-shadow: 1px 1px 0 #ffd60a;
+  }
+  .shape-drop[data-shape="square"] span {
+    color: #ff4066;
+  }
+  .shape-drop[data-shape="triangle"] span {
+    color: #ffd60a;
+  }
+  .shape-drop[data-shape="rectangle"] span {
+    color: #2d6a4f;
+  }
+  .object-draggable {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    transition: box-shadow 0.3s;
+    overflow: hidden;
+    box-shadow: 0 2px 8px #ffd60a22;
+  }
+  .object-draggable img {
+    width: 160px;
+    height: 160px;
+    object-fit: cover;
+    border-radius: 24px;
+  }
+  .object-draggable[data-shape="circle"] img {
+    border-radius: 50%;
+  }
+  .object-draggable[data-shape="rectangle"] img {
+    width: 200px;
+    height: 140px;
+    border-radius: 18px;
+  }
+  .matched-label {
+    font-size: 1.7rem;
+    color: #ff4066;
+    margin-top: 8px;
+    font-family:'Comic Neue',cursive;
+    text-shadow:1px 1px 0 #ffd60a;
+  }
+  #game-message {
+    font-size: 1.5rem;
+    color: #43c6ac;
+    margin-top: 1.2rem;
+  }
+  @media (max-width: 700px) {
+    #game-area {
+      flex-direction: column;
+      gap: 32px;
+    }
+    .game-row {
+      flex-direction: column;
+      gap: 32px;
+    }
+    .shape-drop, .object-draggable {
+      width: 120px;
+      height: 120px;
+      font-size: 1.2rem;
+    }
+    .shape-drop[data-shape="rectangle"] {
+      width: 180px;
+      height: 70px;
+    }
+    .object-draggable img {
+      width: 110px;
+      height: 110px;
+    }
+    .object-draggable[data-shape="rectangle"] img {
+      width: 140px;
+      height: 60px;
+    }
+  }
+  </style>
+    { shape: 'rectangle', img: '/media/movies/IQsBhg9t747dLhjXfsChIGZy4XfugER8BF0Gw5MDhIcnY5nTA1.jpg', alt: 'Book', style: 'width:200px;height:140px;object-fit:cover;border-radius:18px;' }
+  ],
+  3: [
+  { shape: 'circle', img: '/media/movies/635217f73e372771013edb4c-the-avengers-poster-marvel-movie-canvas1.jpg', alt: 'Button', style: 'width:160px;height:160px;object-fit:cover;border-radius:50%;' },
+  { shape: 'circle', img: '/media/movies/tomato.png', alt: 'Tomato', style: 'width:160px;height:160px;object-fit:cover;border-radius:50%;' },
+  { shape: 'square', img: '/media/movies/feUv2SYumXlT8E2RhzlYbZxfEGLG5AVrCPxP1gmAaCusxyPnA1.jpg', alt: 'Chess Board', style: 'width:160px;height:160px;object-fit:cover;border-radius:24px;' },
+  { shape: 'square', img: '/media/movies/apple-439397_640.webp', alt: 'Apple', style: 'width:160px;height:160px;object-fit:cover;border-radius:24px;' },
+  { shape: 'triangle', img: '/media/movies/tile_ramp_right.png', alt: 'Triangle', style: 'width:160px;height:160px;object-fit:cover;border-radius:24px;transform:rotate(-90deg);' },
+  { shape: 'triangle', img: '/media/movies/feUv2SYumXlT8E2RhzlYbZxfEGLG5AVrCPxP1gmAaCusxyPnA1.jpg', alt: 'Pizza Slice', style: 'width:160px;height:160px;object-fit:cover;border-radius:24px;' },
+  { shape: 'rectangle', img: '/media/movies/tile_half.png', alt: 'Half Tile', style: 'width:200px;height:140px;object-fit:cover;border-radius:18px;' },
+  { shape: 'rectangle', img: '/media/movies/IQsBhg9t747dLhjXfsChIGZy4XfugER8BF0Gw5MDhIcnY5nTA1.jpg', alt: 'Book', style: 'width:200px;height:140px;object-fit:cover;border-radius:18px;' }
+  ]
+};
+
+let currentLevel = 1;
+function renderObjects(level) {
+  const objects = [...levelObjects[level]];
+  const container = document.querySelector('#game-area .d-flex.flex-row > div:last-child');
+  if (!container) return;
+  <script>
+  // Professional Shape Matching Game Logic
+  const levelObjects = {
+    1: [
+      { shape: 'circle', img: '/media/movies/orange.png', alt: 'Orange (Round)' },
+      { shape: 'square', img: '/media/movies/panda.png', alt: 'Panda (Square)' },
+  { shape: 'triangle', img: '/media/movies/tile_ramp_right.png', alt: 'Triangle', style: 'transform:rotate(-90deg);' },
+  { shape: 'rectangle', img: '/media/movies/tile_half.png', alt: 'Half Tile', style: 'width:200px;height:140px;object-fit:cover;border-radius:18px;' }
+    ],
+    2: [
+  { shape: 'circle', img: '/media/movies/tomato.png', alt: 'Tomato', style: 'width:160px;height:160px;object-fit:cover;border-radius:50%;' },
+  { shape: 'square', img: '/media/movies/pink_body_square.png', alt: 'Pink Square', style: 'width:160px;height:160px;object-fit:cover;border-radius:24px;' },
+  { shape: 'triangle', img: '/media/movies/tile_ramp_right.png', alt: 'Triangle', style: 'transform:rotate(-90deg);' },
+  { shape: 'rectangle', img: '/media/movies/tile_half.png', alt: 'Half Tile', style: 'width:200px;height:140px;object-fit:cover;border-radius:18px;' }
+    ],
+    3: [
+  { shape: 'circle', img: '/media/movies/635217f73e372771013edb4c-the-avengers-poster-marvel-movie-canvas1.jpg', alt: 'Button', style: 'width:160px;height:160px;object-fit:cover;border-radius:50%;' },
+  { shape: 'circle', img: '/media/movies/tomato.png', alt: 'Tomato', style: 'width:160px;height:160px;object-fit:cover;border-radius:50%;' },
+  { shape: 'square', img: '/media/movies/feUv2SYumXlT8E2RhzlYbZxfEGLG5AVrCPxP1gmAaCusxyPnA1.jpg', alt: 'Chess Board', style: 'width:160px;height:160px;object-fit:cover;border-radius:24px;' },
+  { shape: 'square', img: '/media/movies/pink_body_square.png', alt: 'Pink Square', style: 'width:160px;height:160px;object-fit:cover;border-radius:24px;' },
+  { shape: 'triangle', img: '/media/movies/tile_ramp_right.png', alt: 'Tile (Triangle) 1', style: 'width:160px;height:160px;object-fit:cover;border-radius:24px;transform:rotate(-90deg);' },
+  { shape: 'triangle', img: '/media/movies/tile_ramp_right.png', alt: 'Tile (Triangle) 2', style: 'width:160px;height:160px;object-fit:cover;border-radius:24px;transform:rotate(-90deg);' },
+  { shape: 'rectangle', img: '/media/movies/tile_half.png', alt: 'Half Tile', style: 'width:200px;height:140px;object-fit:cover;border-radius:18px;' },
+  { shape: 'rectangle', img: '/media/movies/IQsBhg9t747dLhjXfsChIGZy4XfugER8BF0Gw5MDhIcnY5nTA1.jpg', alt: 'Book', style: 'width:200px;height:140px;object-fit:cover;border-radius:18px;' }
+    ]
+  };
+  let currentLevel = 1;
+  let score = 0;
+  let attempts = 0;
+  let drops = [];
+  let scoreEl, attemptsEl, msgEl, audioCorrect, audioWrong, overlay, startBtn, resetBtn, levelIndicator;
+
+  function renderGame(level) {
+    // Render drop fields and objects
+    const gameArea = document.getElementById('game-area');
+    gameArea.innerHTML = '';
+    const row = document.createElement('div');
+    row.className = 'game-row';
+    // Drop fields
+    const dropCol = document.createElement('div');
+    let objectAttempts = {}; // Track attempts per object
+    dropCol.className = 'drop-col';
+    ['circle','square','triangle','rectangle'].forEach(shape => {
+      const drop = document.createElement('div');
+      drop.className = 'shape-drop';
+      drop.setAttribute('data-shape', shape);
+      if (shape === 'circle') {
+        drop.innerHTML = `<span style="font-size:4rem;line-height:1;">&#9679;</span><span>Circle</span>`;
+      } else if (shape === 'square') {
+        drop.innerHTML = `<span style="font-size:4rem;line-height:1;">&#9632;</span><span>Square</span>`;
+      } else if (shape === 'triangle') {
+        drop.innerHTML = `<svg width="90" height="90" viewBox="0 0 90 90" style="pointer-events:none;display:block;line-height:1;"><polygon points="45,15 80,80 10,80" style="fill:none;stroke:#ffd60a;stroke-width:6;" /></svg><span>Triangle</span>`;
+      } else if (shape === 'rectangle') {
+        drop.innerHTML = `<span style="font-size:4rem;line-height:1;">&#9645;</span><span>Rectangle</span>`;
+      }
+      dropCol.appendChild(drop);
+    });
+    // Objects
+    const objCol = document.createElement('div');
+    objCol.className = 'obj-col';
+    let objects = Array.isArray(levelObjects[level]) ? [...levelObjects[level]] : [];
+    // Level 2 and above: randomize order
+    if (level >= 2) {
+      objects = objects.sort(() => Math.random() - 0.5);
+    }
+    objects.forEach((obj, idx) => {
+      const div = document.createElement('div');
+      div.className = 'object-draggable';
+      div.setAttribute('draggable', 'true');
+      div.setAttribute('data-shape', obj.shape);
+      div.setAttribute('data-obj-idx', idx);
+      let imgStyle = '';
+      if (obj.shape === 'circle') imgStyle = 'width:160px;height:160px;object-fit:cover;border-radius:50%;';
+      else if (obj.shape === 'rectangle') imgStyle = 'width:200px;height:140px;object-fit:cover;border-radius:18px;';
+      else imgStyle = 'width:160px;height:160px;object-fit:cover;border-radius:24px;';
+      // Level 4+: remove alt label
+      const altText = (level >= 4) ? '' : obj.alt;
+      div.innerHTML = `<img src="${obj.img}" alt="${altText}" style="${imgStyle}">`;
+      objCol.appendChild(div);
+    });
+    row.appendChild(dropCol);
+    row.appendChild(objCol);
+    gameArea.appendChild(row);
+    drops = Array.from(document.querySelectorAll('.shape-drop'));
+    attachDragDropListeners();
+  }
+
+  function attachDragDropListeners() {
+    const draggables = document.querySelectorAll('.object-draggable');
+    draggables.forEach(obj => {
+      obj.setAttribute('draggable', 'true');
+      obj.addEventListener('dragstart', e => {
+        obj.classList.add('dragging');
+        e.dataTransfer.setData('shape', obj.getAttribute('data-shape'));
+        e.dataTransfer.setData('id', obj.innerText);
+      });
+      obj.addEventListener('dragend', e => {
+        obj.classList.remove('dragging');
+      });
+      // Touch events for mobile
+      let touchStartX, touchStartY;
+      obj.addEventListener('touchstart', function(e) {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        obj.classList.add('dragging');
+      });
+      obj.addEventListener('touchmove', function(e) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        obj.style.position = 'absolute';
+        obj.style.zIndex = 1000;
+        obj.style.left = (touch.clientX - 45) + 'px';
+        obj.style.top = (touch.clientY - 45) + 'px';
+      });
+      obj.addEventListener('touchend', function(e) {
+        obj.classList.remove('dragging');
+        obj.style.position = '';
+        obj.style.zIndex = '';
+        obj.style.left = '';
+        obj.style.top = '';
+        const touch = e.changedTouches[0];
+        drops.forEach(drop => {
+          const rect = drop.getBoundingClientRect();
+          if (
+            touch.clientX > rect.left && touch.clientX < rect.right &&
+            touch.clientY > rect.top && touch.clientY < rect.bottom
+          ) {
+              // Simulate drop (allow multiple objects per drop zone)
+              attempts++;
+              attemptsEl.innerText = 'Attempts: ' + attempts;
+              if (drop.getAttribute('data-shape') === obj.getAttribute('data-shape')) {
+                score++;
+                scoreEl.innerText = 'Score: ' + score;
+                drop.innerHTML += `<div class='matched-label'>${obj.getAttribute('data-shape')} ✅</div>`;
+                obj.style.display = 'none';
+                audioCorrect.play();
+                showMessage('Correct!');
+              } else {
+                audioWrong.play();
+                showMessage('Try again!', '#ff4066');
+              }
+              checkWin();
+          }
+        });
+      });
+    });
+    drops.forEach(drop => {
+      drop.addEventListener('dragover', e => {
+        e.preventDefault();
+        drop.style.background = '#caffbf';
+      });
+      drop.addEventListener('dragleave', e => {
+        drop.style.background = '';
+      });
+      drop.addEventListener('drop', e => {
+        e.preventDefault();
+        drop.style.background = '';
+        attempts++;
+        attemptsEl.innerText = 'Attempts: ' + attempts;
+        const shape = e.dataTransfer.getData('shape');
+        if (drop.getAttribute('data-shape') === shape) {
+          score++;
+          scoreEl.innerText = 'Score: ' + score;
+          drop.innerHTML += `<div class='matched-label'>${shape} ✅</div>`;
+          // Hide only the dragged object
+          const draggingObj = document.querySelector('.object-draggable.dragging');
+          if (draggingObj) draggingObj.style.display = 'none';
+          audioCorrect.play();
+          showMessage('Correct!');
+        } else {
+          audioWrong.play();
+          showMessage('Try again!', '#ff4066');
+        }
+        // Do not mark drop zone as matched, so it can accept more objects for the same shape
+        checkWin();
+      });
+    });
+  }
+
+  function showMessage(msg, color='#43c6ac') {
+    msgEl.innerText = msg;
+    msgEl.style.color = color;
+    setTimeout(() => { msgEl.innerText = ''; }, 1200);
+  }
+
+  function checkWin() {
+    const draggables = document.querySelectorAll('.object-draggable');
+    if ([...draggables].every(obj => obj.style.display === 'none')) {
+      if (currentLevel < Object.keys(levelObjects).length) {
+        setTimeout(() => {
+          currentLevel++;
+          score = 0;
+          attempts = 0;
+          scoreEl.innerText = 'Score: 0';
+          attemptsEl.innerText = 'Attempts: 0';
+          msgEl.innerText = '';
+          levelIndicator.textContent = `Level ${currentLevel}`;
+          renderGame(currentLevel);
+          showMessage(`Level ${currentLevel} - Ready!`, '#43c6ac');
+        }, 1200);
+      } else {
+        showMessage(`🎉 Game Over! Final Score: ${score} 🎉`, '#43c6ac');
+        setTimeout(() => {
+          overlay.style.display = 'flex';
+          document.getElementById('game-ui').style.display = 'none';
+          levelIndicator.textContent = `Game Completed! Final Score: ${score}`;
+        }, 1800);
+      }
+    }
+  }
+
+  function resetGame() {
+    score = 0;
+    attempts = 0;
+    scoreEl.innerText = 'Score: 0';
+    attemptsEl.innerText = 'Attempts: 0';
+    msgEl.innerText = '';
+    levelIndicator.textContent = `Level ${currentLevel}`;
+    renderGame(currentLevel);
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    scoreEl = document.getElementById('score');
+    attemptsEl = document.getElementById('attempts');
+    msgEl = document.getElementById('game-message');
+    audioCorrect = document.getElementById('audio-correct');
+    audioWrong = document.getElementById('audio-wrong');
+    overlay = document.getElementById('game-overlay');
+    startBtn = document.getElementById('start-btn');
+    resetBtn = document.getElementById('reset-btn');
+    levelIndicator = document.getElementById('level-indicator');
+    startBtn.addEventListener('click', function() {
+      overlay.style.display = 'none';
+      document.getElementById('game-ui').style.display = 'block';
+      currentLevel = 1;
+      score = 0;
+      attempts = 0;
+      levelIndicator.textContent = `Level 1`;
+      renderGame(1);
+      scoreEl.innerText = 'Score: 0';
+      attemptsEl.innerText = 'Attempts: 0';
+      msgEl.innerText = '';
+    });
+    resetBtn.addEventListener('click', function() {
+      resetGame();
+    });
+    // Show overlay on load
+    overlay.style.display = 'flex';
+    document.getElementById('game-ui').style.display = 'none';
+  });
+  </script>
+      if (score === draggables.length) {
+        if (currentLevel < 3) {
+          setTimeout(() => {
+            currentLevel++;
+            renderObjects(currentLevel);
+            score = 0;
+            attempts = 0;
+            scoreEl.innerText = 'Score: 0';
+            attemptsEl.innerText = 'Attempts: 0';
+            msgEl.innerText = '';
+            showMessage(`Level ${currentLevel} - Ready!`, '#43c6ac');
+          }, 1200);
+        } else {
+          showMessage('🎉 Congratulations! You completed all levels! 🎉', '#43c6ac');
+        }
+      }
+    }
+  }
+
+  // Desktop drag and drop
+  draggables.forEach(obj => {
+    obj.setAttribute('draggable', 'true');
+    obj.addEventListener('dragstart', e => {
+      obj.classList.add('dragging');
+      e.dataTransfer.setData('shape', obj.getAttribute('data-shape'));
+      e.dataTransfer.setData('id', obj.innerText);
+    });
+    obj.addEventListener('dragend', e => {
+      obj.classList.remove('dragging');
+    });
+    // Touch events for mobile
+    let touchStartX, touchStartY;
+    obj.addEventListener('touchstart', function(e) {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+      obj.classList.add('dragging');
+    });
+    obj.addEventListener('touchmove', function(e) {
+      e.preventDefault();
+      const touch = e.touches[0];
+      obj.style.position = 'absolute';
+      obj.style.zIndex = 1000;
+      obj.style.left = (touch.clientX - 45) + 'px';
+      obj.style.top = (touch.clientY - 45) + 'px';
+    });
+    obj.addEventListener('touchend', function(e) {
+      obj.classList.remove('dragging');
+      obj.style.position = '';
+      obj.style.zIndex = '';
+      obj.style.left = '';
+      obj.style.top = '';
+      const touch = e.changedTouches[0];
+      drops.forEach(drop => {
+        const rect = drop.getBoundingClientRect();
+        3: [
+          { shape: 'circle', img: '/media/movies/635217f73e372771013edb4c-the-avengers-poster-marvel-movie-canvas1.jpg', alt: 'Button', style: 'width:160px;height:160px;object-fit:cover;border-radius:50%;' },
+          { shape: 'circle', img: '/media/movies/tomato.png', alt: 'Tomato', style: 'width:160px;height:160px;object-fit:cover;border-radius:50%;' },
+          { shape: 'square', img: '/media/movies/feUv2SYumXlT8E2RhzlYbZxfEGLG5AVrCPxP1gmAaCusxyPnA1.jpg', alt: 'Chess Board', style: 'width:160px;height:160px;object-fit:cover;border-radius:24px;' },
+          { shape: 'square', img: '/media/movies/apple-439397_640.webp', alt: 'Apple', style: 'width:160px;height:160px;object-fit:cover;border-radius:24px;' },
+          { shape: 'triangle', img: '/media/movies/tile_ramp_right.png', alt: 'Triangle', style: 'width:160px;height:160px;object-fit:cover;border-radius:24px;transform:rotate(-90deg);' },
+          { shape: 'triangle', img: '/media/movies/feUv2SYumXlT8E2RhzlYbZxfEGLG5AVrCPxP1gmAaCusxyPnA1.jpg', alt: 'Pizza Slice', style: 'width:160px;height:160px;object-fit:cover;border-radius:24px;' },
+          { shape: 'rectangle', img: '/media/movies/tile_half.png', alt: 'Half Tile', style: 'width:200px;height:140px;object-fit:cover;border-radius:18px;' },
+          { shape: 'rectangle', img: '/media/movies/IQsBhg9t747dLhjXfsChIGZy4XfugER8BF0Gw5MDhIcnY5nTA1.jpg', alt: 'Book', style: 'width:200px;height:140px;object-fit:cover;border-radius:18px;' }
+        ].filter((obj, idx, arr) => {
+          // Only allow two images per shape
+          const shapeCount = arr.filter(o => o.shape === obj.shape).length;
+          const shapeIdx = arr.slice(0, idx).filter(o => o.shape === obj.shape).length;
+          return shapeIdx < 2;
+        })
+              scoreEl.innerText = 'Score: ' + score;
+              drop.classList.add('matched');
+              drop.innerHTML += `<div class='matched-label' style='font-size:1rem;color:#005f73;'>${obj.innerText} ✅</div>`;
+              obj.style.display = 'none';
+              audioCorrect.play();
+              showMessage('Correct!');
+            } else {
+              audioWrong.play();
+              showMessage('Try again!', '#ff4066');
+            }
+            checkWin();
+          }
+        }
+      });
+    });
+  });
+  drops.forEach(drop => {
+    drop.addEventListener('dragover', e => {
+      e.preventDefault();
+      drop.style.background = '#caffbf';
+    });
+    drop.addEventListener('dragleave', e => {
+      drop.style.background = '';
+    });
+    drop.addEventListener('drop', e => {
+      e.preventDefault();
+      drop.style.background = '';
+      if (!drop.classList.contains('matched')) {
+        attempts++;
+        attemptsEl.innerText = 'Attempts: ' + attempts;
+        const shape = e.dataTransfer.getData('shape');
+        const objId = e.dataTransfer.getData('id');
+        if (drop.getAttribute('data-shape') === shape) {
+          score++;
+          scoreEl.innerText = 'Score: ' + score;
+          drop.classList.add('matched');
+          drop.innerHTML += `<div class='matched-label' style='font-size:1rem;color:#005f73;'>${objId} ✅</div>`;
+          document.querySelector(`[draggable][data-shape='${shape}']`).style.display = 'none';
+          audioCorrect.play();
+          showMessage('Correct!');
+        } else {
+          audioWrong.play();
+          showMessage('Try again!', '#ff4066');
+        }
+        checkWin();
+      }
+    });
+  });
+  // Overlay logic
+  overlay.style.display = 'flex';
+  startBtn.onclick = function() {
+    overlay.style.display = 'none';
+    resetGame();
+  };
+  resetBtn.onclick = function() {
+    resetGame();
+    overlay.style.display = 'flex';
+  };
+});
+</script>
+

@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Mixing Game</title>
+    <style>
+    body {
+        background: linear-gradient(120deg, #fceabb 0%, #f8b500 100%);
+        min-height: 100vh;
+        animation: bgMove 10s linear infinite alternate;
+        margin: 0;
+        padding: 0;
+    }
+    @keyframes bgMove {
+        0% { background-position: 0 0; }
+        100% { background-position: 100vw 100vh; }
+    }
+    .color-game-root {
+        max-width: 400px;
+        margin: 8px auto;
+        background: linear-gradient(135deg,#fffbe7 0%,#e0f7fa 100%);
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.14);
+        padding: 8px 8px;
+        font-family: 'Baloo 2', 'Comic Sans MS', 'Comic Sans', cursive;
+        position: relative;
+        overflow: visible;
+    }
+    .game-title {
+        text-align: center;
+        color: #ff9800;
+        font-size: 2em;
+        margin-bottom: 12px;
+        font-weight: bold;
+        letter-spacing: 2px;
+        text-shadow: 2px 2px 0 #ffd60a, 0 4px 12px #ff980044;
+        font-family: 'Luckiest Guy', 'Baloo 2', cursive;
+    }
+    .game-desc {
+        text-align: center;
+        color: #333;
+        font-size: 1.2em;
+        margin-bottom: 10px;
+        font-family: 'Baloo 2', cursive;
+    }
+    .game-btn {
+        background: linear-gradient(90deg,#ff9800 60%,#ffd60a 100%);
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        padding: 12px 24px;
+        font-size: 1.1em;
+        font-weight: bold;
+        cursor: pointer;
+        margin: 10px 6px;
+        box-shadow: 0 4px 16px #ffd60a44;
+        transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+        animation: btnBounce 2s infinite alternate;
+    }
+    .game-btn:hover {
+        background: linear-gradient(90deg,#ffd60a 60%,#ff9800 100%);
+        transform: scale(1.08) rotate(-2deg);
+        box-shadow: 0 8px 24px #ffd60a88;
+    }
+    @keyframes btnBounce {
+        0% { transform: scale(1); }
+        100% { transform: scale(1.04) rotate(-2deg); }
+    }
+    .game-btn-secondary {
+        background: linear-gradient(90deg,#43c6ac 60%,#ffd60a 100%);
+        color: #fff;
+    }
+    .score-level {
+        display: flex;
+        justify-content: space-between;
+        font-size: 1.1em;
+        margin-bottom: 8px;
+        gap: 10px;
+        align-items: center;
+    }
+    .progress-bar-bg {
+        width: 100%;
+        height: 10px;
+        background: #eee;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        box-shadow: 0 2px 8px #ffd60a33;
+    }
+    .progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg,#ff9800 60%,#43c6ac 100%);
+        border-radius: 8px;
+        width: 0%;
+        transition: width 0.6s cubic-bezier(.68,-0.55,.27,1.55);
+    }
+    .target-color-block, .palette-block, .result-block {
+        margin-bottom: 10px;
+        text-align: center;
+    }
+    .color-block {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 3px solid #333;
+        margin: 0 auto;
+        box-shadow: 0 2px 8px #43c6ac33;
+        transition: transform 0.2s;
+        animation: colorPulse 2s infinite alternate;
+    }
+    .color-block:active {
+        transform: scale(1.08) rotate(2deg);
+    }
+    @keyframes colorPulse {
+        0% { box-shadow: 0 2px 8px #43c6ac33; }
+        100% { box-shadow: 0 4px 16px #ffd60a44; }
+    }
+    .palette {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin: 8px 0;
+    }
+    .color-option {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 3px solid #333;
+        cursor: pointer;
+        transition: transform 0.2s, border 0.2s, box-shadow 0.2s;
+        box-shadow: 0 2px 8px #ffd60a33;
+        background: repeating-linear-gradient(135deg, #fffbe7 0 5px, #e0f7fa 5px 10px);
+    }
+    .color-option.selected {
+        border: 4px solid #ff9800;
+        transform: scale(1.15) rotate(-2deg);
+        box-shadow: 0 8px 24px #ffd60a88;
+        animation: colorBounce 0.4s;
+    }
+    @keyframes colorBounce {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.2) rotate(-4deg); }
+        100% { transform: scale(1.15) rotate(-2deg); }
+    }
+    .result-message {
+        margin-top: 8px;
+        font-size: 1.1em;
+        font-weight: bold;
+        color: #d90429;
+        min-height: 12px;
+        text-shadow: 1px 1px 0 #ffd60a;
+    }
+    .fun-fact {
+        margin-top: 6px;
+        font-size: 1em;
+        color: #005f73;
+        font-style: italic;
+        min-height: 10px;
+        text-shadow: 1px 1px 0 #ffd60a44;
+    }
+    .game-screen {
+        animation: fadeInUp 0.8s cubic-bezier(.68,-0.55,.27,1.55);
+    }
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    #confetti span {
+        animation: confettiDrop 1.2s linear;
+    }
+    @keyframes confettiDrop {
+        0% { transform: translateY(-20px) scale(1); opacity: 0.7; }
+        100% { transform: translateY(40px) scale(1.1); opacity: 1; }
+    }
+    @media (max-width: 600px) {
+    .color-game-root { max-width: 98vw; padding: 4px 2vw; margin: 4px auto; }
+    .game-title { font-size: 1.2em; }
+    .game-desc { font-size: 1em; }
+    .color-block { width: 32px; height: 32px; }
+    .palette { gap: 4px; }
+    .color-option { width: 16px; height: 16px; }
+    .result-message, .fun-fact { font-size: 1em; }
+    .game-btn { font-size: 1em; padding: 8px 18px; }
+    .score-level { font-size: 1em; }
+    .progress-bar-bg { height: 8px; }
+    #confetti span { font-size: 1.2rem !important; }
+    }
+    </style>
+</head>
+<body>
+<div id="game-root" class="color-game-root">
+    <div id="badges-container" style="margin-bottom:16px; text-align:center;"></div>
+    <div id="player-name" style="text-align:center; font-size:1.2em; color:#005f73; margin-bottom:12px; font-weight:bold;">Player: {{ username }}</div>
+    <div id="leaderboard-container" style="margin-bottom:16px; text-align:center; display:none;"></div>
+    <div id="play-screen" class="game-screen">
+        <div class="score-level">
+            <span>Level: <span id="level">1</span></span>
+            <span>Score: <span id="score">0</span></span>
+            <span>Time: <span id="timer">20</span>s</span>
+            <button id="sound-toggle" class="game-btn game-btn-secondary" style="padding:2px 12px; font-size:1em;">🔊</button>
+        </div>
+        <div class="progress-bar-bg"><div id="progress-bar" class="progress-bar"></div></div>
+            <div class="target-color-block">
+                <span>Target Color:</span>
+                <div id="target-color" class="color-block"></div>
+                <div id="target-color-name" class="color-name" style="font-size:1.2em; font-weight:bold; color:#d90429; margin-top:8px;"></div>
+                <button id="hint-btn" class="game-btn game-btn-secondary" style="margin-top:10px;">Hint</button>
+            </div>
+                <div class="palette-block">
+                    <span>Choose Colors:</span>
+                    <div class="palette" style="display:flex; flex-direction:column; gap:8px; align-items:center;">
+                        <div style="display:flex; gap:24px; justify-content:center;">
+                            <div style="display:flex; flex-direction:column; align-items:center;">
+                                <div class="color-option" style="background: #ff0000;" data-color="red"></div>
+                                <span style="color:#d90429;font-weight:bold; font-size:1em; margin-top:4px;">Red</span>
+                            </div>
+                            <div style="display:flex; flex-direction:column; align-items:center;">
+                                <div class="color-option" style="background: #0000ff;" data-color="blue"></div>
+                                <span style="color:#005f73;font-weight:bold; font-size:1em; margin-top:4px;">Blue</span>
+                            </div>
+                            <div style="display:flex; flex-direction:column; align-items:center;">
+                                <div class="color-option" style="background: #ffff00;" data-color="yellow"></div>
+                                <span style="color:#ffd60a;font-weight:bold; font-size:1em; margin-top:4px;">Yellow</span>
+                            </div>
+                        </div>
+                        <div style="display:flex; gap:24px; justify-content:center;">
+                            <div style="display:flex; flex-direction:column; align-items:center;">
+                                <div class="color-option" style="background: #ffffff; border: 3px solid #bbb;" data-color="white"></div>
+                                <span style="color:#bbb;font-weight:bold; font-size:1em; margin-top:4px;">White</span>
+                            </div>
+                            <div style="display:flex; flex-direction:column; align-items:center;">
+                                <div class="color-option" style="background: #000000;" data-color="black"></div>
+                                <span style="color:#23272f;font-weight:bold; font-size:1em; margin-top:4px;">Black</span>
+                            </div>
+                            <div style="display:flex; flex-direction:column; align-items:center;">
+                                <div class="color-option" style="background: #8B4513;" data-color="brown"></div>
+                                <span style="color:#8B4513;font-weight:bold; font-size:1em; margin-top:4px;">Brown</span>
+                            </div>
+                        </div>
+                        <div style="display:flex; gap:24px; justify-content:center;">
+                            <div style="display:flex; flex-direction:column; align-items:center;">
+                                <div class="color-option" style="background: #008000;" data-color="green"></div>
+                                <span style="color:#008000;font-weight:bold; font-size:1em; margin-top:4px;">Green</span>
+                            </div>
+                            <div style="display:flex; flex-direction:column; align-items:center;">
+                                <div class="color-option" style="background: #ffa500;" data-color="orange"></div>
+                                <span style="color:#ffa500;font-weight:bold; font-size:1em; margin-top:4px;">Orange</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="selected-colors-names" class="color-name" style="font-size:1.1em; color:#005f73; margin:8px 0;"></div>
+                    <button id="mix-btn" class="game-btn">Mix!</button>
+                    <button id="reset-btn" class="game-btn game-btn-secondary">Reset</button>
+                </div>
+            <div class="result-block">
+                <span>Your Mix:</span>
+                <div id="mixed-color" class="color-block"></div>
+                <div id="mixed-color-name" class="color-name" style="font-size:1.2em; font-weight:bold; color:#005f73; margin-top:8px;"></div>
+                <div id="result-message" class="result-message"></div>
+                <div id="fun-fact" class="fun-fact"></div>
+                <div style="text-align:center; margin:10px 0 0 0;">
+                    <button id="end-game-btn" class="game-btn game-btn-secondary">End Game</button>
+                </div>
+            </div>
+        <div id="confetti" style="position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:9999;display:none;"></div>
+    </div>
+    <div id="end-screen" class="game-screen" style="display:none;">
+        <h2 class="game-title">Game Over!</h2>
+        <p class="game-desc">Your Score: <span id="final-score"></span></p>
+        <button id="restart-btn" class="game-btn">Play Again</button>
+    </div>
+</div>
+<style>
+body {
+    background: linear-gradient(120deg, #fceabb 0%, #f8b500 100%);
+    min-height: 100vh;
+    animation: bgMove 10s linear infinite alternate;
+}
+@keyframes bgMove {
+    0% { background-position: 0 0; }
+    100% { background-position: 100vw 100vh; }
+}
+.color-game-root {
+            max-width: 500px;
+            margin: 12px auto;
+            background: linear-gradient(135deg,#fffbe7 0%,#e0f7fa 100%);
+            border-radius: 24px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+            padding: 8px 6px;
+            font-family: 'Baloo 2', 'Comic Sans MS', 'Comic Sans', cursive;
+            position: relative;
+            overflow-y: auto;
+            max-height: 98vh;
+}
+.game-title {
+    text-align: center;
+    color: #ff9800;
+    font-size: 2.6em;
+        margin-bottom: 12px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    text-shadow: 2px 2px 0 #ffd60a, 0 4px 12px #ff980044;
+    font-family: 'Luckiest Guy', 'Baloo 2', cursive;
+}
+.game-desc {
+    text-align: center;
+    color: #333;
+    font-size: 1.3em;
+        margin-bottom: 14px;
+    font-family: 'Baloo 2', cursive;
+}
+.game-btn {
+    background: linear-gradient(90deg,#ff9800 60%,#ffd60a 100%);
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    padding: 12px 36px;
+    font-size: 1.2em;
+    font-weight: bold;
+    cursor: pointer;
+    margin: 14px 10px;
+    box-shadow: 0 4px 16px #ffd60a44;
+    transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+    animation: btnBounce 2s infinite alternate;
+}
+.game-btn:hover {
+    background: linear-gradient(90deg,#ffd60a 60%,#ff9800 100%);
+    transform: scale(1.08) rotate(-2deg);
+    box-shadow: 0 8px 24px #ffd60a88;
+}
+@keyframes btnBounce {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.04) rotate(-2deg); }
+}
+.game-btn-secondary {
+    background: linear-gradient(90deg,#43c6ac 60%,#ffd60a 100%);
+    color: #fff;
+}
+.score-level {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.2em;
+        margin-bottom: 10px;
+    gap: 12px;
+    align-items: center;
+}
+.progress-bar-bg {
+    width: 100%;
+    height: 14px;
+    background: #eee;
+    border-radius: 10px;
+        margin-bottom: 10px;
+    box-shadow: 0 2px 8px #ffd60a33;
+}
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg,#ff9800 60%,#43c6ac 100%);
+    border-radius: 10px;
+    width: 0%;
+    transition: width 0.6s cubic-bezier(.68,-0.55,.27,1.55);
+}
+.target-color-block, .palette-block, .result-block {
+        margin-bottom: 12px;
+    text-align: center;
+}
+.color-block {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    border: 4px solid #333;
+    margin: 0 auto;
+    box-shadow: 0 4px 18px #43c6ac33;
+    transition: transform 0.2s;
+    animation: colorPulse 2s infinite alternate;
+}
+.color-block:active {
+    transform: scale(1.08) rotate(2deg);
+}
+@keyframes colorPulse {
+    0% { box-shadow: 0 4px 18px #43c6ac33; }
+    100% { box-shadow: 0 8px 32px #ffd60a44; }
+}
+.palette {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    margin: 22px 0;
+}
+.color-option {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: 4px solid #333;
+    cursor: pointer;
+    transition: transform 0.2s, border 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px #ffd60a33;
+    background: repeating-linear-gradient(135deg, #fffbe7 0 10px, #e0f7fa 10px 20px);
+}
+.color-option.selected {
+    border: 5px solid #ff9800;
+    transform: scale(1.15) rotate(-2deg);
+    box-shadow: 0 8px 24px #ffd60a88;
+    animation: colorBounce 0.4s;
+}
+@keyframes colorBounce {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2) rotate(-4deg); }
+    100% { transform: scale(1.15) rotate(-2deg); }
+}
+.result-message {
+        margin-top: 8px;
+    font-size: 1.25em;
+    font-weight: bold;
+    color: #d90429;
+    min-height: 28px;
+    text-shadow: 1px 1px 0 #ffd60a;
+}
+.fun-fact {
+        margin-top: 6px;
+    font-size: 1.1em;
+    color: #005f73;
+    font-style: italic;
+    min-height: 24px;
+    text-shadow: 1px 1px 0 #ffd60a44;
+}
+.game-screen {
+    animation: fadeInUp 0.8s cubic-bezier(.68,-0.55,.27,1.55);
+}
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+#confetti span {
+    animation: confettiDrop 1.2s linear;
+}
+@keyframes confettiDrop {
+    0% { transform: translateY(-40px) scale(1); opacity: 0.7; }
+    100% { transform: translateY(80px) scale(1.2); opacity: 1; }
+}
+@media (max-width: 600px) {
+    .color-game-root { max-width: 98vw; padding: 4px 2vw; margin: 4px auto; }
+    .game-title { font-size: 1.2em; }
+    .game-desc { font-size: 1em; }
+    .color-block { width: 32px; height: 32px; }
+    .palette { gap: 4px; }
+    .color-option { width: 16px; height: 16px; }
+    .result-message, .fun-fact { font-size: 1em; }
+    .game-btn { font-size: 1em; padding: 8px 18px; }
+    .score-level { font-size: 1em; }
+    .progress-bar-bg { height: 8px; }
+    #confetti span { font-size: 1.2rem !important; }
+}
+</style>
+<script>
+// --- Game Logic from main page ---
+const levels = [
+    { target: 'purple', colors: ['red','blue'], hex: '#800080', fact: 'Purple is made by mixing red and blue. It is often seen in royal robes!' },
+    { target: 'orange', colors: ['red','yellow'], hex: '#ffa500', fact: 'Orange is made by mixing red and yellow. It is the color of oranges and sunsets!' },
+    { target: 'green', colors: ['blue','yellow'], hex: '#008000', fact: 'Green is made by mixing blue and yellow. It is the color of grass and leaves!' },
+    { target: 'red', colors: ['red'], hex: '#ff0000', fact: 'Red is a primary color. It is the color of apples and fire trucks!' },
+    { target: 'blue', colors: ['blue'], hex: '#0000ff', fact: 'Blue is a primary color. It is the color of the sky and the ocean!' },
+    { target: 'yellow', colors: ['yellow'], hex: '#ffff00', fact: 'Yellow is a primary color. It is the color of bananas and sunshine!' },
+    { target: 'brown', colors: ['red','yellow','blue'], hex: '#8B4513', fact: 'Brown is made by mixing all three primary colors. It is the color of tree bark!' },
+    { target: 'pink', colors: ['red','white'], hex: '#ffc0cb', fact: 'Pink is made by mixing red and white. It is the color of flamingos!' },
+    { target: 'light blue', colors: ['blue','white'], hex: '#add8e6', fact: 'Light blue is made by mixing blue and white. It is the color of a clear sky!' },
+    { target: 'light green', colors: ['green','white'], hex: '#90ee90', fact: 'Light green is made by mixing green and white. It is the color of new leaves!' },
+    { target: 'dark green', colors: ['green','black'], hex: '#006400', fact: 'Dark green is made by mixing green and black. It is the color of pine trees!' },
+    { target: 'dark blue', colors: ['blue','black'], hex: '#00008b', fact: 'Dark blue is made by mixing blue and black. It is the color of the deep ocean!' },
+    { target: 'gray', colors: ['black','white'], hex: '#808080', fact: 'Gray is made by mixing black and white. It is the color of clouds on a rainy day!' },
+    { target: 'gold', colors: ['yellow','orange'], hex: '#ffd700', fact: 'Gold is made by mixing yellow and orange. It is the color of treasure!' },
+    { target: 'teal', colors: ['blue','green'], hex: '#008080', fact: 'Teal is made by mixing blue and green. It is the color of tropical seas!' },
+    { target: 'violet', colors: ['blue','purple'], hex: '#9400d3', fact: 'Violet is made by mixing blue and purple. It is the color of violets!' },
+    { target: 'magenta', colors: ['red','purple'], hex: '#ff00ff', fact: 'Magenta is made by mixing red and purple. It is the color of some flowers!' },
+    { target: 'lime', colors: ['yellow','green'], hex: '#bfff00', fact: 'Lime is made by mixing yellow and green. It is the color of limes!' },
+    { target: 'peach', colors: ['orange','white'], hex: '#ffe5b4', fact: 'Peach is made by mixing orange and white. It is the color of peaches!' },
+    { target: 'navy', colors: ['blue','black'], hex: '#000080', fact: 'Navy is made by mixing blue and black. It is the color of navy uniforms!' },
+    { target: 'maroon', colors: ['red','black'], hex: '#800000', fact: 'Maroon is made by mixing red and black. It is the color of autumn leaves!' },
+    { target: 'olive', colors: ['yellow','black'], hex: '#808000', fact: 'Olive is made by mixing yellow and black. It is the color of olives!' },
+    { target: 'sky blue', colors: ['blue','white'], hex: '#87ceeb', fact: 'Sky blue is made by mixing blue and white. It is the color of the sky on a sunny day!' },
+    { target: 'beige', colors: ['brown','white'], hex: '#f5f5dc', fact: 'Beige is made by mixing brown and white. It is the color of sand!' },
+    { target: 'turquoise', colors: ['blue','green','white'], hex: '#40e0d0', fact: 'Turquoise is made by mixing blue, green, and white. It is the color of tropical waters!' }
+];
+let currentLevel = 0;
+let score = 0;
+let usedHint = false;
+let selectedColors = [];
+let timer = null;
+let timeLeft = 20;
+let muted = false;
+function showScreen(id) {
+    document.querySelectorAll('.game-screen').forEach(s => s.style.display = 'none');
+    document.getElementById(id).style.display = 'block';
+}
+function setLevel(levelIdx) {
+    currentLevel = levelIdx;
+    document.getElementById('level').textContent = levelIdx+1;
+    document.getElementById('score').textContent = score;
+    document.getElementById('target-color').style.background = levels[levelIdx].hex;
+    document.getElementById('target-color-name').textContent = levels[levelIdx].target.charAt(0).toUpperCase() + levels[levelIdx].target.slice(1);
+    document.getElementById('mixed-color').style.background = '#fff';
+    document.getElementById('mixed-color-name').textContent = '';
+    document.getElementById('result-message').textContent = '';
+    document.getElementById('fun-fact').textContent = '';
+    document.getElementById('selected-colors-names').textContent = '';
+    selectedColors = [];
+    document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
+    document.getElementById('progress-bar').style.width = ((levelIdx+1)/levels.length*100)+'%';
+    usedHint = false;
+    startTimer();
+}
+function startTimer() {
+    clearInterval(timer);
+    timeLeft = 20;
+    document.getElementById('timer').textContent = timeLeft;
+    timer = setInterval(() => {
+        timeLeft--;
+        document.getElementById('timer').textContent = timeLeft;
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            score -= 5;
+            document.getElementById('result-message').textContent = 'Time up!';
+            playSound('fail');
+            setTimeout(() => {
+                if (currentLevel < levels.length-1) {
+                    setLevel(currentLevel+1);
+                } else {
+                    document.getElementById('final-score').textContent = score;
+                    showScreen('end-screen');
+                }
+            }, 1200);
+        }
+    }, 1000);
+}
+document.getElementById('restart-btn').onclick = function() {
+    score = 0;
+    setLevel(0);
+    showScreen('play-screen');
+};
+document.querySelectorAll('.color-option').forEach(opt => {
+    opt.onclick = function() {
+        if (selectedColors.length < 3 && !selectedColors.includes(opt.dataset.color)) {
+            selectedColors.push(opt.dataset.color);
+            opt.classList.add('selected');
+        }
+        // Show selected color names
+        if (selectedColors.length > 0) {
+            document.getElementById('selected-colors-names').textContent = 'Selected: ' + selectedColors.map(c => c.charAt(0).toUpperCase() + c.slice(1)).join(' + ');
+        } else {
+            document.getElementById('selected-colors-names').textContent = '';
+        }
+    };
+});
+document.getElementById('reset-btn').onclick = function() {
+    selectedColors = [];
+    document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
+    document.getElementById('mixed-color').style.background = '#fff';
+    document.getElementById('mixed-color-name').textContent = '';
+    document.getElementById('selected-colors-names').textContent = '';
+    document.getElementById('result-message').textContent = '';
+    document.getElementById('fun-fact').textContent = '';
+};
+document.getElementById('mix-btn').onclick = function() {
+    var level = levels[currentLevel];
+    if (selectedColors.length === 0) {
+        document.getElementById('result-message').textContent = 'Pick at least one color!';
+        document.getElementById('mixed-color-name').textContent = '';
+        speak('Pick at least one color!');
+        return;
+    }
+    let result = { color: 'unknown', hex: '#fff' };
+    // Find a matching level.colors set (order-independent)
+    for (let lvl of levels) {
+        if (lvl.colors.length === selectedColors.length) {
+            let sortedA = [...lvl.colors].sort().join(',');
+            let sortedB = [...selectedColors].sort().join(',');
+            if (sortedA === sortedB) {
+                result = { color: lvl.target, hex: lvl.hex };
+                break;
+            }
+        }
+    }
+    // Fallback for single color
+    if (result.color === 'unknown' && selectedColors.length === 1) {
+        if (selectedColors[0] === 'red') result = { color: 'red', hex: '#ff0000' };
+        if (selectedColors[0] === 'blue') result = { color: 'blue', hex: '#0000ff' };
+        if (selectedColors[0] === 'yellow') result = { color: 'yellow', hex: '#ffff00' };
+        if (selectedColors[0] === 'white') result = { color: 'white', hex: '#ffffff' };
+        if (selectedColors[0] === 'black') result = { color: 'black', hex: '#000000' };
+        if (selectedColors[0] === 'brown') result = { color: 'brown', hex: '#8B4513' };
+        if (selectedColors[0] === 'green') result = { color: 'green', hex: '#008000' };
+        if (selectedColors[0] === 'orange') result = { color: 'orange', hex: '#ffa500' };
+    }
+    document.getElementById('mixed-color').style.background = result.hex;
+    document.getElementById('mixed-color-name').textContent = result.color.charAt(0).toUpperCase() + result.color.slice(1);
+    speak('You mixed ' + selectedColors.join(' and ') + '. Result: ' + result.color);
+    if (result.color === level.target) {
+        let baseScore = timeLeft * 1; // 1 point per second left
+        if (usedHint) {
+            baseScore = Math.floor(baseScore / 2);
+        }
+        score += baseScore;
+        document.getElementById('result-message').textContent = 'Correct! 🎉';
+        document.getElementById('fun-fact').textContent = level.fact;
+        playSound('success');
+        speak(level.target + '. ' + level.fact);
+        showConfetti();
+        clearInterval(timer);
+        setTimeout(() => {
+            hideConfetti();
+            if (currentLevel < levels.length-1) {
+                setLevel(currentLevel+1);
+            } else {
+                document.getElementById('final-score').textContent = score;
+                showScreen('end-screen');
+            }
+        }, 1500);
+    } else {
+        score -= 3;
+        document.getElementById('result-message').textContent = 'Try again!';
+        shakeResult();
+        playSound('fail');
+        speak('Try again!');
+    }
+    document.getElementById('score').textContent = score;
+};
+function shakeResult() {
+    let el = document.getElementById('result-message');
+    el.style.animation = 'shake 0.4s';
+    el.addEventListener('animationend', ()=>{el.style.animation='';},{once:true});
+}
+document.getElementById('hint-btn').onclick = function() {
+    const level = levels[currentLevel];
+    document.getElementById('result-message').textContent = 'Hint: Mix ' + level.colors.join(' + ');
+    playSound('hint');
+    usedHint = true;
+};
+document.getElementById('sound-toggle').onclick = function() {
+    muted = !muted;
+    this.textContent = muted ? '🔇' : '🔊';
+};
+function playSound(type) {
+    if (muted) return;
+    let audio;
+    if (type === 'success') audio = new Audio('https://cdn.pixabay.com/audio/2022/03/15/audio_115b6c7b7b.mp3');
+    else if (type === 'fail') audio = new Audio('https://cdn.pixabay.com/audio/2022/03/15/audio_115b6c7b7b.mp3');
+    else if (type === 'hint') audio = new Audio('https://cdn.pixabay.com/audio/2022/03/15/audio_115b6c7b7b.mp3');
+    audio.volume = 0.3;
+    audio.play();
+}
+
+// Voice narration using Web Speech API
+function speak(text) {
+    if (muted) return;
+    if ('speechSynthesis' in window) {
+        let utter = new SpeechSynthesisUtterance(text);
+        utter.rate = 1;
+        utter.pitch = 1;
+        window.speechSynthesis.speak(utter);
+    }
+}
+function showConfetti() {
+    const confetti = document.getElementById('confetti');
+    confetti.innerHTML = '';
+    confetti.style.display = 'block';
+    for (let i = 0; i < 40; i++) {
+        let span = document.createElement('span');
+        span.innerHTML = '&#127882;';
+        span.style.left = Math.random() * 100 + '%';
+        span.style.top = Math.random() * 80 + '%';
+        span.style.color = ['#ffd60a','#d90429','#43c6ac','#005f73','#fff9c4'][i%5];
+        span.style.position = 'absolute';
+        span.style.fontSize = (Math.random()*1.5+1)+'rem';
+        confetti.appendChild(span);
+    }
+    setTimeout(hideConfetti, 1200);
+}
+function hideConfetti() {
+    document.getElementById('confetti').style.display = 'none';
+}
+document.getElementById('end-game-btn').onclick = function() {
+    clearInterval(timer); // Stop the timer
+    showScreen('end-screen'); // Only show end screen
+    document.getElementById('final-score').textContent = score;
+    // Save score to leaderboard in localStorage
+    let username = "{{ username|escapejs }}";
+    let leaderboard = JSON.parse(localStorage.getItem('leaderboard') || '[]');
+    leaderboard.push({ name: username, score: score, date: new Date().toISOString() });
+    leaderboard.sort((a, b) => b.score - a.score);
+    localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
+};
+// --- Animated shake effect ---
+let style = document.createElement('style');
+style.innerHTML = '@keyframes shake {0%{transform:translateX(0);}20%{transform:translateX(-8px);}40%{transform:translateX(8px);}60%{transform:translateX(-8px);}80%{transform:translateX(8px);}100%{transform:translateX(0);}}';
+document.head.appendChild(style);
+// --- Initialize game on load ---
+window.onload = function() {
+    setLevel(0);
+};
+</script>
+<!-- removed stray Django endblock tag -->

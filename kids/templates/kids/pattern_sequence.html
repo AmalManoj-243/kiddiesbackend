@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pattern Sequence Brain Game</title>
+  <style>
+    body {
+      background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+      font-family: 'Montserrat', Arial, sans-serif;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 400px;
+      margin: 2rem auto;
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 4px 24px #23272f22;
+      padding: 2rem 1.5rem;
+      text-align: center;
+    }
+    h1 {
+      color: #7f53ac;
+      margin-bottom: 1rem;
+      font-size: 2rem;
+    }
+    .sequence {
+      font-size: 1.5rem;
+      margin: 1.2rem 0;
+      letter-spacing: 0.2rem;
+      color: #5f5f5f;
+    }
+    .input-area {
+      margin: 1.2rem 0;
+    }
+    input[type="number"] {
+      font-size: 1.2rem;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid #7f53ac;
+      width: 80px;
+      text-align: center;
+    }
+    button {
+      background: linear-gradient(90deg, #7f53ac 0%, #647dee 100%);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 0.7rem 1.5rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 1rem;
+      box-shadow: 0 2px 8px #7f53ac22;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: linear-gradient(90deg, #647dee 0%, #7f53ac 100%);
+    }
+    .message {
+      font-size: 1.1rem;
+      margin-top: 1rem;
+      color: #7f53ac;
+      font-weight: bold;
+      min-height: 2rem;
+    }
+    .level {
+      font-size: 1.1rem;
+      color: #647dee;
+      margin-bottom: 0.5rem;
+    }
+    @media (max-width: 500px) {
+      .container { max-width: 98vw; padding: 1rem 0.2rem; }
+      h1 { font-size: 1.2rem; }
+      .sequence { font-size: 1.1rem; }
+      input[type="number"] { font-size: 1rem; width: 60px; }
+      button { font-size: 1rem; padding: 0.5rem 1rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 style="font-family: 'Comic Sans MS', cursive; color: #ff9800; text-shadow: 2px 2px #fff176;">Pattern Sequence</h1>
+    <div id="mascot" style="font-size:3rem; margin-bottom:1rem;">🦄</div>
+    <div id="difficultyScreen">
+      <div style="font-size:1.2rem;margin-bottom:1rem;">Choose Difficulty:</div>
+  <button class="kids-btn" style="background:linear-gradient(90deg,#ffb347,#ffcc33);color:#fff;font-size:1.2rem;" onclick="chooseDifficulty('easy')">Easy</button>
+  <button class="kids-btn" style="background:linear-gradient(90deg,#7f53ac,#647dee);color:#fff;font-size:1.2rem;" onclick="chooseDifficulty('medium')">Medium</button>
+  <button class="kids-btn" style="background:linear-gradient(90deg,#43e97b,#38f9d7);color:#fff;font-size:1.2rem;" onclick="chooseDifficulty('difficult')">Difficult</button>
+  <button class="kids-btn" style="background:linear-gradient(90deg,#ff4066,#ffb347);color:#fff;font-size:1.2rem;" onclick="chooseDifficulty('numbers')">Numbers Only</button>
+    </div>
+    <div id="gameScreen" style="display:none;">
+      <div class="level">Level: <span id="level">1</span> | Score: <span id="score">0</span></div>
+      <div class="timer" id="timer" style="color:#e57373;font-weight:bold;margin-bottom:0.5rem;"></div>
+      <div class="sequence" id="sequence"></div>
+      <div class="input-area" id="inputArea"></div>
+      <div style="margin-top:0.5rem;">
+        <button id="hintBtn" style="background:linear-gradient(90deg,#f7971e,#ffd200);color:#fff;font-size:1.1rem;">Hint</button>
+      </div>
+      <div class="message" id="message"></div>
+      <div id="confetti" style="position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:999;display:none;"></div>
+      <button id="nextLevelBtn" style="display:none;">Next Level</button>
+    </div>
+  </div>
+  <script>
+    // Difficulty-based pattern sets
+    const easyPatterns = [
+  // 20 new, correct, and interesting logical/visual reasoning pattern questions for kids
+  { type: 'number', seq: [2, 4, 6, 8], rule: n => n + 2, hint: 'Add 2 each time.' },
+  { type: 'number', seq: [5, 10, 20, 40], rule: n => n * 2, hint: 'Double each time.' },
+  { type: 'visual', seq: ['🔴', '🔴🔴', '🔴🔴🔴'], rule: (n, i, arr) => '🔴🔴🔴🔴', hint: 'Add one red circle each time.' },
+  { type: 'logic', seq: [1, 3, 6, 10], rule: (n, i, arr) => 15, hint: 'Triangle numbers.' },
+  { type: 'visual', seq: ['⬜', '⬛', '⬜', '⬛'], rule: (n, i, arr) => arr[(arr.length)%2], hint: 'Alternates white/black square.' },
+  { type: 'number', seq: [1, 4, 9, 16], rule: (n, i) => (i+2)*(i+2), hint: 'Squares.' },
+  { type: 'logic', seq: ['A', 'C', 'F', 'J'], rule: (n, i, arr) => 'O', hint: 'Add 2, 3, 4 to previous letter.' },
+  { type: 'visual', seq: ['⭐', '⭐⭐', '⭐⭐⭐'], rule: (n, i, arr) => '⭐⭐⭐⭐', hint: 'Add one star each time.' },
+  { type: 'number', seq: [2, 3, 5, 8], rule: n => n + (arr.length), hint: 'Add increasing numbers.' },
+  { type: 'logic', seq: ['B', 'E', 'J', 'Q'], rule: (n, i, arr) => 'Z', hint: 'Add 3, 5, 7, 9 to previous letter.' },
+  { type: 'visual', seq: ['🔵', '🔵🔵', '🔵🔵🔵'], rule: (n, i, arr) => '🔵🔵🔵🔵', hint: 'Add one blue circle each time.' },
+  { type: 'number', seq: [3, 6, 12, 24], rule: n => n * 2, hint: 'Double each time.' },
+  { type: 'logic', seq: [1, 2, 4, 8], rule: n => n * 2, hint: 'Powers of 2.' },
+  { type: 'visual', seq: ['🍎', '🍎🍌', '🍎🍌🍍'], rule: (n, i, arr) => '🍎🍌🍍🍏', hint: 'Add one fruit each time.' },
+  { type: 'number', seq: [10, 7, 14, 11], rule: (n, i, arr) => 18, hint: 'Add 7, subtract 3.' },
+  { type: 'logic', seq: ['E', 'D', 'C', 'B'], rule: (n, i, arr) => 'A', hint: 'Order alphabets in reverse.' },
+  { type: 'visual', seq: ['🟢', '🟢🟢', '🟢🟢🟢'], rule: (n, i, arr) => '🟢🟢🟢🟢', hint: 'Add one green circle each time.' },
+  { type: 'number', seq: [1, 2, 3, 5], rule: n => n + (arr.length-1), hint: 'Add increasing numbers.' },
+  { type: 'logic', seq: ['A', 'B', 'C', 'D'], rule: (n, i, arr) => 'E', hint: 'Next alphabet.' },
+];
+    const mediumPatterns = [
+  // 20 new, correct, and interesting logical/visual reasoning pattern questions for kids (medium)
+  { type: 'number', seq: [4, 8, 12, 16], rule: n => n + 4, hint: 'Add 4 each time.' },
+  { type: 'number', seq: [7, 14, 28, 56], rule: n => n * 2, hint: 'Double each time.' },
+  { type: 'visual', seq: ['🔺', '🔺🔺', '🔺🔺🔺'], rule: (n, i, arr) => '🔺🔺🔺🔺', hint: 'Add one triangle each time.' },
+  { type: 'logic', seq: [2, 5, 10, 17], rule: (n, i, arr) => 26, hint: 'Add 3, 5, 7, 9.' },
+  { type: 'visual', seq: ['⬛', '⬜', '⬛', '⬜'], rule: (n, i, arr) => arr[(arr.length)%2], hint: 'Alternates black/white square.' },
+  { type: 'number', seq: [9, 18, 27, 36], rule: n => n + 9, hint: 'Add 9 each time.' },
+  { type: 'logic', seq: ['C', 'F', 'J', 'O'], rule: (n, i, arr) => 'U', hint: 'Add 3, 4, 5, 6 to previous letter.' },
+  { type: 'visual', seq: ['🌟', '🌟🌟', '🌟🌟🌟'], rule: (n, i, arr) => '🌟🌟🌟🌟', hint: 'Add one sparkle each time.' },
+  { type: 'number', seq: [5, 10, 15, 25], rule: n => n + (arr.length*5), hint: 'Add 5, 5, 10.' },
+  { type: 'logic', seq: ['D', 'H', 'O', 'Y'], rule: (n, i, arr) => 'AK', hint: 'Add 4, 7, 11, 14 to previous letter.' },
+  { type: 'visual', seq: ['🟣', '🟣🟣', '🟣🟣🟣'], rule: (n, i, arr) => '🟣🟣🟣🟣', hint: 'Add one purple circle each time.' },
+  { type: 'number', seq: [6, 12, 24, 48], rule: n => n * 2, hint: 'Double each time.' },
+  { type: 'logic', seq: [2, 4, 8, 16], rule: n => n * 2, hint: 'Powers of 2.' },
+  { type: 'visual', seq: ['🍏', '🍏🍎', '🍏🍎🍌'], rule: (n, i, arr) => '🍏🍎🍌🍍', hint: 'Add one fruit each time.' },
+  { type: 'number', seq: [12, 9, 18, 15], rule: (n, i, arr) => 30, hint: 'Add 6, subtract 3.' },
+  { type: 'logic', seq: ['G', 'F', 'E', 'D'], rule: (n, i, arr) => 'C', hint: 'Order alphabets in reverse.' },
+  { type: 'visual', seq: ['🟠', '🟠🟠', '🟠🟠🟠'], rule: (n, i, arr) => '🟠🟠🟠🟠', hint: 'Add one orange circle each time.' },
+  { type: 'number', seq: [2, 4, 6, 10], rule: n => n + (arr.length), hint: 'Add increasing numbers.', options: ['2','4','6','10','14','8','12'] },
+  { type: 'logic', seq: ['B', 'D', 'F', 'H'], rule: (n, i, arr) => 'J', hint: 'Next even alphabet.' },
+];
+    const difficultPatterns = [
+  // 20 new, correct, and interesting logical/visual reasoning pattern questions for kids (difficult)
+  { type: 'number', seq: [8, 16, 32, 64], rule: n => n * 2, hint: 'Double each time.' },
+  { type: 'number', seq: [11, 22, 44, 88], rule: n => n * 2, hint: 'Double each time.' },
+  { type: 'visual', seq: ['🔵🔴', '🔵🔴🔵', '🔵🔴🔵🔴'], rule: (n, i, arr) => '🔵🔴🔵🔴🔵', hint: 'Alternate blue/red.' },
+  { type: 'logic', seq: [3, 7, 13, 21], rule: (n, i, arr) => 31, hint: 'Add 4, 6, 8, 10.' },
+  { type: 'visual', seq: ['⬛⬜', '⬛⬜⬛', '⬛⬜⬛⬜'], rule: (n, i, arr) => '⬛⬜⬛⬜⬛', hint: 'Alternate black/white.' },
+  { type: 'number', seq: [15, 30, 60, 120], rule: n => n * 2, hint: 'Double each time.' },
+  { type: 'logic', seq: ['E', 'J', 'P', 'W'], rule: (n, i, arr) => 'AE', hint: 'Add 5, 6, 7, 8 to previous letter.' },
+  { type: 'visual', seq: ['🌟🌟', '🌟🌟🌟', '🌟🌟🌟🌟'], rule: (n, i, arr) => '🌟🌟🌟🌟🌟', hint: 'Add one sparkle each time.' },
+  { type: 'number', seq: [7, 14, 21, 35], rule: n => n + (arr.length*7), hint: 'Add 7, 7, 14.' },
+  { type: 'logic', seq: ['F', 'L', 'U', 'G'], rule: (n, i, arr) => 'S', hint: 'Add 6, 11, -14, 13.' },
+  { type: 'visual', seq: ['🟣🟢', '🟣🟢🟣', '🟣🟢🟣🟢'], rule: (n, i, arr) => '🟣🟢🟣🟢🟣', hint: 'Alternate purple/green.' },
+  { type: 'number', seq: [18, 36, 72, 144], rule: n => n * 2, hint: 'Double each time.' },
+  { type: 'logic', seq: [3, 6, 12, 24], rule: n => n * 2, hint: 'Powers of 2.' },
+  { type: 'visual', seq: ['🍎🍏', '🍎🍏🍌', '🍎🍏🍌🍍'], rule: (n, i, arr) => '🍎🍏🍌🍍🍊', hint: 'Add one fruit each time.' },
+  { type: 'number', seq: [21, 18, 36, 33], rule: (n, i, arr) => 66, hint: 'Add 9, subtract 3.' },
+  { type: 'logic', seq: ['K', 'J', 'I', 'H'], rule: (n, i, arr) => 'G', hint: 'Order alphabets in reverse.' },
+  { type: 'visual', seq: ['🟠🟡', '🟠🟡🟠', '🟠🟡🟠🟡'], rule: (n, i, arr) => '🟠🟡🟠🟡🟠', hint: 'Alternate orange/yellow.' },
+  { type: 'number', seq: [3, 6, 9, 15], rule: n => n + (arr.length*3), hint: 'Add increasing numbers.' },
+  { type: 'logic', seq: ['C', 'E', 'G', 'I'], rule: (n, i, arr) => 'K', hint: 'Next even alphabet.' },
+];
+    let patterns = [];
+    function deduplicatePatterns(arr) {
+      const seen = new Set();
+      return arr.filter(p => {
+        const key = JSON.stringify(p.seq) + (typeof p.rule === 'string' ? p.rule : p.rule?.toString());
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    }
+    let difficulty = null;
+    let level = 1;
+    let score = 0;
+    let currentPattern = null;
+    let currentSeq = [];
+    let answer = null;
+    let timer = null;
+    let timeLeft = 30;
+    let messageDiv = document.getElementById('message');
+    let sequenceDiv = document.getElementById('sequence');
+    let levelSpan = document.getElementById('level');
+    let scoreSpan = document.getElementById('score');
+    let timerDiv = document.getElementById('timer');
+    let nextLevelBtn = document.getElementById('nextLevelBtn');
+    let hintBtn = document.getElementById('hintBtn');
+    let inputArea = document.getElementById('inputArea');
+    let difficultyScreen = document.getElementById('difficultyScreen');
+    let gameScreen = document.getElementById('gameScreen');
+
+
+    function chooseDifficulty(diff) {
+      difficulty = diff;
+      function shuffle(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+      }
+      if(diff === 'easy') {
+        patterns = shuffle(deduplicatePatterns([...easyPatterns]));
+        timeLeft = 40;
+      } else if(diff === 'medium') {
+        patterns = shuffle(deduplicatePatterns([...mediumPatterns]));
+        timeLeft = 30;
+      } else if(diff === 'difficult') {
+        patterns = shuffle(deduplicatePatterns([...difficultPatterns]));
+        timeLeft = 20;
+      } else if(diff === 'numbers') {
+        // Combine all patterns and filter only number type, then deduplicate
+        const allPatterns = [...easyPatterns, ...mediumPatterns, ...difficultPatterns];
+        patterns = shuffle(deduplicatePatterns(allPatterns.filter(p => p.type === 'number')));
+        timeLeft = 30;
+      }
+      difficultyScreen.style.display = 'none';
+      gameScreen.style.display = 'block';
+      level = 1;
+      score = 0;
+      startLevel();
+    }
+
+    function startLevel() {
+  messageDiv.textContent = '';
+  nextLevelBtn.style.display = 'none';
+  hintBtn.disabled = false;
+  let mascot = document.getElementById('mascot');
+  if (mascot) mascot.textContent = '🦄';
+  inputArea.innerHTML = '';
+  currentPattern = patterns[Math.floor(Math.random()*patterns.length)];
+  currentSeq = [...currentPattern.seq];
+  let displaySeq = currentSeq.map(x => x).join(', ') + ', ?';
+  sequenceDiv.textContent = displaySeq;
+  levelSpan.textContent = level;
+  scoreSpan.textContent = score;
+  // Calculate answer first
+  if (typeof currentPattern.rule === 'function') {
+    if (currentPattern.type === 'number') {
+      if (currentPattern.rule.length === 1) {
+        answer = currentPattern.rule(currentSeq[currentSeq.length-1]);
+      } else if (currentPattern.rule.length === 2) {
+        answer = currentPattern.rule(currentSeq[currentSeq.length-1], currentSeq.length);
+      } else {
+        answer = currentPattern.rule(currentSeq[currentSeq.length-1], currentSeq.length, currentSeq);
+      }
+    } else {
+      answer = currentPattern.rule(currentSeq[currentSeq.length-1], currentSeq.length, currentSeq);
+    }
+  } else {
+    answer = null;
+  }
+
+  // Input type
+  let options = [];
+  let safeAnswer = (answer === undefined || answer === null || answer === '') ? '?' : answer;
+  if (typeof safeAnswer !== 'string') safeAnswer = String(safeAnswer);
+
+  // Use explicit options if defined in pattern
+  if (Array.isArray(currentPattern.options) && currentPattern.options.length >= 2) {
+    options = Array.from(new Set(currentPattern.options.map(String)));
+    if (!options.includes(safeAnswer)) options.push(safeAnswer);
+    while (options.length < 4) {
+      let rand = String(Math.floor(Math.random() * 100) + 1);
+      if (!options.includes(rand)) options.push(rand);
+    }
+  } else if(currentPattern.type === 'number' && !isNaN(parseInt(safeAnswer))) {
+    options = Array.from(new Set(currentPattern.seq.map(String).concat([safeAnswer])));
+    let tries = 0;
+    while(options.length < 4 && tries < 20) {
+      let rand = String(Math.floor(Math.random() * 100) + 1);
+      if(!options.includes(rand)) options.push(rand);
+      tries++;
+    }
+    if(options.length < 4) {
+      options = [safeAnswer, ...currentPattern.seq.map(String)];
+      while(options.length < 4) {
+        let rand = String(Math.floor(Math.random() * 100) + 1);
+        if(!options.includes(rand)) options.push(rand);
+      }
+    }
+  } else if(currentPattern.type === 'color') {
+    options = Array.from(new Set(currentPattern.seq.map(String).concat([safeAnswer])));
+    const allColors = ['🔴','🟢','🔵','🟡','🟣','🟠','🟤','⚫','⚪'];
+    allColors.forEach(c => { if(!options.includes(c)) options.push(c); });
+    options = options.slice(0, 8);
+  } else {
+    options = Array.from(new Set(currentPattern.seq.map(String).concat([safeAnswer])));
+    // Add emoji/letter distractors if less than 4
+    const emojiDistractors = ['🍎','🍌','🍍','🦊','🦄','🐸','🍭','🍩','🍉','🍪','🍓','🦀','🦞','🚲','🛴','⭐','🎈','🦋','⚫','⬜','⬛','🔺','🔵','🟩','🟦','🟨','🟧','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','?'];
+    while(options.length < 4) {
+      let rand = emojiDistractors[Math.floor(Math.random()*emojiDistractors.length)];
+      if(!options.includes(rand)) options.push(rand);
+    }
+  }
+  // Final fallback: always 4 options
+  if(options.length < 4) {
+    while(options.length < 4) {
+      let rand = String(Math.floor(Math.random() * 100) + 1);
+      if(!options.includes(rand)) options.push(rand);
+    }
+  }
+  inputArea.innerHTML = options.map(opt => `<button class="kids-btn" style="font-size:2rem;padding:0.5rem 1rem;margin:0.2rem;" onclick="submitPickerAnswer('${opt}')">${opt}</button>`).join('');
+  // Timer
+  let timerStart = timeLeft;
+  timerDiv.textContent = 'Time left: ' + timerStart + 's';
+  if(timer) clearInterval(timer);
+  timer = setInterval(()=>{
+    timerStart--;
+    timerDiv.textContent = 'Time left: ' + timerStart + 's';
+    if(timerStart <= 0) {
+      clearInterval(timer);
+      messageDiv.textContent = 'Time up! The answer was: ' + answer;
+      revealBtn.disabled = true;
+      hintBtn.disabled = true;
+      nextLevelBtn.style.display = 'inline-block';
+    }
+  }, 1000);
+    }
+
+    function submitAnswer() {
+      let userVal = document.getElementById('userInput').value;
+      let correct = false;
+      if(currentPattern.type === 'number') {
+        userVal = parseInt(userVal);
+        correct = (userVal === answer);
+        handleAnswer(correct);
+      }
+    }
+
+    window.submitPickerAnswer = function(val) {
+      // Always compare as string for option buttons
+      let correct = (String(val) === String(answer));
+      handleAnswer(correct);
+    }
+
+    function handleAnswer(correct) {
+      if (correct) {
+        clearInterval(timer);
+        score += 10 + timeLeft;
+        scoreSpan.textContent = score;
+        // Positive feedback messages
+        const feedbacks = ['Awesome!', 'You’re a star!', 'Great job!', 'Super!', 'Yay!', 'Fantastic!', 'Bravo!'];
+        messageDiv.textContent = feedbacks[Math.floor(Math.random()*feedbacks.length)] + ' 🎉';
+        messageDiv.style.animation = 'popupScore 1s linear';
+        playSound('correct');
+        nextLevelBtn.style.display = 'inline-block';
+        // Confetti animation
+        showConfetti();
+        // Mascot reacts
+        let mascot = document.getElementById('mascot');
+        if (mascot) mascot.textContent = '🎉🦄🎉';
+        hintBtn.disabled = true;
+        // Disable all option buttons
+        disableOptionButtons();
+      } else {
+        messageDiv.textContent = `Oops! The correct answer was: ${answer}`;
+        messageDiv.style.animation = 'shake 0.5s';
+        playSound('wrong');
+        nextLevelBtn.style.display = 'inline-block';
+        // Mascot reacts
+        let mascot = document.getElementById('mascot');
+        if (mascot) mascot.textContent = '😢🦄';
+        hintBtn.disabled = true;
+        // Disable all option buttons
+        disableOptionButtons();
+      }
+    }
+    // Confetti animation function
+    function showConfetti() {
+      const confettiDiv = document.getElementById('confetti');
+      if (!confettiDiv) return;
+      confettiDiv.innerHTML = '';
+      confettiDiv.style.display = 'block';
+      for(let i=0;i<80;i++) {
+        let conf = document.createElement('div');
+        conf.style.position = 'absolute';
+        conf.style.left = Math.random()*100+'vw';
+        conf.style.top = Math.random()*100+'vh';
+        conf.style.width = '16px';
+        conf.style.height = '16px';
+        conf.style.borderRadius = '50%';
+        conf.style.background = 'hsl('+Math.random()*360+',80%,60%)';
+        conf.style.opacity = '0.8';
+        conf.style.transform = 'scale('+ (0.7+Math.random()*0.6) +')';
+        confettiDiv.appendChild(conf);
+        setTimeout(()=>{conf.style.top = '110vh'; conf.style.transition = 'top 1.2s';}, 50+Math.random()*300);
+      }
+      setTimeout(()=>{confettiDiv.style.display = 'none';}, 1500);
+    }
+
+    function disableOptionButtons() {
+      // Disable all buttons in inputArea
+      let btns = inputArea.querySelectorAll('button');
+      btns.forEach(btn => btn.disabled = true);
+    }
+
+    nextLevelBtn.onclick = function() {
+      level++;
+      startLevel();
+    };
+
+    hintBtn.onclick = function() {
+      messageDiv.textContent = 'Hint: ' + currentPattern.hint;
+      playSound('hint');
+      hintBtn.disabled = true;
+    };
+
+    explanationBtn.onclick = function() {
+    };
+
+
+    // Sound effects
+    function playSound(type) {
+      let sound;
+      if(type === 'correct') sound = 'https://cdn.pixabay.com/audio/2022/07/26/audio_124b7b2b7e.mp3';
+      else if(type === 'wrong') sound = 'https://cdn.pixabay.com/audio/2022/07/26/audio_124b7b2b7e.mp3';
+      else if(type === 'hint') sound = 'https://cdn.pixabay.com/audio/2022/07/26/audio_124b7b2b7e.mp3';
+      else if(type === 'reveal') sound = 'https://cdn.pixabay.com/audio/2022/07/26/audio_124b7b2b7e.mp3';
+      if(sound) {
+        const audio = new Audio(sound);
+        audio.volume = 1.0;
+        audio.play().catch(()=>{});
+      }
+    }
+
+    // Animations
+    const style = document.createElement('style');
+    style.innerHTML = `@keyframes popupScore {0%{opacity:0;transform:scale(0.7);}10%{opacity:1;transform:scale(1.1);}80%{opacity:1;transform:scale(1);}100%{opacity:0;transform:scale(0.7);}}@keyframes shake{0%{transform:translateX(0);}20%{transform:translateX(-10px);}40%{transform:translateX(10px);}60%{transform:translateX(-10px);}80%{transform:translateX(10px);}100%{transform:translateX(0);}}`;
+    document.head.appendChild(style);
+
+    startLevel();
+  </script>
+</body>
+</html>

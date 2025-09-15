@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+  body {
+    background: linear-gradient(120deg, #f8ffae 0%, #e0f7fa 100%, #ffd6e0 120%);
+  }
+  .quiz-hero {
+    background: linear-gradient(135deg, #e0f7fa 0%, #fffbe6 100%);
+    border-radius: 2rem;
+    box-shadow: 0 8px 32px #ffd60a33;
+    padding: 2.5rem 1.5rem 1.2rem 1.5rem;
+    margin-bottom: 2rem;
+    text-align: center;
+    position: relative;
+  }
+  .quiz-title {
+    color: #ff4066;
+    font-family: 'Baloo 2', cursive;
+    font-size: 2.7rem;
+    font-weight: bold;
+    margin-bottom: 0.7rem;
+    letter-spacing: 2px;
+    text-shadow: 0 2px 8px #ffd60a44;
+  }
+  .quiz-progress {
+    margin: 1rem 0 0.5rem 0;
+    text-align: center;
+    font-size: 1.7rem;
+    color: #ffd60a;
+    font-family: 'Baloo 2', cursive;
+  }
+  .question-card {
+    background: linear-gradient(135deg, #fffbe6 60%, #e0f7fa 100%);
+    border-radius: 1.5rem;
+    box-shadow: 0 4px 18px #ffd60a33, 0 2px 8px #e0f7fa88;
+    padding: 2rem 1.2rem;
+    font-size: 1.5rem;
+    font-family: 'Baloo 2', cursive;
+    color: #2d6a4f;
+    font-weight: bold;
+    margin-bottom: 2rem;
+    text-align: center;
+    border: 3px solid #ffd60a;
+    min-height: 120px;
+    position: relative;
+    animation: bounceIn 0.8s;
+  }
+  @keyframes bounceIn {
+    0% { transform: scale(0.7); opacity: 0.2; }
+    80% { transform: scale(1.15); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .answer-btn {
+    background: linear-gradient(90deg,#ffd60a 0%,#ff9800 100%);
+    color: #2d6a4f;
+    border-radius: 1.5rem;
+    font-size: 1.2rem;
+    font-family: 'Baloo 2', cursive;
+    font-weight: bold;
+    box-shadow: 0 2px 8px #ffd60a88;
+    padding: 0.7rem 2rem;
+    margin: 0.5rem 0.7rem;
+    transition: transform 0.2s;
+    display: inline-block;
+    border: none;
+    cursor: pointer;
+  }
+  .answer-btn:hover {
+    transform: scale(1.08);
+    background: #ff4066;
+    color: #fff;
+    box-shadow: 0 8px 24px #ffd60a44;
+  }
+  .confetti {
+    position: fixed;
+    left: 50vw;
+    top: 50vh;
+    font-size: 2.5rem;
+    pointer-events: none;
+    animation: confettiAnim 1.2s ease-out;
+  }
+  @keyframes confettiAnim {
+    0% { opacity: 1; transform: scale(1) translateY(0); }
+    100% { opacity: 0; transform: scale(1.5) translateY(80px); }
+  }
+  .score-board {
+    background: #fffbe6;
+    border-radius: 1.2rem;
+    box-shadow: 0 2px 8px #ffd60a22;
+    padding: 1.2rem 2rem;
+    font-size: 1.3rem;
+    color: #005f73;
+    font-family: 'Comic Sans MS', cursive;
+    margin-bottom: 1.2rem;
+    text-align: center;
+  }
+</style>
+<div class="container py-4">
+  <div class="quiz-hero">
+    <div class="quiz-title">Simple Words Big Quiz Game</div>
+    <div class="quiz-progress" id="quizProgress">Question 1 of 25</div>
+    <div class="score-board" id="scoreBoard">Score: 0</div>
+  </div>
+  <div id="questionArea"></div>
+</div>
+<script>
+const questions = [
+  // 25 different pattern questions
+  { type: 'mcq', q: 'Which word starts with C?', options: ['Cat', 'Dog', 'Sun', 'Hat'], a: 'Cat' },
+  { type: 'mcq', q: 'Which word is an animal that barks?', options: ['Cat', 'Dog', 'Fish', 'Tree'], a: 'Dog' },
+  { type: 'mcq', q: 'Which word is bright in the sky?', options: ['Hat', 'Sun', 'Book', 'Ball'], a: 'Sun' },
+  { type: 'mcq', q: 'Which word is something you wear on your head?', options: ['Cake', 'Hat', 'Car', 'Fish'], a: 'Hat' },
+  { type: 'mcq', q: 'Which word is a vehicle?', options: ['Car', 'Dog', 'Tree', 'Book'], a: 'Car' },
+  { type: 'mcq', q: 'Which word is a type of dessert?', options: ['Cake', 'Ball', 'Sun', 'Cat'], a: 'Cake' },
+  { type: 'mcq', q: 'Which word is a plant?', options: ['Tree', 'Dog', 'Fish', 'Hat'], a: 'Tree' },
+  { type: 'mcq', q: 'Which word is used to read?', options: ['Book', 'Ball', 'Cake', 'Sun'], a: 'Book' },
+  { type: 'mcq', q: 'Which word is round and used in games?', options: ['Ball', 'Cat', 'Car', 'Tree'], a: 'Ball' },
+  { type: 'mcq', q: 'Which word is a pet that swims?', options: ['Fish', 'Dog', 'Hat', 'Cake'], a: 'Fish' },
+  { type: 'fill', q: 'Fill in the blank: The ___ is yellow and bright.', a: 'Sun' },
+  { type: 'fill', q: 'Fill in the blank: I wear a ___ on my head.', a: 'Hat' },
+  { type: 'fill', q: 'Fill in the blank: The ___ barks.', a: 'Dog' },
+  { type: 'fill', q: 'Fill in the blank: I read a ___.', a: 'Book' },
+  { type: 'fill', q: 'Fill in the blank: The ___ swims in water.', a: 'Fish' },
+  { type: 'fill', q: 'Fill in the blank: I drive a ___.', a: 'Car' },
+  { type: 'fill', q: 'Fill in the blank: The ___ grows tall.', a: 'Tree' },
+  { type: 'fill', q: 'Fill in the blank: I play with a ___.', a: 'Ball' },
+  { type: 'fill', q: 'Fill in the blank: I eat ___.', a: 'Cake' },
+  { type: 'image', q: 'Which word matches this picture?', img: '/media/movies/f5VK0h2bprRhR6iRrixcuEfRxSUF4l14F66vQYrsJGmKZ5nTA1.jpg', options: ['Cat', 'Dog', 'Sun', 'Hat'], a: 'Cat' },
+  { type: 'image', q: 'Which word matches this picture?', img: '/media/movies/feUv2SYumXlT8E2RhzlYbZxfEGLG5AVrCPxP1gmAaCusxyPnA1.jpg', options: ['Dog', 'Cat', 'Fish', 'Tree'], a: 'Dog' },
+  { type: 'image', q: 'Which word matches this picture?', img: '/media/movies/IQsBhg9t747dLhjXfsChIGZy4XfugER8BF0Gw5MDhIcnY5nTA1.jpg', options: ['Sun', 'Hat', 'Book', 'Ball'], a: 'Sun' },
+  { type: 'image', q: 'Which word matches this picture?', img: '/media/movies/download.jpeg', options: ['Hat', 'Cake', 'Car', 'Fish'], a: 'Hat' },
+  { type: 'image', q: 'Which word matches this picture?', img: 'https://cdn-icons-png.flaticon.com/512/743/743007.png', options: ['Car', 'Dog', 'Tree', 'Book'], a: 'Car' },
+  { type: 'image', q: 'Which word matches this picture?', img: 'https://cdn-icons-png.flaticon.com/512/616/616408.png', options: ['Fish', 'Ball', 'Cake', 'Sun'], a: 'Fish' }
+];
+let current = 0;
+let score = 0;
+function showQuestion() {
+  const q = questions[current];
+  let html = `<div class='question-card'>`;
+  html += `<div style='margin-bottom:1rem;'>${q.q}</div>`;
+  if (q.img) {
+    html += `<img src='${q.img}' alt='question image' style='max-width:120px; border-radius:1rem; box-shadow:0 2px 8px #ffd60a22; margin-bottom:1rem;'>`;
+  }
+  if (q.type === 'mcq' || q.type === 'image') {
+    for (let opt of q.options) {
+      html += `<button class='answer-btn' onclick='answer("${opt}")'>${opt}</button>`;
+    }
+  } else if (q.type === 'fill') {
+    html += `<input type='text' id='fillInput' style='font-size:1.2rem; border-radius:0.7rem; padding:0.5rem 1rem; border:2px solid #ffd60a; margin-bottom:1rem;'>`;
+    html += `<button class='answer-btn' onclick='answerFill()'>Submit</button>`;
+  }
+  html += `</div>`;
+  document.getElementById('questionArea').innerHTML = html;
+  document.getElementById('quizProgress').textContent = `Question ${current+1} of ${questions.length}`;
+  document.getElementById('scoreBoard').textContent = `Score: ${score}`;
+}
+function answer(opt) {
+  const q = questions[current];
+  let feedback = '';
+  if (opt === q.a) {
+    score++;
+    feedback = '<div style="color:#2d6a4f; font-size:1.3rem; margin-bottom:0.7rem;">✅ Correct!</div>';
+    showConfetti();
+  } else {
+    feedback = '<div style="color:#ff4066; font-size:1.3rem; margin-bottom:0.7rem;">❌ Wrong! The answer is <b>' + q.a + '</b>.</div>';
+  }
+  // Show feedback before next question
+  document.getElementById('questionArea').innerHTML += feedback;
+  setTimeout(function() {
+    current++;
+    if (current < questions.length) {
+      showQuestion();
+    } else {
+      showResult();
+    }
+  }, 4000);
+}
+function answerFill() {
+  const q = questions[current];
+  const val = document.getElementById('fillInput').value.trim();
+  let feedback = '';
+  if (val.toLowerCase() === q.a.toLowerCase()) {
+    score++;
+    feedback = '<div style="color:#2d6a4f; font-size:1.3rem; margin-bottom:0.7rem;">✅ Correct!</div>';
+    showConfetti();
+  } else {
+    feedback = '<div style="color:#ff4066; font-size:1.3rem; margin-bottom:0.7rem;">❌ Wrong! The answer is <b>' + q.a + '</b>.</div>';
+  }
+  document.getElementById('questionArea').innerHTML += feedback;
+  setTimeout(function() {
+    current++;
+    if (current < questions.length) {
+      showQuestion();
+    } else {
+      showResult();
+    }
+  }, 1200);
+}
+function showResult() {
+  let html = `<div class='question-card' style='background:#ffe066; color:#ff4066;'>`;
+  html += `<div style='font-size:2rem; margin-bottom:1rem;'>Game Over!</div>`;
+  html += `<div style='font-size:1.5rem;'>Your Score: ${score} / ${questions.length}</div>`;
+  html += `<div style='margin-top:1.2rem;'><button class='answer-btn' onclick='restartQuiz()'>Play Again</button></div>`;
+  html += `</div>`;
+  document.getElementById('questionArea').innerHTML = html;
+  document.getElementById('quizProgress').textContent = `Finished!`;
+}
+function restartQuiz() {
+  current = 0;
+  score = 0;
+  showQuestion();
+}
+function showConfetti() {
+  var confetti = document.createElement('span');
+  confetti.className = 'confetti';
+  confetti.innerHTML = '🎉';
+  document.body.appendChild(confetti);
+  setTimeout(function(){ confetti.remove(); }, 1200);
+}
+showQuestion();
+</script>
+{% endblock %}
