@@ -51,4 +51,5 @@ urlpatterns = [
     path('lessons/blending-quiz/', views.blending_sounds_quiz_game, name='blending_sounds_quiz_game'),
     path('entertainment/snakes-ladders/start/', views.snakes_ladders_start, name='snakes-ladders-start'),
     path('entertainment/snakes-ladders/', views.entertainment_snakes_ladders, name='entertainment-snakes-ladders'),
+    path('virtual_pet/', views.virtual_pet, name='kids-virtual-pet'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,0 +1,2558 @@
+    <style>
+    .spotlight-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+    background: radial-gradient(circle at 50% 220px, rgba(255,255,255,0.12) 0px, rgba(255,255,255,0.18) 80px, rgba(0,0,0,0.88) 220px, rgba(0,0,0,0.98) 100vw);
+        z-index: 99999;
+        pointer-events: none;
+        transition: opacity 0.5s;
+        opacity: 0;
+    }
+    .spotlight-active {
+        opacity: 1 !important;
+    }
+    .hide-for-spotlight {
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+    </style>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Virtual Pet</title>
+    <style>
+@keyframes catDance {
+    0% { transform: translateX(0) scale(1); }
+    25% { transform: translateX(-24px) scale(1.05); }
+    50% { transform: translateX(0) scale(1); }
+    75% { transform: translateX(24px) scale(1.05); }
+    100% { transform: translateX(0) scale(1); }
+}
+.cat-dance {
+    animation: catDance 1.5s infinite cubic-bezier(.7,1.7,.5,1);
+}
+
+@keyframes legDanceLeft {
+    0% { transform: translateX(0); }
+    20% { transform: translateX(-14px); }
+    40% { transform: translateX(14px); }
+    60% { transform: translateX(-14px); }
+    80% { transform: translateX(14px); }
+    100% { transform: translateX(0); }
+}
+@keyframes legDanceRight {
+    0% { transform: translateX(0); }
+    20% { transform: translateX(14px); }
+    40% { transform: translateX(-14px); }
+    60% { transform: translateX(14px); }
+    80% { transform: translateX(-14px); }
+    100% { transform: translateX(0); }
+}
+.leg-dance-left {
+    animation: legDanceLeft 1.5s infinite cubic-bezier(.7,1.7,.5,1);
+}
+.leg-dance-right {
+    animation: legDanceRight 1.5s infinite cubic-bezier(.7,1.7,.5,1);
+}
+/* Responsive bath overlay buttons */
+#bath-buttons {
+    display: flex !important;
+    gap: 18px;
+    margin-top: 28px;
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+}
+#bath-buttons .btn {
+    font-size: 1.2em;
+    padding: 14px 32px;
+    border-radius: 22px;
+    background: linear-gradient(135deg,#43ea7c,#43c6ea);
+    color: #fff;
+    border: none;
+    box-shadow: 0 2px 8px rgba(67,234,124,0.18);
+    min-width: 120px;
+    max-width: 90vw;
+    text-align: center;
+}
+#bath-buttons .btn:last-child {
+    background: linear-gradient(135deg,#ffe066,#43c6ea);
+    color: #222;
+}
+@media (max-width: 600px) {
+    #bath-buttons .btn {
+        font-size: 1em;
+        padding: 10px 10vw;
+        min-width: 80px;
+    }
+}
+/* XP popup animation */
+.xp-popup {
+        position: fixed;
+        left: 50%;
+        top: 60px;
+        transform: translateX(-50%);
+        background: linear-gradient(90deg,#43ea7c,#43c6ea);
+        color: #fff;
+        font-size: 0.95em;
+        font-weight: bold;
+        padding: 4px 12px;
+        border-radius: 12px;
+        box-shadow: 0 1px 4px rgba(67,234,124,0.12);
+        opacity: 0;
+        pointer-events: none;
+        z-index: 9999;
+        animation: xpPopAnim 1.2s forwards;
+}
+@keyframes xpPopAnim {
+    0% { opacity: 0; transform: translateX(-50%) scale(0.7); }
+    20% { opacity: 1; transform: translateX(-50%) scale(1.1); }
+    80% { opacity: 1; transform: translateX(-50%) scale(1); }
+    100% { opacity: 0; transform: translateX(-50%) scale(0.7); }
+}
+        /* Eye blink animation */
+        .eye-blink {
+            animation: blinkAnim 0.32s linear 1;
+        }
+        @keyframes blinkAnim {
+            0%, 100% { ry: 18; }
+            40%, 60% { ry: 2; }
+        }
+        /* Head glow/pulse animation */
+        #head.head-glow {
+            filter: drop-shadow(0 0 3px #ff4e50) drop-shadow(0 0 1.5px #f9d423);
+            animation: headPulse 0.5s infinite;
+        }
+        @keyframes headPulse {
+            0%, 100% { filter: drop-shadow(0 0 3px #ff4e50) drop-shadow(0 0 1.5px #f9d423); }
+            50% { filter: drop-shadow(0 0 7px #ff4e50) drop-shadow(0 0 3px #f9d423); }
+        }
+        /* Mouth animation */
+        .mouth-talking {
+            animation: mouthOpenClose 0.28s infinite;
+        }
+        @keyframes mouthOpenClose {
+            0%, 100% { d: path('M150 130 Q160 145 170 130'); }
+            50% { d: path('M150 130 Q160 155 170 130'); }
+        }
+        /* Ear wiggle animation */
+        @keyframes earWiggle {
+            0%, 100% { transform: rotate(0deg); }
+            20% { transform: rotate(-18deg); }
+            40% { transform: rotate(12deg); }
+            60% { transform: rotate(-10deg); }
+            80% { transform: rotate(8deg); }
+        }
+        .wiggle-ear {
+            transform-origin: 50% 100%;
+            animation: earWiggle 1.2s ease-in-out 2;
+        }
+        #tail {
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #cat-belly {
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        html, body {
+            height: 100vh;
+            min-height: 100vh;
+            max-height: 100vh;
+            margin: 0;
+            padding: 0;
+            overflow: hidden !important;
+            width: 100vw;
+            max-width: 100vw;
+            overscroll-behavior: none;
+            touch-action: none;
+            position: fixed;
+            inset: 0;
+        }
+        body {
+            background: linear-gradient(135deg, #f9d423 0%, #ff4e50 100%);
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            text-align: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        #cat-container {
+            margin: 40px auto 0 auto;
+            width: 90vw;
+            max-width: 400px;
+            position: relative;
+        }
+    .speech-bubble {
+            position: absolute;
+            top: -18px;
+            right: 0;
+            left: auto;
+            transform: none;
+            background: linear-gradient(135deg, #f9d423 0%, #ff4e50 100%);
+            border-radius: 20px;
+            padding: 4px 10px 4px 10px;
+            font-size: 0.85em;
+            color: #fff;
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(255,78,80,0.10), 0 1px 4px rgba(0,0,0,0.08);
+            min-width: 80px;
+            max-width: 120px;
+            z-index: 10;
+            /* No animation for static bubble */
+        }
+        .speech-bubble-dots {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            top: 100%;
+            display: flex;
+            gap: 6px;
+            height: 18px;
+            align-items: center;
+            z-index: 9;
+        }
+        @media (max-width: 500px) {
+            .speech-bubble {
+                font-size: 0.95em;
+                min-width: 100px;
+                max-width: 140px;
+                padding: 6px 12px;
+            }
+        }
+        @keyframes bubbleBounce {
+            0% { transform: scale(0.7); opacity: 0; }
+            60% { transform: scale(1.15); opacity: 1; }
+            80% { transform: scale(0.95); }
+            100% { transform: scale(1); }
+        }
+        @keyframes bubblePulse {
+            0%, 100% { box-shadow: 0 8px 32px rgba(255,78,80,0.18), 0 2px 8px rgba(0,0,0,0.10); }
+            50% { box-shadow: 0 12px 40px rgba(255,78,80,0.28), 0 4px 16px rgba(0,0,0,0.18); }
+        }
+        .speech-bubble-dots {
+            position: absolute;
+            left: 10px;
+            top: 100%;
+            display: flex;
+            gap: 6px;
+            height: 18px;
+            align-items: center;
+            z-index: 9;
+        }
+        .speech-bubble-dot {
+            width: 7px;
+            height: 7px;
+            background: #ff4e50;
+            border-radius: 50%;
+            opacity: 0.7;
+            animation: dotPulse 1.2s infinite;
+        }
+        .speech-bubble-dot:nth-child(2) { animation-delay: 0.2s; }
+        .speech-bubble-dot:nth-child(3) { animation-delay: 0.4s; }
+        .speech-bubble-dot:nth-child(4) { animation-delay: 0.6s; }
+        @keyframes dotPulse {
+            0%, 100% { opacity: 0.7; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.3); }
+        }
+        .btn {
+            margin: 10px;
+            padding: 12px 6vw;
+            font-size: 5vw;
+            min-width: 80px;
+            max-width: 180px;
+            cursor: pointer;
+            border-radius: 24px;
+            border: none;
+            background: linear-gradient(135deg, #f9d423 0%, #ff4e50 100%);
+            color: #fff;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+            transition: background 0.2s, transform 0.2s;
+        }
+        .btn:hover {
+            background: linear-gradient(135deg, #ff4e50 0%, #f9d423 100%);
+            transform: scale(1.08);
+        }
+        #controls {
+            margin-top: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+        }
+        /* Improved popout list UI */
+        #wardrobe-bar, #food-list {
+            border: none !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            padding: 0 !important;
+            min-width: 0 !important;
+            gap: 4px !important;
+            background: none !important;
+            width: auto !important;
+            max-width: none !important;
+        }
+                #wardrobe-bar .wardrobe-btn, #food-list .wardrobe-btn {
+                    width: 14px;
+                    height: 14px;
+                    border-radius: 50%;
+                    background: white;
+                    border: 2px solid #ffe066;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin-bottom: 6px;
+                    font-size: 18px;
+                    cursor: pointer;
+                    transition: border 0.2s;
+                    box-shadow: none;
+                    padding: 0;
+                }
+        #wardrobe-bar .wardrobe-btn:hover, #food-list .wardrobe-btn:hover {
+            background: linear-gradient(135deg, #f9d423 0%, #fffde7 100%);
+            transform: scale(1.12);
+            box-shadow: 0 4px 16px rgba(255,78,80,0.18);
+        }
+    </style>
+</head>
+<body>
+        <div id="bath-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:linear-gradient(135deg,#43ea7c 0%, #ffe066 100%); z-index:100; justify-content:center; align-items:center; flex-direction:column;">
+                    <div id="bath-buttons" style="display:flex; gap:16px; margin-top:32px; margin-bottom:18px; z-index:101; justify-content:center; align-items:center; position:absolute; top:0; left:0; width:100vw;">
+                        <button class="btn" style="font-size:1.1em; padding:10px 24px; border-radius:18px; background:linear-gradient(135deg,#43ea7c,#43c6ea); color:#fff; border:none; box-shadow:0 2px 8px rgba(67,234,124,0.18); z-index:103;" onclick="washCat()">🧼 Wash</button>
+                        <button class="btn" style="font-size:1.1em; padding:10px 24px; border-radius:18px; background:linear-gradient(135deg,#ffe066,#43c6ea); color:#222; border:none; box-shadow:0 2px 8px rgba(67,234,124,0.12); z-index:103;" onclick="finishBath()">✅ Done Bathing</button>
+                    </div>
+                    <div id="bath-svg-container" style="position:relative; width:320px; height:320px; z-index:102;">
+                        <div id="bath-pet-holder" style="position:absolute; left:50%; top:0px; transform:translateX(-50%); z-index:3; width:320px; height:320px; pointer-events:none;"></div>
+                        <img src="https://res.cloudinary.com/djc3qirsl/image/upload/v1757940356/itgyyriwcvb4yc1lvhuj.png" alt="Bathtub" style="width:320px; position:absolute; left:0; top:-140px; z-index:2;">
+                    </div>
+        <!-- Water sprinkle SVG overlay -->
+        <svg id="water-sprinkle" width="320" height="320" style="position:absolute; left:50%; top:60px; transform:translateX(-50%); z-index:10; pointer-events:none; display:none;">
+            <circle id="drop1" cx="100" cy="80" r="12" fill="#4fc3f7" opacity="0.7" />
+            <circle id="drop2" cx="160" cy="60" r="10" fill="#4fc3f7" opacity="0.6" />
+            <circle id="drop3" cx="220" cy="90" r="14" fill="#4fc3f7" opacity="0.5" />
+            <ellipse id="splash1" cx="160" cy="120" rx="22" ry="8" fill="#b3e5fc" opacity="0.4" />
+        </svg>
+        </div>
+    <audio id="sound-body" src="https://res.cloudinary.com/djc3qirsl/video/upload/v1757940371/ecujq6sr7ghwldezqysf.mp3"></audio>
+
+    <!-- Audio elements for sound effects -->
+    <audio id="sound-pet" src="https://cdn.pixabay.com/audio/2022/10/16/audio_12b6b7b7b7.mp3"></audio>
+    <audio id="sound-tickle" src="https://res.cloudinary.com/djc3qirsl/video/upload/v1757940379/fvohwb1k3efdjumfhx0a.mp3"></audio>
+    <audio id="sound-angry" src="https://res.cloudinary.com/djc3qirsl/video/upload/v1757940378/yczs0c6o8y0faov8urgl.mp3"></audio>
+    <audio id="sound-cry" src="https://cdn.pixabay.com/audio/2022/10/16/audio_12b6b7b7b7.mp3"></audio>
+    <audio id="sound-leg" src="https://res.cloudinary.com/djc3qirsl/video/upload/v1757940364/vkh50r1owamvxlwqtput.mp3"></audio>
+    <audio id="bg-music" src="https://res.cloudinary.com/djc3qirsl/video/upload/v1757940366/hutnmlojeklgt1l6kbc2.mp3" loop></audio>
+    <audio id="snore-music" src="https://res.cloudinary.com/djc3qirsl/video/upload/v1757940353/tpibi4zjw0ouuze2rtef.mp3" loop></audio>
+    <audio id="extra-music" src="https://res.cloudinary.com/djc3qirsl/video/upload/v1757940374/c2v8wt3kmviqfqhlrom6.mp3"></audio>
+    <button id="music-btn" style="position:fixed; top:88px; right:8px; z-index:9999; width:38px; height:38px; border-radius:50%; background:linear-gradient(135deg,#43c6ea,#43ea7c); color:#fff; border:2px solid #ffe066; box-shadow:0 1px 4px rgba(67,234,124,0.10); display:flex; align-items:center; justify-content:center; font-size:1.3em; cursor:pointer; padding:0;">🎵</button>
+    <button id="chat-btn" style="position:fixed; top:48px; right:8px; z-index:9999; width:38px; height:38px; border-radius:50%; background:linear-gradient(135deg,#ffb347,#ff4e50); color:#fff; border:2px solid #ffe066; box-shadow:0 1px 4px rgba(255,78,80,0.10); display:flex; align-items:center; justify-content:center; font-size:1.3em; cursor:pointer; padding:0;">💬</button>
+    <button id="mute-btn" style="position:fixed; top:8px; left:calc(50% - 28px); z-index:9999; width:38px; height:38px; border-radius:50%; background:linear-gradient(135deg,#eee,#bbb); color:#222; border:2px solid #ffe066; box-shadow:0 1px 4px rgba(67,234,124,0.10); display:flex; align-items:center; justify-content:center; font-size:1.3em; cursor:pointer; padding:0;">🔇</button>
+    <button id="night-mode-btn" style="position:fixed; top:154px; right:8px; z-index:9999; width:38px; height:38px; border-radius:50%; background:linear-gradient(135deg,#222,#444); color:#fff; border:2px solid #ffe066; box-shadow:0 1px 4px rgba(67,234,124,0.10); display:flex; align-items:center; justify-content:center; font-size:1.3em; cursor:pointer; padding:0;">🌙</button>
+    <div id="star-bg" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; pointer-events:none; z-index:0;"></div>
+    <div id="dreamy-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:linear-gradient(135deg,rgba(80,120,255,0.18) 0%,rgba(80,120,255,0.32) 100%); z-index:2; pointer-events:none;"></div>
+    <div id="sleep-mist" style="display:none; position:fixed; left:0; bottom:0; width:100vw; height:80px; z-index:4; pointer-events:none;">
+        <svg width="100vw" height="80" style="width:100vw; height:80px;">
+            <ellipse cx="50%" cy="80" rx="48%" ry="32" fill="url(#mistGradient)" opacity="0.32" />
+            <defs>
+                <linearGradient id="mistGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#fff" stop-opacity="0.7" />
+                    <stop offset="100%" stop-color="#fff" stop-opacity="0" />
+                </linearGradient>
+            </defs>
+        </svg>
+    </div>
+    <div id="moon-glow" style="display:none; position:fixed; left:60vw; top:8vh; width:120px; height:120px; z-index:1; pointer-events:none;">
+        <svg width="80" height="80">
+            <!-- Half moon: smaller yellow circle, smaller overlapping dark circle -->
+            <circle id="moon-main" cx="40" cy="40" r="22" fill="#ffe066" />
+            <circle cx="54" cy="40" r="22" fill="#181e36" />
+            <!-- Animated pulsing glow -->
+            <circle id="moon-glow-anim" cx="40" cy="40" r="28" fill="#fffde7" opacity="0.18" />
+        </svg>
+        <style>
+        @keyframes moonGlowPulse {
+            0% { opacity: 0.18; }
+            50% { opacity: 0.38; }
+            100% { opacity: 0.18; }
+        }
+        #moon-glow-anim {
+            animation: moonGlowPulse 2.8s ease-in-out infinite;
+        }
+        </style>
+    </div>
+    <div id="cat-container">
+        <div id="moon-shadow" style="display:none; position:absolute; left:50%; top:72%; width:120px; height:32px; transform:translate(-50%,0); z-index:3; pointer-events:none;">
+            <svg width="120" height="32">
+                <ellipse cx="60" cy="16" rx="48" ry="12" fill="#181e36" opacity="0.18" />
+            </svg>
+        </div>
+        <!-- Animated sound waves for listening effect -->
+        <svg id="listening-waves" width="320" height="320" style="position:absolute; left:0; top:0; pointer-events:none; display:none; z-index:9;">
+            <!-- Left ear waves (moved further right, bigger) -->
+            <ellipse id="left-ear-wave1" cx="130" cy="55" rx="36" ry="20" stroke="#ff4e50" stroke-width="3" fill="none" opacity="0.7" />
+            <ellipse id="left-ear-wave2" cx="130" cy="55" rx="46" ry="26" stroke="#f9d423" stroke-width="2" fill="none" opacity="0.5" />
+            <ellipse id="left-ear-wave3" cx="130" cy="55" rx="56" ry="32" stroke="#ff4e50" stroke-width="1.5" fill="none" opacity="0.3" />
+            <!-- Right ear waves (moved further right, bigger) -->
+            <ellipse id="right-ear-wave1" cx="230" cy="55" rx="36" ry="20" stroke="#ff4e50" stroke-width="3" fill="none" opacity="0.7" />
+            <ellipse id="right-ear-wave2" cx="230" cy="55" rx="46" ry="26" stroke="#f9d423" stroke-width="2" fill="none" opacity="0.5" />
+            <ellipse id="right-ear-wave3" cx="230" cy="55" rx="56" ry="32" stroke="#ff4e50" stroke-width="1.5" fill="none" opacity="0.3" />
+        </svg>
+        <div id="invite-bubble" class="speech-bubble">
+            Say something to me!
+            <div class="speech-bubble-dots">
+                <span class="speech-bubble-dot"></span>
+                <span class="speech-bubble-dot"></span>
+                <span class="speech-bubble-dot"></span>
+                <span class="speech-bubble-dot"></span>
+            </div>
+        </div>
+    </div>
+    <!-- Chat input box and send button (hidden by default, toggled by chat button) -->
+    <div id="chat-interface" style="display:none; position:fixed; bottom:32px; left:50%; transform:translateX(-50%); z-index:10000; flex-direction:column; align-items:center; justify-content:center; background:rgba(255,251,230,0.98); border-radius:18px; box-shadow:0 2px 16px rgba(255,78,80,0.12); padding:18px 12px; min-width:280px; max-width:90vw;">
+        <div id="chat-box" style="display: flex; gap: 8px; align-items: center; justify-content: center;">
+            <input type="text" id="chat-input" placeholder="Say something to the cat..." style="padding: 8px; font-size: 1em; width: 220px; border-radius: 6px; border: 1px solid #ccc;" />
+            <button id="chat-send" style="padding: 8px 16px; font-size: 1em; border-radius: 6px; background: #ffb347; border: none; cursor: pointer;">Send</button>
+        </div>
+        <!-- Chat history area -->
+        <div id="chat-history" style="margin: 10px auto 0 auto; max-width: 320px; min-height: 60px; background: #fffbe6; border-radius: 12px; box-shadow: 0 2px 8px rgba(255,78,80,0.08); padding: 10px; font-size: 1em; color: #222; font-family: 'Comic Sans MS', 'Arial', sans-serif; overflow-y: auto;"></div>
+    </div>
+        <script>
+        // Chat button toggles chat interface
+        document.getElementById('chat-btn').addEventListener('click', function() {
+            var chatInterface = document.getElementById('chat-interface');
+            if (chatInterface.style.display === 'none') {
+                chatInterface.style.display = 'flex';
+            } else {
+                chatInterface.style.display = 'none';
+            }
+        });
+// Gentle tilt/rotation animation for sleep
+var tiltStyle = document.createElement('style');
+tiltStyle.innerHTML = `
+.cat-tilt-sleep {
+    transform: rotate(-12deg);
+    transition: transform 0.7s cubic-bezier(.7,1.7,.5,1);
+}
+`;
+document.head.appendChild(tiltStyle);
+        // Play background music automatically on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            const bgMusic = document.getElementById('bg-music');
+            if (bgMusic) {
+                bgMusic.pause();
+                bgMusic.currentTime = 0;
+                bgMusic.volume = 1.0;
+                bgMusic.play();
+            }
+        });
+        // Mute button logic for bg music
+        const muteBtn = document.getElementById('mute-btn');
+        let bgMuted = false;
+        muteBtn.addEventListener('click', () => {
+            const bgMusic = document.getElementById('bg-music');
+            if (!bgMuted) {
+                bgMusic.muted = true;
+                muteBtn.style.background = 'linear-gradient(135deg,#ff4e50,#bbb)';
+                muteBtn.textContent = '🔈';
+            } else {
+                bgMusic.muted = false;
+                bgMusic.volume = 1.0;
+                muteBtn.style.background = 'linear-gradient(135deg,#eee,#bbb)';
+                muteBtn.textContent = '🔇';
+            }
+            bgMuted = !bgMuted;
+        });
+        // Music button logic (plays extra music, not bg music)
+        const musicBtn = document.getElementById('music-btn');
+        const extraMusic = document.getElementById('extra-music');
+        const bgMusic = document.getElementById('bg-music');
+        let musicPlaying = false;
+        musicBtn.addEventListener('click', () => {
+            // Spotlight logic: only show pet and darkness if day mode
+            const spotlight = document.getElementById('spotlight-overlay');
+            const isNight = document.body.style.background.includes('#181e36') || document.body.style.background.includes('#232946');
+            const hideSelectors = [
+                '#main-btn-column', '#controls', '#stats', '#bath-overlay', '#star-bg', '#mute-btn', '#night-mode-btn', '#invite-bubble'
+            ];
+            // Do NOT hide music button so user can stop music
+            if (!isNight) {
+                if (!spotlight) {
+                    const overlay = document.createElement('div');
+                    overlay.id = 'spotlight-overlay';
+                    overlay.className = 'spotlight-overlay';
+                    document.body.appendChild(overlay);
+                }
+                setTimeout(() => {
+                    document.getElementById('spotlight-overlay').classList.add('spotlight-active');
+                }, 100);
+                hideSelectors.forEach(sel => {
+                    const el = document.querySelector(sel);
+                    if (el) el.classList.add('hide-for-spotlight');
+                });
+            }
+            const catSvg = document.getElementById('cat-svg');
+            const leftLeg = document.getElementById('left-leg');
+            const rightLeg = document.getElementById('right-leg');
+            if (musicPlaying) {
+                // Remove spotlight and show UI again
+                const spotlight = document.getElementById('spotlight-overlay');
+                if (spotlight) spotlight.classList.remove('spotlight-active');
+                setTimeout(() => {
+                    if (spotlight) spotlight.remove();
+                }, 600);
+                const hideSelectors = [
+                    '#main-btn-column', '#controls', '#stats', '#bath-overlay', '#star-bg', '#music-btn', '#mute-btn', '#night-mode-btn', '#invite-bubble'
+                ];
+                hideSelectors.forEach(sel => {
+                    const el = document.querySelector(sel);
+                    if (el) el.classList.remove('hide-for-spotlight');
+                });
+                extraMusic.pause();
+                musicBtn.style.background = 'linear-gradient(135deg,#43c6ea,#43ea7c)';
+                musicBtn.textContent = '🎵';
+                // Resume bg music only if extraMusic is fully stopped
+                extraMusic.currentTime = 0;
+                bgMusic.pause();
+                bgMusic.currentTime = 0;
+                bgMusic.volume = 1.0;
+                bgMusic.play();
+                if (catSvg) catSvg.classList.remove('cat-dance');
+                if (leftLeg) leftLeg.classList.remove('leg-dance-left');
+                if (rightLeg) rightLeg.classList.remove('leg-dance-right');
+            } else {
+                // Pause bg music before playing extra music
+                bgMusic.pause();
+                extraMusic.play();
+                musicBtn.style.background = 'linear-gradient(135deg,#43c6ea,#43ea7c)';
+                musicBtn.textContent = '🎵';
+                if (catSvg) catSvg.classList.add('cat-dance');
+                if (leftLeg) leftLeg.classList.add('leg-dance-left');
+                if (rightLeg) rightLeg.classList.add('leg-dance-right');
+            }
+            musicPlaying = !musicPlaying;
+        });
+        // Also pause bg music if extraMusic is played by other means
+        extraMusic.addEventListener('play', () => {
+            bgMusic.pause();
+        });
+        extraMusic.addEventListener('ended', () => {
+            // Remove spotlight and show UI again after music ends
+            const spotlight = document.getElementById('spotlight-overlay');
+            if (spotlight) spotlight.classList.remove('spotlight-active');
+            setTimeout(() => {
+                if (spotlight) spotlight.remove();
+            }, 600);
+            const hideSelectors = [
+                '#main-btn-column', '#controls', '#stats', '#bath-overlay', '#star-bg', '#music-btn', '#mute-btn', '#night-mode-btn', '#invite-bubble'
+            ];
+            hideSelectors.forEach(sel => {
+                const el = document.querySelector(sel);
+                if (el) el.classList.remove('hide-for-spotlight');
+            });
+            musicBtn.style.background = 'linear-gradient(135deg,#43c6ea,#43ea7c)';
+            musicBtn.textContent = '🎵';
+            musicPlaying = false;
+            bgMusic.pause();
+            bgMusic.currentTime = 0;
+            bgMusic.volume = 1.0;
+            bgMusic.play();
+            const catSvg = document.getElementById('cat-svg');
+            const leftLeg = document.getElementById('left-leg');
+            const rightLeg = document.getElementById('right-leg');
+            if (catSvg) catSvg.classList.remove('cat-dance');
+            if (leftLeg) leftLeg.classList.remove('leg-dance-left');
+            if (rightLeg) rightLeg.classList.remove('leg-dance-right');
+        });
+    // Prevent all scroll and touchmove events
+    window.addEventListener('scroll', function(e) { window.scrollTo(0,0); });
+    window.addEventListener('touchmove', function(e) { e.preventDefault(); }, { passive: false });
+        // Night mode logic
+        // Chat send button logic (send to backend chatbot)
+        document.getElementById('chat-send').addEventListener('click', function() {
+            var input = document.getElementById('chat-input').value.trim();
+            var history = document.getElementById('chat-history');
+            if (input) {
+                // Show user message
+                var userDiv = document.createElement('div');
+                userDiv.style.marginBottom = '6px';
+                userDiv.innerHTML = '<b>You:</b> ' + input;
+                history.appendChild(userDiv);
+                document.getElementById('invite-bubble').textContent = '...';
+                // Send to backend chatbot
+                fetch('http://localhost:8000/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message: input })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    var petMsg = data.response || '(No response)';
+                    var petDiv = document.createElement('div');
+                    petDiv.style.marginBottom = '10px';
+                    petDiv.innerHTML = '<b>Cat:</b> ' + petMsg;
+                    history.appendChild(petDiv);
+                    document.getElementById('invite-bubble').textContent = petMsg;
+                    history.scrollTop = history.scrollHeight;
+                })
+                .catch(err => {
+                    var petDiv = document.createElement('div');
+                    petDiv.style.marginBottom = '10px';
+                    petDiv.innerHTML = '<b>Cat:</b> Sorry, I could not reply.';
+                    history.appendChild(petDiv);
+                    document.getElementById('invite-bubble').textContent = 'Sorry, I could not reply.';
+                });
+                document.getElementById('chat-input').value = '';
+            }
+        });
+        const nightBtn = document.getElementById('night-mode-btn');
+        const starBg = document.getElementById('star-bg');
+        let isNight = false;
+        nightBtn.addEventListener('click', () => {
+            isNight = !isNight;
+            if (isNight) {
+                document.body.style.background = 'linear-gradient(135deg, #181e36 0%, #232946 100%)';
+                starBg.style.display = 'block';
+                starBg.innerHTML = '';
+                // Add stars
+                for (let i = 0; i < 60; i++) {
+                    const star = document.createElement('div');
+                    star.style.position = 'absolute';
+                    star.style.left = Math.random() * 100 + 'vw';
+                    star.style.top = Math.random() * 100 + 'vh';
+                    star.style.width = (Math.random() * 2 + 1) + 'px';
+                    star.style.height = star.style.width;
+                    star.style.background = '#fff';
+                    star.style.borderRadius = '50%';
+                    star.style.opacity = Math.random() * 0.5 + 0.5;
+                    starBg.appendChild(star);
+                }
+                nightBtn.textContent = '☀️';
+            } else {
+                document.body.style.background = 'linear-gradient(135deg, #f9d423 0%, #ff4e50 100%)';
+                starBg.style.display = 'none';
+                nightBtn.textContent = '🌙';
+            }
+        });
+// Sprinkle water animation
+window.washCat = function() {
+    var sprinkle = document.getElementById('water-sprinkle');
+    if (sprinkle) {
+        sprinkle.style.display = 'block';
+        // Animate droplets falling
+        sprinkleDrop('drop1', 80, 180);
+        sprinkleDrop('drop2', 60, 170);
+        sprinkleDrop('drop3', 90, 190);
+        setTimeout(function() {
+            sprinkle.style.display = 'none';
+            resetDrops();
+        }, 1200);
+    }
+}
+
+function sprinkleDrop(id, startY, endY) {
+    var drop = document.getElementById(id);
+    if (drop) {
+        drop.setAttribute('cy', startY);
+        drop.style.transition = 'cy 0.8s cubic-bezier(0.4,0,0.2,1)';
+        setTimeout(function() {
+            drop.setAttribute('cy', endY);
+        }, 50);
+    }
+}
+
+function resetDrops() {
+    document.getElementById('drop1').setAttribute('cy', 80);
+    document.getElementById('drop2').setAttribute('cy', 60);
+    document.getElementById('drop3').setAttribute('cy', 90);
+}
+// Move cat SVG lower in bath overlay
+function moveCatSvgDownInBath() {
+    var catSvg = document.getElementById('cat-svg');
+    if (catSvg) {
+        catSvg.style.marginTop = '60px';
+        catSvg.style.position = 'relative';
+        catSvg.style.left = '';
+        catSvg.style.top = '';
+        catSvg.style.transform = '';
+    }
+}
+function resetCatSvgPosition() {
+    var catSvg = document.getElementById('cat-svg');
+    if (catSvg) {
+        catSvg.style.marginTop = '';
+        catSvg.style.position = '';
+        catSvg.style.left = '';
+        catSvg.style.top = '';
+        catSvg.style.transform = '';
+    }
+}
+// Bath overlay logic
+window.goToBath = function() {
+    var overlay = document.getElementById('bath-overlay');
+    var catSvg = document.getElementById('cat-svg');
+    if (overlay && catSvg) {
+        overlay.style.display = 'flex';
+        // Move the real pet SVG into the overlay
+        overlay.insertBefore(catSvg, overlay.firstChild.nextSibling);
+        moveCatSvgDownInBath();
+        // Clean the pet
+        cleanliness = Math.min(cleanliness + 3, 10);
+        updateStats();
+        removeDirtyLook();
+        showBubbles();
+    }
+}
+window.finishBath = function() {
+    var overlay = document.getElementById('bath-overlay');
+    var catContainer = document.getElementById('cat-container');
+    var catSvg = document.getElementById('cat-svg');
+    if (overlay && catContainer && catSvg) {
+        overlay.style.display = 'none';
+        // Always move the pet SVG back to its original container and reset style
+        catContainer.insertBefore(catSvg, catContainer.firstChild.nextSibling);
+        resetCatSvgPosition();
+    }
+}
+        // Animate eyes while speaking
+        let eyeBlinkInterval = null;
+        function startEyeBlinking() {
+            const leftEye = document.getElementById('left-eye');
+            const rightEye = document.getElementById('right-eye');
+            function blink() {
+                if (leftEye) leftEye.classList.add('eye-blink');
+                if (rightEye) rightEye.classList.add('eye-blink');
+                setTimeout(() => {
+                    if (leftEye) leftEye.classList.remove('eye-blink');
+                    if (rightEye) rightEye.classList.remove('eye-blink');
+                }, 320);
+            }
+            blink();
+            eyeBlinkInterval = setInterval(blink, 1200);
+        }
+        function stopEyeBlinking() {
+            if (eyeBlinkInterval) clearInterval(eyeBlinkInterval);
+            const leftEye = document.getElementById('left-eye');
+            const rightEye = document.getElementById('right-eye');
+            if (leftEye) leftEye.classList.remove('eye-blink');
+            if (rightEye) rightEye.classList.remove('eye-blink');
+        }
+        // Animate head glow while speaking
+        function startHeadGlow() {
+            const head = document.getElementById('head');
+            if (head) head.classList.add('head-glow');
+        }
+        function stopHeadGlow() {
+            const head = document.getElementById('head');
+            if (head) head.classList.remove('head-glow');
+        }
+        // Animate mouth while speaking
+        function startMouthAnimation() {
+            const mouth = document.getElementById('mouth');
+            if (mouth) mouth.classList.add('mouth-talking');
+        }
+        function stopMouthAnimation() {
+            const mouth = document.getElementById('mouth');
+            if (mouth) mouth.classList.remove('mouth-talking');
+        }
+        // Animate listening waves
+        let listeningWaveInterval = null;
+        function showListeningWaves() {
+            const waves = document.getElementById('listening-waves');
+            waves.style.display = 'block';
+            let l1 = document.getElementById('left-ear-wave1');
+            let l2 = document.getElementById('left-ear-wave2');
+            let l3 = document.getElementById('left-ear-wave3');
+            let r1 = document.getElementById('right-ear-wave1');
+            let r2 = document.getElementById('right-ear-wave2');
+            let r3 = document.getElementById('right-ear-wave3');
+            let t = 0;
+            listeningWaveInterval = setInterval(() => {
+                t += 1;
+                l1.setAttribute('rx', 36 + 4 * Math.sin(t/4));
+                l2.setAttribute('rx', 46 + 4 * Math.sin(t/5));
+                l3.setAttribute('rx', 56 + 4 * Math.sin(t/6));
+                r1.setAttribute('rx', 36 + 4 * Math.sin(t/4));
+                r2.setAttribute('rx', 46 + 4 * Math.sin(t/5));
+                r3.setAttribute('rx', 56 + 4 * Math.sin(t/6));
+                l1.setAttribute('opacity', 0.7 + 0.1 * Math.sin(t/6));
+                l2.setAttribute('opacity', 0.5 + 0.1 * Math.cos(t/7));
+                l3.setAttribute('opacity', 0.3 + 0.1 * Math.sin(t/8));
+                r1.setAttribute('opacity', 0.7 + 0.1 * Math.sin(t/6));
+                r2.setAttribute('opacity', 0.5 + 0.1 * Math.cos(t/7));
+                r3.setAttribute('opacity', 0.3 + 0.1 * Math.sin(t/8));
+            }, 60);
+        }
+        function hideListeningWaves() {
+            const waves = document.getElementById('listening-waves');
+            waves.style.display = 'none';
+            if (listeningWaveInterval) clearInterval(listeningWaveInterval);
+        }
+        // Helper to wiggle ears
+        function wiggleEars() {
+            const leftEar = document.getElementById('left-ear');
+            const rightEar = document.getElementById('right-ear');
+            if (leftEar) {
+                leftEar.classList.add('wiggle-ear');
+                setTimeout(() => leftEar.classList.remove('wiggle-ear'), 2400);
+            }
+            if (rightEar) {
+                rightEar.classList.add('wiggle-ear');
+                setTimeout(() => rightEar.classList.remove('wiggle-ear'), 2400);
+            }
+        }
+        // Invite bubble logic
+        let lastInteractionTime = Date.now();
+        let inviteBubbleTimer = null;
+        const inviteBubble = document.getElementById('invite-bubble');
+        function showInviteBubble() {
+            inviteBubble.style.display = 'block';
+            wiggleEars();
+            // Hide after 30 seconds if still visible
+            setTimeout(() => {
+                if (inviteBubble.style.display === 'block') hideInviteBubble();
+            }, 30000);
+        }
+        function hideInviteBubble() {
+            inviteBubble.style.display = 'none';
+        }
+        function scheduleInviteBubble() {
+            if (inviteBubbleTimer) clearTimeout(inviteBubbleTimer);
+            inviteBubbleTimer = setTimeout(() => {
+                // Only show if no interaction in last 2 minutes (120000 ms)
+                if (Date.now() - lastInteractionTime > 120000) {
+                    showInviteBubble();
+                    setTimeout(hideInviteBubble, 15000); // Hide after 15 seconds
+                }
+                // Check again every 20 seconds
+                scheduleInviteBubble();
+            }, 20000);
+        }
+        // Start hidden
+        hideInviteBubble();
+        // Show bubble for 15 seconds on page load
+        setTimeout(() => {
+            // Only show if no interaction in first 1.2 seconds
+            if (Date.now() - lastInteractionTime > 1000) {
+                showInviteBubble();
+                setTimeout(hideInviteBubble, 15000);
+            }
+        }, 1200);
+        // Schedule periodic invites
+        scheduleInviteBubble();
+        // Hide bubble and update last interaction time on recording or tap
+        window.hideInviteBubble = hideInviteBubble;
+        window.updateLastInteractionTime = function() {
+            lastInteractionTime = Date.now();
+            hideInviteBubble();
+        };
+        // Listen for user interaction (tap/click on cat or record button)
+        // Only voice recording counts as interaction
+        document.getElementById('recordBtn').addEventListener('click', () => {
+            if (window.updateLastInteractionTime) window.updateLastInteractionTime();
+        });
+        // Also update when startRecording is called (covers programmatic calls)
+        const origStartRecording = window.startRecording;
+        window.startRecording = function() {
+            if (window.updateLastInteractionTime) window.updateLastInteractionTime();
+            if (origStartRecording) origStartRecording.apply(this, arguments);
+        };
+        </script>
+        </div>
+        <svg id="cat-svg" width="100%" height="320" viewBox="0 0 320 320" style="max-width:320px;">
+            <!-- Tail Tip -->
+            <circle id="tail-tip" cx="220" cy="180" r="10" fill="#b3e0ff" stroke="#3399ff" stroke-width="3" />
+            <!-- Left Doll Ear -->
+            <ellipse id="left-ear" cx="110" cy="55" rx="18" ry="18" fill="#3399ff" />
+            <ellipse id="left-inner-ear" cx="110" cy="55" rx="10" ry="10" fill="#ffd6ef" />
+            <!-- Right Doll Ear -->
+            <ellipse id="right-ear" cx="210" cy="55" rx="18" ry="18" fill="#3399ff" />
+            <ellipse id="right-inner-ear" cx="210" cy="55" rx="10" ry="10" fill="#ffd6ef" />
+            <!-- Left Doll Ear -->
+            <ellipse cx="110" cy="55" rx="18" ry="18" fill="#3399ff" />
+            <ellipse cx="110" cy="55" rx="10" ry="10" fill="#ffd6ef" />
+            <!-- Right Doll Ear -->
+            <ellipse cx="210" cy="55" rx="18" ry="18" fill="#3399ff" />
+            <ellipse cx="210" cy="55" rx="10" ry="10" fill="#ffd6ef" />
+            <!-- Left Wing -->
+                <path id="left-wing" d="M70 170 Q30 120 110 130 Q60 180 70 170" fill="#b3e0ff" stroke="#3399ff" stroke-width="3" />
+            <!-- Right Wing -->
+                <path id="right-wing" d="M250 170 Q290 120 210 130 Q260 180 250 170" fill="#b3e0ff" stroke="#3399ff" stroke-width="3" />
+            <!-- Body -->
+            <ellipse cx="160" cy="200" rx="80" ry="90" fill="#3399ff" />
+            <!-- Head -->
+                <ellipse id="head" cx="160" cy="110" rx="70" ry="65" fill="#3399ff" />
+            <!-- Belly -->
+            <ellipse id="cat-belly" cx="160" cy="210" rx="45" ry="55" fill="#b3e0ff" style="cursor:pointer;" />
+            <!-- Left Eye -->
+            <ellipse id="left-eye" cx="130" cy="100" rx="15" ry="18" fill="#fff" />
+            <ellipse id="left-pupil" cx="130" cy="105" rx="7" ry="8" fill="#222" />
+            <!-- Right Eye -->
+            <ellipse id="right-eye" cx="190" cy="100" rx="15" ry="18" fill="#fff" />
+            <ellipse id="right-pupil" cx="190" cy="105" rx="7" ry="8" fill="#222" />
+            <!-- Nose -->
+            <ellipse cx="160" cy="120" rx="8" ry="6" fill="#ffb6b6" />
+            <!-- Mouth -->
+            <path id="mouth" d="M150 130 Q160 145 170 130" stroke="#222" stroke-width="3" fill="none" />
+            <!-- Whiskers -->
+            <line x1="110" y1="120" x2="80" y2="115" stroke="#222" stroke-width="2" />
+            <line x1="110" y1="130" x2="80" y2="135" stroke="#222" stroke-width="2" />
+            <line x1="210" y1="120" x2="240" y2="115" stroke="#222" stroke-width="2" />
+            <line x1="210" y1="130" x2="240" y2="135" stroke="#222" stroke-width="2" />
+            <!-- Tail -->
+            <path id="tail" d="M240 250 Q300 220 220 180" stroke="#3399ff" stroke-width="12" fill="none" style="cursor:pointer;" />
+            <!-- Left Leg -->
+            <ellipse id="left-leg" cx="120" cy="285" rx="18" ry="28" fill="#3399ff" style="cursor:pointer;" />
+            <ellipse id="left-paw" cx="120" cy="305" rx="12" ry="8" fill="#b3e0ff" style="cursor:pointer;" />
+            <!-- Right Leg -->
+            <ellipse id="right-leg" cx="200" cy="285" rx="18" ry="28" fill="#3399ff" style="cursor:pointer;" />
+            <ellipse id="right-paw" cx="200" cy="305" rx="12" ry="8" fill="#b3e0ff" style="cursor:pointer;" />
+        </svg>
+    </div>
+            <div id="controls">
+                <!-- Voice repeat controls -->
+                <div id="voice-controls" style="margin-bottom:12px; position:relative;">
+                    <button id="recordBtn" class="btn" style="background:#ff4e50; color:#fff;" onclick="startRecording()">🎤 Record</button>
+                    <button id="stopBtn" class="btn" style="background:#1976d2; color:#fff; display:none;" onclick="stopRecording()">⏹️ Stop</button>
+                    <div id="recording-indicator" style="display:none; position:absolute; left:110px; top:8px; align-items:center; gap:8px;">
+                        <span style="display:inline-block; width:16px; height:16px; background:#ff2222; border-radius:50%; box-shadow:0 0 8px #ff2222;"></span>
+                        <span style="color:#ff2222; font-weight:bold; font-size:1.1em;">Recording...</span>
+                    </div>
+                </div>
+
+<div id="main-btn-column" style="position:absolute; top:100px; left:8px; z-index:30; display:flex; flex-direction:column; gap:10px; align-items:center;">
+    <div style="position:relative;">
+    <button id="main-wardrobe-btn" style="width:40px; height:40px; background:linear-gradient(135deg,#ff4e50,#f9d423); border-radius:50%; border:none; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,0.12); font-size:1.3em; position:fixed; top:92px; left:12px; z-index:9999;">
+            🎒
+        </button>
+        <div id="wardrobe-bar" style="position:absolute; left:50px; top:0; width:64px; background:#fff; border-radius:12px; box-shadow:0 4px 16px rgba(0,0,0,0.12); z-index:40; display:none; flex-direction:column; align-items:center; justify-content:flex-start; gap:12px; padding:8px 0;">
+            <button class="wardrobe-btn" onclick="toggleShirt()" style="width:28px;height:28px; font-size:16px;">👕</button>
+            <button id="glasses-btn" class="wardrobe-btn" onclick="toggleGlasses()" style="width:28px;height:28px; font-size:16px; position:relative;">
+                <span style="position:relative;">
+                    <span id="glasses-icon">👓</span>
+                    <span id="glasses-lock" style="position:absolute; left:10px; top:2px; font-size:14px; color:#888; display:none;">🔒</span>
+                </span>
+            </button>
+            <button id="hat-btn" class="wardrobe-btn" onclick="toggleHat()" style="width:28px;height:28px; font-size:16px; position:relative;">
+                <span style="position:relative;">
+                    <span id="hat-icon">🧢</span>
+                    <span id="hat-lock" style="position:absolute; left:10px; top:2px; font-size:14px; color:#888; display:none;">🔒</span>
+                </span>
+            </button>
+        </div>
+    </div>
+    <div style="position:relative; margin-top:10px;">
+    <button id="main-feed-btn" style="width:40px; height:40px; background:linear-gradient(135deg,#43ea7c,#ffe066); border-radius:50%; border:none; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(67,234,124,0.12); font-size:1.3em; position:fixed; top:152px; left:12px; z-index:9999;" onclick="toggleFoodList()">
+        🍔
+    </button>
+    <button id="main-sleep-btn" style="width:40px; height:40px; background:linear-gradient(135deg,#222,#444); border-radius:50%; border:none; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(67,234,124,0.12); font-size:1.3em; position:fixed; top:202px; left:12px; z-index:9999;" onclick="petSleep()">😴</button>
+
+<script>
+// Pet sleep logic
+window.petSleep = function() {
+    // Hide all Clean buttons by text
+        window._cleanButtons = Array.from(document.querySelectorAll('button')).filter(btn => btn.textContent.trim().toLowerCase() === 'clean');
+        window._cleanButtons.forEach(btn => btn.style.display = 'none');
+    // Restore all Clean buttons
+    if (window._cleanButtons) window._cleanButtons.forEach(btn => btn.style.display = '');
+    // Show sleep mist at bottom
+    var sleepMist = document.getElementById('sleep-mist');
+    if (sleepMist) sleepMist.style.display = 'block';
+    // Hide sleep mist
+    var sleepMist = document.getElementById('sleep-mist');
+    if (sleepMist) sleepMist.style.display = 'none';
+            // Add 3 stars at the bottom
+            for (let i = 0; i < 3; i++) {
+                let star = document.createElement('div');
+                let size = Math.random() * 2.5 + 1.5;
+                let left = Math.random() * 98 + 1;
+                let top = Math.random() * 6 + 92; // Bottom 92-98vh
+                star.style.position = 'absolute';
+                star.style.left = left + 'vw';
+                star.style.top = top + 'vh';
+                star.style.width = size + 'px';
+                star.style.height = size + 'px';
+                star.style.borderRadius = '50%';
+                star.style.background = '#fffde7';
+                star.style.opacity = Math.random() * 0.5 + 0.7;
+                star.style.boxShadow = '0 0 16px 4px #fffde7, 0 0 4px 2px #ffe066';
+                starBg.appendChild(star);
+                let duration = Math.random() * 2 + 1.5;
+                star.animate([
+                    { opacity: star.style.opacity },
+                    { opacity: 0.1 },
+                    { opacity: star.style.opacity }
+                ], {
+                    duration: duration * 1000,
+                    iterations: Infinity,
+                    direction: 'alternate',
+                });
+                star.animate([
+                    { filter: 'drop-shadow(0 0 0px #fffde7)' },
+                    { filter: 'drop-shadow(0 0 8px #fffde7)' },
+                    { filter: 'drop-shadow(0 0 0px #fffde7)' }
+                ], {
+                    duration: (duration + 1.5) * 1000,
+                    iterations: Infinity,
+                    direction: 'alternate',
+                });
+            }
+    // ...existing code...
+window.petSleep = function() {
+    var leftEye = document.getElementById('left-eye');
+    var rightEye = document.getElementById('right-eye');
+    var mouth = document.getElementById('mouth');
+    var catSvg = document.getElementById('cat-svg');
+    var bgMusic = document.getElementById('bg-music');
+    var snoreMusic = document.getElementById('snore-music');
+    var starBg = document.getElementById('star-bg');
+    if (!window.isSleeping) {
+        // Go to sleep
+        isSleeping = true;
+        // Hide UI buttons during sleep
+        // Track if wardrobe and food list were open before sleep
+        window._wardrobeWasOpen = document.getElementById('wardrobe-bar')?.style.display !== 'none';
+        window._foodListWasOpen = document.getElementById('food-list')?.style.display !== 'none';
+        [
+            'music-btn',
+            'night-mode-btn',
+            'main-feed-btn',
+            'main-wardrobe-btn',
+            'main-record-btn',
+            'main-clean-btn',
+            'recordBtn',
+            'cleanBtn',
+            'wardrobe-bar',
+            'food-list'
+        ].forEach(id => {
+            var el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+        });
+        // Add breathing animation to belly
+        var catBelly = document.getElementById('cat-belly');
+        if (catBelly) catBelly.classList.add('cat-belly-breathing');
+        // Show moonlight shadow under pet
+        var moonShadow = document.getElementById('moon-shadow');
+        if (moonShadow) moonShadow.style.display = 'block';
+        // Lower ears for relaxed look
+        var leftEar = document.getElementById('left-ear');
+        var rightEar = document.getElementById('right-ear');
+        if (leftEar) leftEar.setAttribute('transform', 'rotate(-18 110 55)');
+        if (rightEar) rightEar.setAttribute('transform', 'rotate(18 210 55)');
+        // Show dreamy blue overlay
+        var dreamyOverlay = document.getElementById('dreamy-overlay');
+        if (dreamyOverlay) dreamyOverlay.style.display = 'block';
+        // Fade out eyes for sleep
+        // Make eyes look closed (thin horizontal ellipses)
+        if (leftEye) {
+            leftEye.style.transition = 'all 0.7s';
+            leftEye.setAttribute('ry', '3');
+            leftEye.setAttribute('fill', '#222');
+        }
+        if (rightEye) {
+            rightEye.style.transition = 'all 0.7s';
+            rightEye.setAttribute('ry', '3');
+            rightEye.setAttribute('fill', '#222');
+        }
+    // Change mouth to small 'o' for snoring
+    if (mouth) mouth.setAttribute('d', 'M158 132 Q160 138 162 132 Q160 134 158 132');
+        showSpeech('Zzz... 😴');
+        // Add snore animation
+        var snore = document.createElement('div');
+        snore.id = 'snore-effect';
+        snore.textContent = '💤';
+        snore.style.position = 'absolute';
+        snore.style.left = '160px';
+        snore.style.top = '60px';
+        snore.style.fontSize = '2em';
+        snore.style.opacity = '0.8';
+        snore.style.zIndex = '9999';
+        snore.style.pointerEvents = 'none';
+        document.getElementById('cat-container').appendChild(snore);
+        if (catSvg) catSvg.classList.add('cat-breathing');
+        // Change background to night mode
+        document.body.style.background = 'linear-gradient(135deg, #181e36 0%, #232946 100%)';
+        if (starBg) {
+            starBg.style.display = 'block';
+            // Add twinkling stars
+            starBg.innerHTML = '';
+            // Add 4 stars at the top
+            for (let i = 0; i < 4; i++) {
+                let star = document.createElement('div');
+                let size = Math.random() * 2.5 + 1.5;
+                let left = Math.random() * 98 + 1;
+                let top = Math.random() * 6 + 1; // Top 7vh
+                star.style.position = 'absolute';
+                star.style.left = left + 'vw';
+                star.style.top = top + 'vh';
+                star.style.width = size + 'px';
+                star.style.height = size + 'px';
+                star.style.borderRadius = '50%';
+                star.style.background = '#fffde7';
+                star.style.opacity = Math.random() * 0.5 + 0.7;
+                star.style.boxShadow = '0 0 16px 4px #fffde7, 0 0 4px 2px #ffe066';
+                starBg.appendChild(star);
+                let duration = Math.random() * 2 + 1.5;
+                star.animate([
+                    { opacity: star.style.opacity },
+                    { opacity: 0.1 },
+                    { opacity: star.style.opacity }
+                ], {
+                    duration: duration * 1000,
+                    iterations: Infinity,
+                    direction: 'alternate',
+                });
+                star.animate([
+                    { filter: 'drop-shadow(0 0 0px #fffde7)' },
+                    { filter: 'drop-shadow(0 0 8px #fffde7)' },
+                    { filter: 'drop-shadow(0 0 0px #fffde7)' }
+                ], {
+                    duration: (duration + 1.5) * 1000,
+                    iterations: Infinity,
+                    direction: 'alternate',
+                });
+            }
+            // Add remaining 4 stars randomly
+            for (let i = 0; i < 4; i++) {
+                let star = document.createElement('div');
+                let size = Math.random() * 2.5 + 1.5;
+                let left = Math.random() * 98 + 1;
+                let top = Math.random() * 92 + 2;
+                star.style.position = 'absolute';
+                star.style.left = left + 'vw';
+                star.style.top = top + 'vh';
+                star.style.width = size + 'px';
+                star.style.height = size + 'px';
+                star.style.borderRadius = '50%';
+                star.style.background = '#fffde7';
+                star.style.opacity = Math.random() * 0.5 + 0.7;
+                star.style.boxShadow = '0 0 16px 4px #fffde7, 0 0 4px 2px #ffe066';
+                starBg.appendChild(star);
+                // Twinkle animation
+                let duration = Math.random() * 2 + 1.5;
+                star.animate([
+                    { opacity: star.style.opacity },
+                    { opacity: 0.1 },
+                    { opacity: star.style.opacity }
+                ], {
+                    duration: duration * 1000,
+                    iterations: Infinity,
+                    direction: 'alternate',
+                });
+                    // Sparkle animation
+                    star.animate([
+                        { filter: 'drop-shadow(0 0 0px #fffde7)' },
+                        { filter: 'drop-shadow(0 0 8px #fffde7)' },
+                        { filter: 'drop-shadow(0 0 0px #fffde7)' }
+                    ], {
+                        duration: (duration + 1.5) * 1000,
+                        iterations: Infinity,
+                        direction: 'alternate',
+                    });
+            }
+        }
+        // Show moon glow
+        var moonGlow = document.getElementById('moon-glow');
+        if (moonGlow) moonGlow.style.display = 'block';
+        // Pause background music
+        if (bgMusic) bgMusic.pause();
+    // Play snore music
+    if (snoreMusic) { snoreMusic.currentTime = 0; snoreMusic.play(); }
+    } else {
+        // Wake up
+        isSleeping = false;
+        // Show UI buttons again
+        [
+            'music-btn',
+            'night-mode-btn',
+            'main-feed-btn',
+            'main-wardrobe-btn',
+            'main-record-btn',
+            'main-clean-btn',
+            'recordBtn',
+            'cleanBtn'
+        ].forEach(id => {
+            var el = document.getElementById(id);
+            if (el) el.style.display = '';
+        });
+        // Only show wardrobe and food list if they were open before sleep
+        var wardrobeBar = document.getElementById('wardrobe-bar');
+        var foodList = document.getElementById('food-list');
+        if (wardrobeBar) wardrobeBar.style.display = window._wardrobeWasOpen ? '' : 'none';
+        if (foodList) foodList.style.display = window._foodListWasOpen ? '' : 'none';
+            // Remove breathing animation from belly
+            var catBelly = document.getElementById('cat-belly');
+            if (catBelly) catBelly.classList.remove('cat-belly-breathing');
+        // Hide moonlight shadow
+        var moonShadow = document.getElementById('moon-shadow');
+        if (moonShadow) moonShadow.style.display = 'none';
+        // Restore ears to normal
+        var leftEar = document.getElementById('left-ear');
+        var rightEar = document.getElementById('right-ear');
+        if (leftEar) leftEar.setAttribute('transform', '');
+        if (rightEar) rightEar.setAttribute('transform', '');
+        // Hide dreamy blue overlay
+        var dreamyOverlay = document.getElementById('dreamy-overlay');
+        if (dreamyOverlay) dreamyOverlay.style.display = 'none';
+        // Fade in eyes when waking up
+        // Restore eyes to normal when waking up
+        if (leftEye) {
+            leftEye.style.transition = 'all 0.7s';
+            leftEye.setAttribute('ry', '18');
+            leftEye.setAttribute('fill', '#fff');
+        }
+        if (rightEye) {
+            rightEye.style.transition = 'all 0.7s';
+            rightEye.setAttribute('ry', '18');
+            rightEye.setAttribute('fill', '#fff');
+        }
+    // Restore normal mouth
+    if (mouth) mouth.setAttribute('d', 'M150 130 Q160 145 170 130');
+        var snoreEl = document.getElementById('snore-effect');
+        if (snoreEl) snoreEl.remove();
+        if (catSvg) catSvg.classList.remove('cat-breathing');
+        setNormalFace();
+        showSpeech('Awake!');
+        speak('I am awake!');
+        // Restore background to day mode
+        document.body.style.background = '';
+        if (starBg) {
+            starBg.style.display = 'none';
+            starBg.innerHTML = '';
+        }
+        // Hide moon glow
+        var moonGlow = document.getElementById('moon-glow');
+        if (moonGlow) moonGlow.style.display = 'none';
+        // Resume background music
+        if (bgMusic) { bgMusic.currentTime = 0; bgMusic.play(); }
+    // Pause snore music
+    if (snoreMusic) snoreMusic.pause();
+    }
+}
+// Breathing animation style for sleep
+var breathingStyle = document.createElement('style');
+breathingStyle.innerHTML = `
+@keyframes catBreathing {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(12px); }
+    100% { transform: translateY(0); }
+}
+.cat-breathing {
+    animation: catBreathing 2.2s ease-in-out infinite;
+}
+`;
+document.head.appendChild(breathingStyle);
+}
+// Add sleep animation style
+var style = document.createElement('style');
+style.innerHTML = '.cat-sleep { filter: grayscale(0.7) brightness(0.7); opacity: 0.7; transition: filter 0.5s, opacity 0.5s; }';
+document.head.appendChild(style);
+</script>
+        <div id="food-list" style="position:absolute; left:50px; top:0; width:64px; background:#fff; border-radius:12px; box-shadow:0 4px 16px rgba(0,0,0,0.12); z-index:40; display:none; flex-direction:column; align-items:center; justify-content:flex-start; gap:12px; padding:8px 0;">
+            <button id="food-fish" class="wardrobe-btn" onclick="selectFood('Fish')" style="width:28px;height:28px; font-size:16px;">🐟</button>
+            <button id="food-milk" class="wardrobe-btn" onclick="selectFood('Milk')" style="width:28px;height:28px; font-size:16px;">🥛</button>
+            <button id="food-chicken" class="wardrobe-btn" onclick="selectFood('Chicken')" style="width:28px;height:28px; font-size:16px; position:relative;">
+                <span style="position:relative;">
+                    <span id="chicken-icon">🍗</span>
+                    <span id="chicken-lock" style="position:absolute; left:10px; top:2px; font-size:14px; color:#888; display:none;">🔒</span>
+                </span>
+            </button>
+            <button id="food-treat" class="wardrobe-btn" onclick="selectFood('Treat')" style="width:28px;height:28px; font-size:16px; position:relative;">
+                <span style="position:relative;">
+                    <span id="treat-icon">🍪</span>
+                    <span id="treat-lock" style="position:absolute; left:10px; top:2px; font-size:14px; color:#888; display:none;">🔒</span>
+                </span>
+            </button>
+        </div>
+    </div>
+</div>
+
+
+<script>
+// Level system variables
+let xp = 0;
+let level = 1;
+const xpPerLevel = 100;
+
+document.addEventListener('DOMContentLoaded', function() {
+    var wardrobeBtn = document.getElementById('main-wardrobe-btn');
+    var wardrobeBar = document.getElementById('wardrobe-bar');
+    var feedBtn = document.getElementById('main-feed-btn');
+    var foodList = document.getElementById('food-list');
+
+        // Lock last two food items in level 1
+        function updateFoodLocks() {
+            const chickenBtn = document.getElementById('food-chicken');
+            const chickenLock = document.getElementById('chicken-lock');
+            const treatBtn = document.getElementById('food-treat');
+            const treatLock = document.getElementById('treat-lock');
+            if (level === 1) {
+                chickenBtn.disabled = true;
+                chickenLock.style.display = 'inline';
+                treatBtn.disabled = true;
+                treatLock.style.display = 'inline';
+            } else {
+                chickenBtn.disabled = false;
+                chickenLock.style.display = 'none';
+                treatBtn.disabled = false;
+                treatLock.style.display = 'none';
+            }
+        }
+        updateFoodLocks();
+        window.updateFoodLocks = updateFoodLocks;
+
+        // Lock glasses and hat in level 1
+        function updateAccessoryLocks() {
+            const glassesBtn = document.getElementById('glasses-btn');
+            const glassesLock = document.getElementById('glasses-lock');
+            const hatBtn = document.getElementById('hat-btn');
+            const hatLock = document.getElementById('hat-lock');
+            if (level >= 2) {
+                glassesBtn.disabled = false;
+                glassesLock.style.display = 'none';
+            } else {
+                glassesBtn.disabled = true;
+                glassesLock.style.display = 'inline';
+            }
+            // Hat remains locked until level 3
+            if (level < 3) {
+                hatBtn.disabled = true;
+                hatLock.style.display = 'inline';
+            } else {
+                hatBtn.disabled = false;
+                hatLock.style.display = 'none';
+            }
+        }
+    updateAccessoryLocks();
+    // Ensure accessory locks are updated on page load
+    setTimeout(updateAccessoryLocks, 100);
+        window.updateAccessoryLocks = updateAccessoryLocks;
+
+    wardrobeBtn.onclick = function() {
+        // Hide food list if open
+        if (foodList.style.display === 'flex') foodList.style.display = 'none';
+        // Toggle wardrobe list
+        if (wardrobeBar.style.display === 'none' || wardrobeBar.style.display === '') {
+            wardrobeBar.style.display = 'flex';
+        } else {
+            wardrobeBar.style.display = 'none';
+        }
+        // No XP for opening wardrobe
+    };
+
+    feedBtn.onclick = function() {
+        // Hide wardrobe list if open
+        if (wardrobeBar.style.display === 'flex') wardrobeBar.style.display = 'none';
+        // Toggle food list
+        if (foodList.style.display === 'none' || foodList.style.display === '') {
+            foodList.style.display = 'flex';
+        } else {
+            foodList.style.display = 'none';
+        }
+        // No XP for opening food list
+    };
+
+    window.selectFood = function(food) {
+        foodList.style.display = 'none';
+        feedCat(food);
+        gainXP(10); // Feeding earns XP
+    };
+});
+
+function gainXP(amount) {
+    xp += amount;
+    checkLevelUp();
+    // Animate XP bar and update label
+    var xpBar = document.getElementById('xp-bar');
+    var xpLabel = document.getElementById('xp-label');
+    var levelDisplay = document.getElementById('level-display');
+    var percent = Math.min(100, Math.round((xp / xpPerLevel) * 100));
+    xpBar.style.width = percent + '%';
+    xpLabel.textContent = xp + ' / ' + xpPerLevel + ' XP';
+    levelDisplay.textContent = 'Level: ' + level;
+    updateAccessoryLocks();
+}
+
+function showLevel2Modal() {
+    let modal = document.getElementById('level2-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'level2-modal';
+        modal.style.position = 'fixed';
+        modal.style.top = '0';
+        modal.style.left = '0';
+        modal.style.width = '100vw';
+        modal.style.height = '100vh';
+        modal.style.background = 'rgba(0,0,0,0.45)';
+        modal.style.display = 'flex';
+        modal.style.alignItems = 'center';
+        modal.style.justifyContent = 'center';
+        modal.style.zIndex = '99999';
+        modal.innerHTML = `
+            <div style="background:#fff; border-radius:18px; box-shadow:0 4px 24px rgba(67,234,124,0.18); padding:32px 28px; text-align:center; min-width:260px; max-width:90vw;">
+                <div style="font-size:1.5em; font-weight:bold; color:#43c6ea; margin-bottom:12px;">Level 2 Reached!</div>
+                <div style="font-size:1.1em; color:#222; margin-bottom:18px;">You have unlocked new accessories and features!</div>
+                <button id="level2-ok-btn" style="font-size:1.1em; padding:10px 32px; border-radius:14px; background:linear-gradient(135deg,#43ea7c,#ffe066); color:#222; border:none; box-shadow:0 2px 8px rgba(67,234,124,0.12); cursor:pointer;">Move to Level 2</button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        document.getElementById('level2-ok-btn').onclick = function() {
+            modal.remove();
+            updateAccessoryLocks();
+        };
+    } else {
+        modal.style.display = 'flex';
+    }
+}
+
+// Example: Petting and cleaning actions should also call gainXP()
+// Add gainXP(6) to petCat(), gainXP(12) to finishBath() when you want to integrate
+
+// Feed cat function with food type
+function feedCat(food) {
+    let reduce = 0;
+    if (food === 'Fish') reduce = 1;
+    else if (food === 'Milk') reduce = 2;
+    else if (food === 'Chicken') reduce = 3;
+    else if (food === 'Treat') reduce = 4;
+    const prevHunger = hunger;
+    hunger = Math.max(hunger - reduce, 0);
+    if (hunger === 0 && prevHunger > 0) {
+        gainXP(30);
+    }
+    happiness = Math.min(happiness + 1, 10);
+    updateHungerUI();
+    updateStats();
+    let msg = 'Yum! Thank you for the food!';
+    if (food) msg = `Yum! I love ${food}!`;
+    showSpeech(msg);
+    speak(msg);
+    setHappyFace();
+    setTimeout(setNormalFace, 700);
+    // Show a quick food bowl animation
+    var catContainer = document.getElementById('cat-container');
+    if (catContainer) {
+        var bowl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        bowl.setAttribute('width', '80');
+        bowl.setAttribute('height', '40');
+        bowl.setAttribute('style', 'position:absolute; left:120px; top:260px; z-index:20;');
+        let foodIcon = '🍲';
+        if (food === 'Fish') foodIcon = '🐟';
+        if (food === 'Milk') foodIcon = '🥛';
+        if (food === 'Chicken') foodIcon = '🍗';
+        if (food === 'Treat') foodIcon = '🍪';
+        bowl.innerHTML = `<ellipse cx="40" cy="30" rx="36" ry="12" fill="#f9d423" /><ellipse cx="40" cy="32" rx="32" ry="8" fill="#fffde7" /><rect x="12" y="20" width="56" height="16" rx="8" fill="#4fc3f7" /><text x="40" y="28" text-anchor="middle" font-size="22">${foodIcon}</text>`;
+        bowl.id = 'feed-bowl-anim';
+        catContainer.appendChild(bowl);
+        setTimeout(function() {
+            bowl.remove();
+        }, 1200);
+    }
+}
+
+// Timed hunger increase logic
+function updateHungerUI() {
+    const hungerBar = document.getElementById('hunger-bar');
+    const hungerText = document.getElementById('hunger');
+    if (hungerBar) hungerBar.style.width = (hunger * 10) + '%';
+    if (hungerText) hungerText.textContent = hunger;
+    // Dynamic border color for hunger card
+    const hungerCard = hungerBar?.parentElement?.parentElement;
+    if (hungerCard) {
+        if (hunger <= 3) {
+            hungerCard.style.border = '2px solid #43ea7c'; // green
+        } else if (hunger >= 4 && hunger <= 7) {
+            hungerCard.style.border = '2px solid #3399ff'; // blue
+        } else if (hunger >= 8) {
+            hungerCard.style.border = '2px solid #ff4e50'; // red
+        } else {
+            hungerCard.style.border = '2px solid transparent';
+        }
+    }
+}
+
+setInterval(() => {
+    hunger += 1;
+    if (hunger > 10) hunger = 10;
+    updateHungerUI();
+    updateStats && updateStats();
+}, 180000); // Every 3 minutes
+
+// Ensure UI is correct on page load
+document.addEventListener('DOMContentLoaded', function() {
+    updateHungerUI();
+});
+</script>
+
+                                                    <!-- Wardrobe bar hidden by default -->
+
+            <button class="btn" onclick="goToBath()">Clean</button>
+            <div id="stats" style="margin-top:20px; color:#fff; font-size:18px;">
+                            <div style="position:fixed; top:2px; left:2px; z-index:9999; display:flex; flex-direction:column; gap:6px; align-items:flex-start; max-width:140px; background:rgba(255,255,255,0.04); border-radius:12px; box-shadow:0 2px 8px rgba(67,234,124,0.10); padding:6px 10px 6px 10px;">
+                        <div style="display:flex; align-items:flex-end; gap:8px; justify-content:center; width:100%; margin-bottom:2px;">
+                            <span id="level-badge" style="display:inline-block; min-width:24px; height:24px; background:linear-gradient(135deg,#43c6ea,#43ea7c); color:#fff; border-radius:50%; font-size:1em; font-weight:bold; text-align:center; line-height:24px; box-shadow:0 2px 8px rgba(67,234,124,0.18); border:2px solid #fff; margin-bottom:2px;">1</span>
+                            <div style="width:110px; height:12px; background:#eee; border-radius:6px; position:relative; box-shadow:0 1px 4px rgba(67,234,124,0.10); margin-left:-12px;">
+                                <div id="xp-bar" style="height:100%; width:0%; background:linear-gradient(90deg,#43ea7c,#43c6ea); border-radius:6px; transition:width 0.6s cubic-bezier(.7,1.7,.5,1);"></div>
+                                <span id="xp-label" style="position:absolute; left:50%; top:0; transform:translateX(-50%); font-size:10px; color:#222;">0 / 100 XP</span>
+                            </div>
+                        </div>
+                    </div>
+                                        <div style="position:absolute; right:140px; top:13cm; z-index:9999; display:flex; flex-direction:column; gap:4px; width:110px; background:rgba(255,255,255,0.04); border-radius:12px; box-shadow:0 2px 8px rgba(67,234,124,0.10); padding:6px 10px; align-items:center;">
+                            <div style="display:flex; flex-direction:column; gap:14px; width:100%;">
+                                                        <div style="display:flex; flex-direction:row; gap:18px; justify-content:center; width:100%; flex-wrap:wrap;">
+                                                                            <div style="display:flex; flex-direction:row; gap:10px; justify-content:center; width:100%;">
+                                                                                <div style="background:#fffde7; border-radius:9px; box-shadow:0 1px 4px rgba(255,224,102,0.12); padding:5px 9px; min-width:62px; display:flex; flex-direction:column; align-items:center;">
+                                                                                    <span style="font-size:0.92em; margin-bottom:3px;">🍔</span>
+                                                                                    <div style="width:100%; height:5px; background:#eee; border-radius:2.5px; position:relative; margin-bottom:3px;">
+                                                                                        <div id="hunger-bar" style="height:100%; width:50%; background:linear-gradient(90deg,#ffe066,#ff4e50); border-radius:2.5px; transition:width 0.6s;"></div>
+                                                                                    </div>
+                                                                                    <span id="hunger" style="font-size:0.82em; color:#ff4e50; font-weight:bold;">5</span>
+                                                                                </div>
+                                                                                <div style="background:#e7fff2; border-radius:9px; box-shadow:0 1px 4px rgba(67,234,124,0.12); padding:5px 9px; min-width:62px; display:flex; flex-direction:column; align-items:center;">
+                                                                                    <span style="font-size:0.92em; margin-bottom:3px;">😊</span>
+                                                                                    <div style="width:100%; height:5px; background:#eee; border-radius:2.5px; position:relative; margin-bottom:3px;">
+                                                                                        <div id="happiness-bar" style="height:100%; width:50%; background:linear-gradient(90deg,#43ea7c,#ffe066); border-radius:2.5px; transition:width 0.6s;"></div>
+                                                                                    </div>
+                                                                                    <span id="happiness" style="font-size:0.82em; color:#43ea7c; font-weight:bold;">5</span>
+                                                                                </div>
+                                                                                <div style="background:#e7f6ff; border-radius:9px; box-shadow:0 1px 4px rgba(67,198,234,0.12); padding:5px 9px; min-width:62px; display:flex; flex-direction:column; align-items:center;">
+                                                                                    <span style="font-size:0.92em; margin-bottom:3px;">⚡</span>
+                                                                                    <div style="width:100%; height:5px; background:#eee; border-radius:2.5px; position:relative; margin-bottom:3px;">
+                                                                                        <div id="energy-bar" style="height:100%; width:50%; background:linear-gradient(90deg,#43c6ea,#ffe066); border-radius:2.5px; transition:width 0.6s;"></div>
+                                                                                    </div>
+                                                                                    <span id="energy" style="font-size:0.82em; color:#43c6ea; font-weight:bold;">5</span>
+                                                                                </div>
+                                                                                <div style="background:#e7faff; border-radius:9px; box-shadow:0 1px 4px rgba(67,234,198,0.12); padding:5px 9px; min-width:62px; display:flex; flex-direction:column; align-items:center;">
+                                                                                    <span style="font-size:0.92em; margin-bottom:3px;">🧼</span>
+                                                                                    <div style="width:100%; height:5px; background:#eee; border-radius:2.5px; position:relative; margin-bottom:3px;">
+                                                                                        <div id="cleanliness-bar" style="height:100%; width:50%; background:linear-gradient(90deg,#43c6ea,#43ea7c); border-radius:2.5px; transition:width 0.6s;"></div>
+                                                                                    </div>
+                                                                                    <span id="cleanliness" style="font-size:0.82em; color:#43c6ea; font-weight:bold;">5</span>
+                                                                                </div>
+                                                                            </div>
+                                                        </div>
+                            </div>
+                    </div>
+            </div>
+        </div>
+    <script>
+    // Extra scroll prevention for mobile
+    document.body.addEventListener('touchmove', function(e) { e.preventDefault(); }, { passive: false });
+    document.body.addEventListener('gesturestart', function(e) { e.preventDefault(); }, { passive: false });
+        // Voice repeat logic
+        let mediaRecorder;
+        let audioChunks = [];
+        let audioBlob;
+        let audioUrl;
+        let audio;
+        function startRecording() {
+            showListeningWaves();
+            // Cat listens: wiggle ears while recording
+            wiggleEars();
+            // Hide invite bubble and update last interaction time
+            if (window.updateLastInteractionTime) window.updateLastInteractionTime();
+            // Debug: log MediaRecorder errors
+            if (mediaRecorder) {
+                mediaRecorder.onerror = function(e) {
+                    var bubble = document.getElementById('invite-bubble');
+                    bubble.textContent = 'Oops! There was a recording error.';
+                };
+            }
+            // Show recording indicator
+            document.getElementById('recording-indicator').style.display = 'flex';
+            // Pause background music and mute all other audio elements
+            const bgMusic = document.getElementById('bg-music');
+            window.bgMusicWasPlaying = false;
+            if (bgMusic && !bgMusic.paused) {
+                bgMusic.pause();
+                window.bgMusicWasPlaying = true;
+            }
+            // Resume background music if it was playing before recording
+            if (window.bgMusicWasPlaying && typeof bgMusic !== 'undefined' && bgMusic) {
+                bgMusic.play();
+                window.bgMusicWasPlaying = false;
+            }
+            // Mute all audio elements
+            const audios = document.querySelectorAll('audio');
+            audios.forEach(a => a.muted = true);
+            navigator.mediaDevices.getUserMedia({
+                audio: {
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    sampleRate: 44100
+                }
+            }).then(stream => {
+                // Use mimeType for better Chrome compatibility
+                let options = {};
+                if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+                    options.mimeType = 'audio/webm;codecs=opus';
+                } else if (MediaRecorder.isTypeSupported('audio/webm')) {
+                    options.mimeType = 'audio/webm';
+                }
+                mediaRecorder = new MediaRecorder(stream, options);
+                audioChunks = [];
+                mediaRecorder.ondataavailable = event => {
+                    audioChunks.push(event.data);
+                };
+                mediaRecorder.onstop = () => {
+                    // Helper to resume background music after reply
+                    function resumeBgMusic() {
+                        const bgMusic = document.getElementById('bg-music');
+                        if (bgMusic && bgMusic.paused && bgMusicWasPlaying) {
+                            bgMusic.play();
+                        }
+                    }
+                    // Start eye blinking animation when voice playback begins
+                        startEyeBlinking();
+                    // Start head glow animation when voice playback begins
+                        startHeadGlow();
+                    // Start mouth animation when voice playback begins
+                    audioBlob = new Blob(audioChunks, { type: options.mimeType || 'audio/webm' });
+                    // Debug: check if audio is silent
+                    if (audioBlob.size < 2000) { // Very small blob likely means silence
+                        var bubble = document.getElementById('invite-bubble');
+                        bubble.textContent = 'No sound detected. Please check your microphone and permissions.';
+                        audios.forEach(a => a.muted = false);
+                        if (bgMusic) bgMusic.play();
+                        return;
+                    }
+                    audioUrl = URL.createObjectURL(audioBlob);
+                    // Use Web Audio API for true pitch shift (alien effect)
+                    setTimeout(() => {
+                        startMouthAnimation();
+                        try {
+                            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                            fetch(audioUrl)
+                                .then(response => response.arrayBuffer())
+                                .then(arrayBuffer => ctx.decodeAudioData(arrayBuffer))
+                                .then(buffer => {
+                                    const source = ctx.createBufferSource();
+                                    source.buffer = buffer;
+                                    // Alien effect: pitch up by 1 octave, but a little slower (playbackRate = 1.7)
+                                    source.playbackRate.value = 1.7;
+                                    // Increase volume using GainNode
+                                    const gainNode = ctx.createGain();
+                                    gainNode.gain.value = 2.0; // 2x louder
+                                    source.connect(gainNode);
+                                    gainNode.connect(ctx.destination);
+                                    source.start(0);
+                                    source.onended = () => {
+                                        stopEyeBlinking();
+                                        stopHeadGlow();
+                                        audios.forEach(a => a.muted = false);
+                                        resumeBgMusic();
+                                        ctx.close();
+                                        stopMouthAnimation();
+                                    };
+                                    // Fallback in case onended doesn't fire
+                                    setTimeout(() => {
+                                        audios.forEach(a => a.muted = false);
+                                        resumeBgMusic();
+                                        ctx.close();
+                                        stopMouthAnimation();
+                                    }, Math.max(buffer.duration * 1000, 1200));
+                                });
+                        } catch (e) {
+                            // Fallback to normal audio if Web Audio API fails
+                            const audio = new Audio(audioUrl);
+                            audio.playbackRate = 1.7;
+                            audio.play();
+                            audio.onended = () => {
+                                stopEyeBlinking();
+                                stopHeadGlow();
+                                audios.forEach(a => a.muted = false);
+                                if (bgMusic) bgMusic.play();
+                                stopMouthAnimation();
+                            };
+                        }
+                    }, 800);
+                };
+                mediaRecorder.start();
+                document.getElementById('recordBtn').style.display = 'none';
+                document.getElementById('stopBtn').style.display = 'inline-block';
+            }).catch(err => {
+                alert('Microphone access denied or not available.');
+            });
+        }
+        function stopRecording() {
+            hideListeningWaves();
+            // Hide recording indicator
+            document.getElementById('recording-indicator').style.display = 'none';
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+                document.getElementById('recordBtn').style.display = 'inline-block';
+                document.getElementById('stopBtn').style.display = 'none';
+            }
+        }
+        // Shirt accessory logic
+        let shirtOn = false;
+        function toggleShirt() {
+            const svg = document.getElementById('cat-svg');
+            let shirt = document.getElementById('cat-shirt');
+            if (!window.shirtEverPutOn) window.shirtEverPutOn = false;
+            if (!shirtOn) {
+                if (!shirt) {
+                    // Shirt base
+                    shirt = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                    shirt.setAttribute('id', 'cat-shirt');
+                    // Shirt shape
+                    const shirtPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    shirtPath.setAttribute('d', `
+                        M100 155
+                        Q160 140 220 155
+                        Q235 170 220 215
+                        Q210 265 160 275
+                        Q110 265 100 215
+                        Q85 170 100 155
+                        M125 160 Q160 145 195 160
+                    `);
+                    shirtPath.setAttribute('fill', '#ff69b4');
+                    shirtPath.setAttribute('stroke', '#222');
+                    shirtPath.setAttribute('stroke-width', '3');
+                    shirt.appendChild(shirtPath);
+                    // Make shirt above belly interactive for tickle (same as belly)
+                    setTimeout(() => {
+                        shirtPath.addEventListener('click', function(e) {
+                            setTickleFace();
+                            danceCat();
+                            playSound('sound-tickle');
+                            setTimeout(() => {
+                                setNormalFace();
+                                resetDanceCat();
+                            }, 900);
+                        });
+                    }, 0);
+                    // Shirt design: star
+                    const star = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+                    star.setAttribute('points', '160,190 165,205 180,205 168,215 172,230 160,220 148,230 152,215 140,205 155,205');
+                    star.setAttribute('fill', '#ff4e50');
+                    star.setAttribute('stroke', '#fff');
+                    star.setAttribute('stroke-width', '2');
+                    shirt.appendChild(star);
+                    svg.appendChild(shirt);
+                }
+                shirtOn = true;
+                if (!window.shirtXPawarded) {
+                    gainXP(40); // Earn XP only the first time shirt is put on
+                    window.shirtXPawarded = true;
+                }
+            } else {
+                if (shirt) shirt.remove();
+                shirtOn = false;
+            }
+        }
+                            // Wardrobe bar toggle logic
+                            function toggleWardrobeBar() {
+                                const bar = document.getElementById('wardrobe-bar');
+                                const btn = document.getElementById('main-wardrobe-btn');
+                                const feedBtn = document.getElementById('main-feed-btn');
+                                if (bar.style.display === 'none' || bar.style.display === '') {
+                                    bar.style.display = 'flex';
+                                    btn.style.display = 'none';
+                                    if (feedBtn) feedBtn.style.display = 'none';
+                                } else {
+                                    bar.style.display = 'none';
+                                    btn.style.display = 'flex';
+                                    if (feedBtn) feedBtn.style.display = 'flex';
+                                }
+                            }
+        // Glasses accessory logic
+        let glassesOn = false;
+        function toggleGlasses() {
+            if (level === 1) {
+                // Locked in level 1
+                return;
+            }
+            const svg = document.getElementById('cat-svg');
+            let glasses = document.getElementById('cat-glasses');
+            if (!glassesOn) {
+                if (!glasses) {
+                    glasses = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                    glasses.setAttribute('id', 'cat-glasses');
+                    // Left lens
+                    const leftLens = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+                    leftLens.setAttribute('cx', '130');
+                    leftLens.setAttribute('cy', '100');
+                    leftLens.setAttribute('rx', '17');
+                    leftLens.setAttribute('ry', '13');
+                    leftLens.setAttribute('fill', 'none');
+                    leftLens.setAttribute('stroke', '#222');
+                    leftLens.setAttribute('stroke-width', '3');
+                    glasses.appendChild(leftLens);
+                    // Right lens
+                    const rightLens = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+                    rightLens.setAttribute('cx', '190');
+                    rightLens.setAttribute('cy', '100');
+                    rightLens.setAttribute('rx', '17');
+                    rightLens.setAttribute('ry', '13');
+                    rightLens.setAttribute('fill', 'none');
+                    rightLens.setAttribute('stroke', '#222');
+                    rightLens.setAttribute('stroke-width', '3');
+                    glasses.appendChild(rightLens);
+                    // Bridge
+                    const bridge = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                    bridge.setAttribute('x', '146');
+                    bridge.setAttribute('y', '97');
+                    bridge.setAttribute('width', '28');
+                    bridge.setAttribute('height', '6');
+                    bridge.setAttribute('fill', '#222');
+                    glasses.appendChild(bridge);
+                    svg.appendChild(glasses);
+                }
+                glassesOn = true;
+            } else {
+                if (glasses) glasses.remove();
+                glassesOn = false;
+            }
+        }
+
+        // Bow accessory logic
+        let bowOn = false;
+        function toggleBow() {
+            const svg = document.getElementById('cat-svg');
+            let bow = document.getElementById('cat-bow');
+            if (!bowOn) {
+                if (!bow) {
+                    bow = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+                    bow.setAttribute('id', 'cat-bow');
+                    bow.setAttribute('href', 'cockapoo-285784_640.webp');
+                    bow.setAttribute('x', '180');
+                    bow.setAttribute('y', '30');
+                    bow.setAttribute('width', '60');
+                    bow.setAttribute('height', '60');
+                    svg.appendChild(bow);
+                }
+                bowOn = true;
+            } else {
+                if (bow) bow.remove();
+                bowOn = false;
+            }
+        }
+        // Hat accessory logic
+        let hatOn = false;
+        function toggleHat() {
+            if (level === 1) {
+                // Locked in level 1
+                return;
+            }
+            const svg = document.getElementById('cat-svg');
+            let hat = document.getElementById('cat-hat');
+            if (!hatOn) {
+                if (!hat) {
+                    hat = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+                    hat.setAttribute('id', 'cat-hat');
+                    hat.setAttribute('href', 'sun-hat-6276828_640.webp');
+                    hat.setAttribute('x', '70');
+                    hat.setAttribute('y', '-30');
+                    hat.setAttribute('width', '180');
+                    hat.setAttribute('height', '160');
+                    svg.appendChild(hat);
+                    // Make hat interactive for petCat effect
+                    setTimeout(() => {
+                        hat.addEventListener('click', function(e) {
+                            petCat();
+                        });
+                    }, 0);
+                }
+                hatOn = true;
+            } else {
+                if (hat) hat.remove();
+                hatOn = false;
+            }
+        }
+    // Cleanliness stat
+    let cleanliness = 0;
+        // Play background music after first user interaction
+        let bgMusicStarted = false;
+        function startBgMusic() {
+            if (!bgMusicStarted) {
+                const bgMusic = document.getElementById('bg-music');
+                bgMusic.volume = 0.2;
+                bgMusic.play();
+                bgMusicStarted = true;
+            }
+        }
+        window.addEventListener('click', startBgMusic);
+
+        // Sound effect helper
+        function playSound(id) {
+            const snd = document.getElementById(id);
+            if (snd) {
+                snd.currentTime = 0;
+                snd.play();
+            }
+        }
+        // Tail touch: angry expression and sound
+        const catTail = document.getElementById('tail');
+        catTail.addEventListener('click', (e) => {
+            e.stopPropagation();
+            setAngryFace();
+            playSound('sound-angry');
+            wiggleTailAngry();
+            setTimeout(() => {
+                setNormalFace();
+                leftEye.setAttribute('fill', '#fff');
+                rightEye.setAttribute('fill', '#fff');
+                tail.setAttribute('d', 'M240 250 Q300 220 220 180');
+            }, 3000);
+        });
+
+        function setAngryFace() {
+            mouth.setAttribute('d', 'M150 145 Q160 130 170 145'); // Deep frown
+            leftEye.setAttribute('ry', '14');
+            rightEye.setAttribute('ry', '14');
+            leftEye.setAttribute('fill', '#ff3333'); // Red angry eyes
+            rightEye.setAttribute('fill', '#ff3333');
+        }
+
+        function wiggleTailAngry() {
+            let step = 0;
+            let wagSteps = [
+                'M240 250 Q300 220 220 180',
+                'M240 250 Q320 240 220 180',
+                'M240 250 Q280 200 220 180',
+                'M240 250 Q300 220 220 180'
+            ];
+            function doWag() {
+                tail.setAttribute('d', wagSteps[step % wagSteps.length]);
+                step++;
+                if (step < 8) {
+                    setTimeout(doWag, 80);
+                } else {
+                    tail.setAttribute('d', wagSteps[0]);
+                }
+            }
+            doWag();
+        }
+        // Leg touch: pull leg up and cry expression
+        const leftLeg = document.getElementById('left-leg');
+        const leftPaw = document.getElementById('left-paw');
+        const rightLeg = document.getElementById('right-leg');
+        const rightPaw = document.getElementById('right-paw');
+
+    leftLeg.addEventListener('click', (e) => { e.stopPropagation(); pullLegUp('left'); });
+    leftPaw.addEventListener('click', (e) => { e.stopPropagation(); pullLegUp('left'); });
+    rightLeg.addEventListener('click', (e) => { e.stopPropagation(); pullLegUp('right'); });
+    rightPaw.addEventListener('click', (e) => { e.stopPropagation(); pullLegUp('right'); });
+
+        function pullLegUp(side) {
+            if (side === 'left') {
+                leftLeg.setAttribute('cy', '255');
+                leftPaw.setAttribute('cy', '275');
+            } else {
+                rightLeg.setAttribute('cy', '255');
+                rightPaw.setAttribute('cy', '275');
+            }
+            setCryFace();
+            playSound('sound-leg');
+            setTimeout(() => {
+                if (side === 'left') {
+                    leftLeg.setAttribute('cy', '285');
+                    leftPaw.setAttribute('cy', '305');
+                } else {
+                    rightLeg.setAttribute('cy', '285');
+                    rightPaw.setAttribute('cy', '305');
+                }
+                // Remove tears
+                const tearL = document.getElementById('tear-left');
+                if (tearL) tearL.remove();
+                const tearR = document.getElementById('tear-right');
+                if (tearR) tearR.remove();
+                setNormalFace();
+            }, 4000);
+        }
+
+        function setCryFace() {
+            mouth.setAttribute('d', 'M150 140 Q160 130 170 140'); // Sad mouth
+            leftEye.setAttribute('ry', '18');
+            rightEye.setAttribute('ry', '18');
+            // Add tears (simple blue lines)
+            if (!document.getElementById('tear-left')) {
+                const tearL = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                tearL.setAttribute('id', 'tear-left');
+                tearL.setAttribute('x1', '130');
+                tearL.setAttribute('y1', '115');
+                tearL.setAttribute('x2', '130');
+                tearL.setAttribute('y2', '135');
+                tearL.setAttribute('stroke', '#33aaff');
+                tearL.setAttribute('stroke-width', '4');
+                document.getElementById('cat-svg').appendChild(tearL);
+            }
+            if (!document.getElementById('tear-right')) {
+                const tearR = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                tearR.setAttribute('id', 'tear-right');
+                tearR.setAttribute('x1', '190');
+                tearR.setAttribute('y1', '115');
+                tearR.setAttribute('x2', '190');
+                tearR.setAttribute('y2', '135');
+                tearR.setAttribute('stroke', '#33aaff');
+                tearR.setAttribute('stroke-width', '4');
+                document.getElementById('cat-svg').appendChild(tearR);
+            }
+        }
+
+        function setNormalFace() {
+            if (window.isSleeping) return; // Don't change face if sleeping
+            mouth.setAttribute('d', 'M150 130 Q160 145 170 130');
+            leftEye.setAttribute('ry', '18');
+            rightEye.setAttribute('ry', '18');
+            leftEye.setAttribute('fill', '#fff');
+            rightEye.setAttribute('fill', '#fff');
+            // Remove tears
+            const tearL = document.getElementById('tear-left');
+            if (tearL) tearL.remove();
+            const tearR = document.getElementById('tear-right');
+            if (tearR) tearR.remove();
+        }
+        // Belly touch: giggle/tickle expression
+        const catBelly = document.getElementById('cat-belly');
+        catBelly.addEventListener('click', (e) => {
+            e.stopPropagation();
+            setTickleFace();
+            danceCat();
+            playSound('sound-tickle');
+            setTimeout(() => {
+                setNormalFace();
+                resetDanceCat();
+            }, 900);
+        });
+
+        function setTickleFace() {
+            mouth.setAttribute('d', 'M145 130 Q160 170 175 130'); // Big natural smile
+            leftEye.setAttribute('ry', '8'); // Happy squint
+            rightEye.setAttribute('ry', '8');
+        }
+
+        // Dance movement: smooth rotation wiggle
+        function danceCat() {
+            const catSvg = document.getElementById('cat-svg');
+            catSvg.style.transition = 'transform 0.15s';
+            let step = 0;
+            function wiggle() {
+                catSvg.style.transform = `rotate(${step % 2 === 0 ? -18 : 18}deg)`;
+                step++;
+                if (step < 8) {
+                    setTimeout(wiggle, 150);
+                } else {
+                    catSvg.style.transform = 'rotate(0deg)';
+                }
+            }
+            wiggle();
+        }
+        function resetDanceCat() {
+            const catSvg = document.getElementById('cat-svg');
+            catSvg.style.transform = 'rotate(0deg)';
+        }
+        // Make the cat react to touch/click
+        const catSvg = document.getElementById('cat-svg');
+        function handlePetting(e) {
+            let target = e.target;
+            // For touch events, get the correct target
+            if (e.touches && e.touches.length > 0) {
+                const touch = e.touches[0];
+                target = document.elementFromPoint(touch.clientX, touch.clientY);
+            }
+            const giggleParts = ['head', 'left-ear', 'right-ear'];
+            if (target && giggleParts.includes(target.id)) {
+                setHappyFace();
+                playSound('sound-body');
+                setTimeout(setNormalFace, 700);
+            }
+        }
+        catSvg.addEventListener('mousedown', handlePetting);
+        catSvg.addEventListener('touchstart', handlePetting);
+    // Ear elements
+    const leftEar = document.getElementById('left-ear');
+    const rightEar = document.getElementById('right-ear');
+        // Pet stats
+        let hunger = 5;
+        let happiness = 5;
+        let energy = 5;
+        // Gradually increase hunger every 3 minutes (180000 ms)
+        setInterval(() => {
+            hunger = Math.min(hunger + 1, 10);
+            updateStats();
+        }, 180000);
+        function updateStats() {
+    // Update stat numbers
+    document.getElementById('hunger').textContent = hunger;
+    document.getElementById('happiness').textContent = happiness;
+    document.getElementById('energy').textContent = energy;
+    document.getElementById('cleanliness').textContent = cleanliness;
+    // Animate stat bars (max stat = 10)
+    document.getElementById('hunger-bar').style.width = (hunger * 10) + '%';
+    document.getElementById('happiness-bar').style.width = (happiness * 10) + '%';
+    document.getElementById('energy-bar').style.width = (energy * 10) + '%';
+    document.getElementById('cleanliness-bar').style.width = (cleanliness * 10) + '%';
+            if (cleanliness <= 2) {
+                setDirtyLook();
+            } else {
+                removeDirtyLook();
+            }
+        // Cleaning animation (bubbles)
+        function showBubbles() {
+            const svg = document.getElementById('cat-svg');
+            for (let i = 0; i < 8; i++) {
+                const bubble = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                bubble.setAttribute('cx', 120 + Math.random() * 80);
+                bubble.setAttribute('cy', 120 + Math.random() * 120);
+                bubble.setAttribute('r', 6 + Math.random() * 8);
+                bubble.setAttribute('fill', '#b3e0ff');
+                bubble.setAttribute('opacity', '0.7');
+                bubble.setAttribute('id', 'bubble-' + i);
+                svg.appendChild(bubble);
+                setTimeout(() => bubble.remove(), 1200 + i * 100);
+            }
+        }
+
+        // Dirty look (gray overlay)
+        function setDirtyLook() {
+            const svg = document.getElementById('cat-svg');
+            // Find the cat body element to insert spots after
+            const body = svg.querySelector('ellipse[cx="160"][cy="200"]');
+            for (let i = 0; i < 7; i++) {
+                let spot = document.getElementById('cat-dirt-spot-' + i);
+                if (!spot) {
+                    spot = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+                    spot.setAttribute('id', 'cat-dirt-spot-' + i);
+                    spot.setAttribute('cx', 110 + Math.random() * 100);
+                    spot.setAttribute('cy', 140 + Math.random() * 100);
+                    spot.setAttribute('rx', 18 + Math.random() * 10);
+                    spot.setAttribute('ry', 12 + Math.random() * 8);
+                    spot.setAttribute('fill', '#6b3e26');
+                    spot.setAttribute('opacity', '0.85');
+                    if (body && body.nextSibling) {
+                        svg.insertBefore(spot, body.nextSibling);
+                    } else {
+                        svg.appendChild(spot);
+                    }
+                }
+            }
+            setSadFace();
+        }
+        function removeDirtyLook() {
+            for (let i = 0; i < 7; i++) {
+                const spot = document.getElementById('cat-dirt-spot-' + i);
+                if (spot) spot.remove();
+            }
+            setNormalFace();
+        function setSadFace() {
+            mouth.setAttribute('d', 'M150 140 Q160 130 170 140'); // Sad mouth
+            leftEye.setAttribute('ry', '18');
+            rightEye.setAttribute('ry', '18');
+        }
+        }
+
+        // Clean button logic
+        function cleanCat() {
+            cleanliness = Math.min(cleanliness + 3, 10);
+            updateStats();
+            showBubbles();
+            removeDirtyLook();
+            // Add bathtub image under the pet
+            const catContainer = document.getElementById('cat-container');
+            let tubImg = document.getElementById('bathtub-img');
+            if (!tubImg) {
+                tubImg = document.createElement('img');
+                tubImg.id = 'bathtub-img';
+                tubImg.src = 'bathtub-297533_640.png';
+                tubImg.style.position = 'absolute';
+                tubImg.style.left = '50%';
+                tubImg.style.top = '220px';
+                tubImg.style.transform = 'translateX(-50%)';
+                tubImg.style.width = '220px';
+                tubImg.style.zIndex = '2';
+                tubImg.style.pointerEvents = 'none';
+                catContainer.appendChild(tubImg);
+                setTimeout(() => {
+                    if (tubImg) tubImg.remove();
+                }, 1600);
+            }
+        }
+        window.goToBath = function() {
+            var overlay = document.getElementById('bath-overlay');
+            var bathPetHolder = document.getElementById('bath-pet-holder');
+            var catSvg = document.getElementById('cat-svg');
+            var bathButtons = document.getElementById('bath-buttons');
+            if (overlay && bathPetHolder && catSvg) {
+                overlay.style.display = 'flex';
+                overlay.style.zIndex = '9999';
+                bathPetHolder.appendChild(catSvg);
+                if (bathButtons) bathButtons.style.display = 'flex';
+                bathButtons.style.zIndex = '9999';
+                catSvg.style.position = 'relative';
+                catSvg.style.left = '';
+                catSvg.style.top = '';
+                catSvg.style.transform = 'scaleX(-1) scale(0.85) translateY(120px)';
+                catSvg.style.zIndex = '3';
+                cleanliness = Math.min(cleanliness + 3, 10);
+                updateStats();
+                removeDirtyLook();
+                showBubbles();
+            }
+        }
+        window.finishBath = function() {
+            var overlay = document.getElementById('bath-overlay');
+            var catContainer = document.getElementById('cat-container');
+            var catSvg = document.getElementById('cat-svg');
+            var bathButtons = document.getElementById('bath-buttons');
+            if (overlay && catContainer && catSvg) {
+                overlay.style.display = 'none';
+                catContainer.insertBefore(catSvg, catContainer.firstChild.nextSibling);
+                if (bathButtons) bathButtons.style.display = 'none';
+                catSvg.style.position = '';
+                catSvg.style.left = '';
+                catSvg.style.top = '';
+                catSvg.style.transform = '';
+                catSvg.style.zIndex = '';
+                resetCatSvgPosition();
+                gainXP(12); // Cleaning earns XP
+            }
+        }
+        // Show bath buttons by default
+        window.onload = function() {
+            var bathButtons = document.getElementById('bath-buttons');
+            if (bathButtons) bathButtons.style.display = 'flex';
+        }
+        }
+        // SVG elements
+        const leftEye = document.getElementById('left-eye');
+        const rightEye = document.getElementById('right-eye');
+        const leftPupil = document.getElementById('left-pupil');
+        const rightPupil = document.getElementById('right-pupil');
+        const mouth = document.getElementById('mouth');
+        const tail = document.getElementById('tail');
+
+        // Smooth blinking logic
+        function blinkCat() {
+            let blinkSteps = [18, 12, 6, 3, 6, 12, 18];
+            let i = 0;
+            function doBlink() {
+                leftEye.setAttribute('ry', blinkSteps[i]);
+                rightEye.setAttribute('ry', blinkSteps[i]);
+                i++;
+                if (i < blinkSteps.length) {
+                    setTimeout(doBlink, 40);
+                }
+            }
+            doBlink();
+        }
+        setInterval(blinkCat, 3500);
+
+        // Tail wagging animation
+        function wagTail(times = 4) {
+            let step = 0;
+            let wagSteps = [
+                'M240 250 Q300 220 220 180',
+                'M240 250 Q320 240 220 180',
+                'M240 250 Q280 200 220 180',
+                'M240 250 Q300 220 220 180'
+            ];
+            function doWag() {
+                tail.setAttribute('d', wagSteps[step % wagSteps.length]);
+                step++;
+                if (step < times * wagSteps.length) {
+                    setTimeout(doWag, 80);
+                } else {
+                    tail.setAttribute('d', wagSteps[0]);
+                }
+            }
+            doWag();
+        }
+
+        // Simple animations and speech
+        function petCat() {
+            wagTail(3);
+            happiness = Math.min(happiness + 1, 10);
+                playSound('sound-body');
+                // Show normal happy face expression
+                setHappyFace();
+                setTimeout(() => {
+                    setNormalFace();
+                }, 900);
+            updateStats();
+            wiggleEars();
+            setHappyFace();
+            setTimeout(setNormalFace, 700);
+            gainXP(6); // Petting earns XP
+        }
+        // Bath feature: more bubbles and splash animation
+function bathCat() {
+    cleanliness = Math.min(cleanliness + 3, 10);
+    updateStats();
+    showBubbles();
+    showSplash();
+    playSound('sound-bath');
+    removeDirtyLook();
+}
+// Water splash animation
+function showSplash() {
+    const svg = document.getElementById('cat-svg');
+    for (let i = 0; i < 5; i++) {
+        const splash = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+        splash.setAttribute('cx', 140 + Math.random() * 40);
+        splash.setAttribute('cy', 160 + Math.random() * 60);
+        splash.setAttribute('rx', 18 + Math.random() * 8);
+        splash.setAttribute('ry', 6 + Math.random() * 4);
+        splash.setAttribute('fill', '#aeefff');
+        splash.setAttribute('opacity', '0.7');
+        splash.setAttribute('id', 'splash-' + i);
+        svg.appendChild(splash);
+        setTimeout(() => splash.remove(), 900 + i * 80);
+    }
+}
+// Add bath sound effect
+if (!document.getElementById('sound-bath')) {
+    const bathAudio = document.createElement('audio');
+    bathAudio.id = 'sound-bath';
+    bathAudio.src = 'https://cdn.pixabay.com/audio/2022/03/15/audio_115b7b7b7b.mp3'; // Free water splash sound
+    document.body.appendChild(bathAudio);
+}
+        // Ear wiggle animation
+        function wiggleEars() {
+            let earSteps = [55, 50, 60, 55];
+            let i = 0;
+            function doWiggle() {
+                leftEar.setAttribute('cy', earSteps[i]);
+                rightEar.setAttribute('cy', earSteps[i]);
+                i++;
+                if (i < earSteps.length) {
+                    setTimeout(doWiggle, 80);
+                } else {
+                    leftEar.setAttribute('cy', 55);
+                    rightEar.setAttribute('cy', 55);
+                }
+            }
+            doWiggle();
+        }
+        function pokeCat() {
+            leftPupil.setAttribute('cx', '125');
+            rightPupil.setAttribute('cx', '195');
+            happiness = Math.max(happiness - 1, 0);
+            showSpeech('Hey! That tickles!');
+            speak('Hey! That tickles!');
+            updateStats();
+            setSurprisedFace();
+            setTimeout(() => {
+            function tickleCat() {
+                showSpeech('Hehe! That tickles!');
+                playSound('sound-tickle');
+                increaseStat('happiness', 1);
+                animateBelly();
+            }
+                rightPupil.setAttribute('cx', '190');
+                setNormalFace();
+            }, 500);
+        }
+        function catTalk() {
+            mouth.setAttribute('d', 'M150 130 Q160 155 170 130');
+            happiness = Math.min(happiness + 1, 10);
+            // showSpeech('Hello! I am your talking cat. Let’s play together!');
+            // speak('Hello! I am your talking cat. Let’s play together!');
+            updateStats();
+            setHappyFace();
+            setTimeout(() => {
+                mouth.setAttribute('d', 'M150 130 Q160 145 170 130');
+                setNormalFace();
+            }, 600);
+        }
+        // ...existing code...
+        // Daily bonus XP logic
+        let lastBonusDay = null;
+        const dailyBonusXP = 20;
+
+        function awardDailyBonus() {
+            const today = new Date().toISOString().slice(0, 10);
+            if (lastBonusDay !== today) {
+                gainXP(dailyBonusXP);
+                showXPPopup('Daily Bonus! +' + dailyBonusXP + ' XP');
+                lastBonusDay = today;
+            }
+        }
+
+        // Call awardDailyBonus on first interaction each day
+        function firstInteraction() {
+            awardDailyBonus();
+        }
+
+        // Attach to main actions
+        document.addEventListener('DOMContentLoaded', function() {
+            var petBtn = document.querySelector('button.btn[onclick="petCat()"]');
+            var cleanBtn = document.querySelector('button.btn[onclick="goToBath()"]');
+            if (petBtn) petBtn.addEventListener('click', firstInteraction);
+            if (cleanBtn) cleanBtn.addEventListener('click', firstInteraction);
+            // Belly and tail direct SVG interaction
+            var catBelly = document.getElementById('cat-belly');
+            var catTail = document.getElementById('tail');
+            if (catBelly) catBelly.addEventListener('click', firstInteraction);
+            if (catTail) catTail.addEventListener('click', firstInteraction);
+        });
+        // Show XP popup feedback
+        function showXPPopup(amount) {
+            var popup = document.createElement('div');
+            popup.className = 'xp-popup';
+            if (typeof amount === 'string' && amount.includes('Daily Bonus')) {
+                popup.textContent = amount;
+                document.body.appendChild(popup);
+                setTimeout(function() {
+                    popup.remove();
+                }, 4000);
+            } else {
+                popup.textContent = '+' + amount + ' XP';
+                document.body.appendChild(popup);
+                setTimeout(function() {
+                    popup.remove();
+                }, 1200);
+            }
+        }
+        // Update level and XP bar UI
+        function updateLevelUI() {
+            document.getElementById('level-badge').textContent = level;
+            var percent = Math.round((xp / xpPerLevel) * 100);
+            document.getElementById('xp-bar').style.width = percent + '%';
+            document.getElementById('xp-label').textContent = xp + ' / ' + xpPerLevel + ' XP';
+        }
+
+        // Call updateLevelUI whenever XP or level changes
+        // Patch gainXP and checkLevelUp to update UI
+        function gainXP(amount) {
+            xp += amount;
+            checkLevelUp();
+            updateLevelUI();
+            showXPPopup(amount);
+        }
+
+        function checkLevelUp() {
+            if (xp >= xpPerLevel) {
+                level += 1;
+                xp = xp - xpPerLevel;
+                if (level === 2) {
+                    showLevel2Modal();
+                } else {
+                    showLevelUpModal(level);
+                }
+// Custom modal for generic level up (except level 2)
+function showLevelUpModal(level) {
+    let modal = document.getElementById('levelup-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'levelup-modal';
+        modal.style.position = 'fixed';
+        modal.style.top = '0';
+        modal.style.left = '0';
+        modal.style.width = '100vw';
+        modal.style.height = '100vh';
+        modal.style.background = 'rgba(0,0,0,0.45)';
+        modal.style.display = 'flex';
+        modal.style.alignItems = 'center';
+        modal.style.justifyContent = 'center';
+        modal.style.zIndex = '99999';
+        modal.innerHTML = `
+            <div style="background:#fff; border-radius:18px; box-shadow:0 4px 24px rgba(67,234,124,0.18); padding:32px 28px; text-align:center; min-width:260px; max-width:90vw;">
+                <div style="font-size:1.5em; font-weight:bold; color:#43c6ea; margin-bottom:12px;">Level ${level} Reached!</div>
+                <div style="font-size:1.1em; color:#222; margin-bottom:18px;">Congratulations! You are now level ${level}.</div>
+                <button id="levelup-ok-btn" style="font-size:1.1em; padding:10px 32px; border-radius:14px; background:linear-gradient(135deg,#43ea7c,#ffe066); color:#222; border:none; box-shadow:0 2px 8px rgba(67,234,124,0.12); cursor:pointer;">OK</button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        document.getElementById('levelup-ok-btn').onclick = function() {
+            modal.remove();
+        };
+    } else {
+        modal.style.display = 'flex';
+    }
+}
+                updateLevelUI();
+            }
+        }
+
+        // Initialize UI on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateLevelUI();
+        });
+
+        function sleepCat() {
+            energy = Math.min(energy + 2, 10);
+            happiness = Math.min(happiness + 1, 10);
+            showSpeech('Zzz... I feel rested!');
+            speak('Zzz... I feel rested!');
+            updateStats();
+            setSleepyFace();
+            setTimeout(setNormalFace, 900);
+        }
+
+        // Expressions
+        function setHappyFace() {
+            mouth.setAttribute('d', 'M150 130 Q160 160 170 130'); // Big smile
+            leftEye.setAttribute('ry', '15');
+            rightEye.setAttribute('ry', '15');
+        }
+        function setSurprisedFace() {
+            mouth.setAttribute('d', 'M150 130 Q160 135 170 130'); // Small round mouth
+            leftEye.setAttribute('ry', '20');
+            rightEye.setAttribute('ry', '20');
+        }
+        function setSleepyFace() {
+            mouth.setAttribute('d', 'M150 130 Q160 145 170 130');
+            leftEye.setAttribute('ry', '6');
+            rightEye.setAttribute('ry', '6');
+        }
+        function setNormalFace() {
+            mouth.setAttribute('d', 'M150 130 Q160 145 170 130');
+            leftEye.setAttribute('ry', '18');
+            rightEye.setAttribute('ry', '18');
+        }
+
+        function sleepCat() {
+            energy = Math.min(energy + 2, 10);
+            happiness = Math.min(happiness + 1, 10);
+            showSpeech('Zzz... I feel rested!');
+            speak('Zzz... I feel rested!');
+            updateStats();
+        }
+        // Simulate stats decreasing over time
+        setInterval(() => {
+            hunger = Math.min(hunger + 1, 10);
+            energy = Math.max(energy - 1, 0);
+            happiness = Math.max(happiness - 1, 0);
+            cleanliness = Math.max(cleanliness - 1, 0);
+            if (cleanliness <= 2) {
+                setDirtyLook();
+            } else {
+                removeDirtyLook();
+            }
+            updateStats();
+        }, 10000); // Every 10 seconds
+
+        updateStats();
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                if (cleanliness <= 2) {
+                    setDirtyLook();
+                }
+            }, 300);
+        });
+
+        function showSpeech(text) {
+            // Speech bubble removed; function intentionally left blank
+        }
+
+        // Text-to-speech
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                const utter = new SpeechSynthesisUtterance(text);
+                utter.lang = 'en-US';
+                window.speechSynthesis.speak(utter);
+            }
+        }
+    </script>
+</body>
+</html>

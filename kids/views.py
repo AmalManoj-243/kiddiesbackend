@@ -742,3 +742,5 @@ def simple_words_quiz_game(request):
     return render(request, 'kids/lessons/simple_words_quiz_game.html')
 def sight_words_quiz_game(request):
     return render(request, 'kids/lessons/sight_words_quiz_game.html')
+def virtual_pet(request):
+    return render(request, 'kids/pet/virtualpet.html')
