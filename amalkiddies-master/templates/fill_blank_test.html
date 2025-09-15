@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+{% block content %}
+<script id="blankSentencesData" type="application/json">{{ blank_sentences|safe }}</script>
+<script>
+window.blankSentences = JSON.parse(document.getElementById('blankSentencesData').textContent);
+</script>
+<div class="lesson-container">
+  <h2 class="lesson-title">Fill in the Blank Test <span class="test-emoji">📝</span></h2>
+  <div class="test-instructions">Type the missing word for each sentence. Try to finish as many as you can!</div>
+  <div class="progress-bar-bg"><div id="progressBar" class="progress-bar"></div></div>
+  <div class="test-progress">
+    <span id="blankProgress">Question 1 of 1</span>
+    <span id="blankTimer">Time: 0s</span>
+  </div>
+  <div id="blankQuestion" class="blank-question"></div>
+  <input type="text" id="blankAnswer" placeholder="Type the missing word..." autocomplete="off" class="blank-input" />
+  <button onclick="checkBlank()" id="blankSubmitBtn" class="check-btn">Submit</button>
+  <div id="blankFeedback" class="blank-feedback"></div>
+  <div id="blankSummary" class="blank-summary"></div>
+  <canvas id="confettiCanvas" style="position:fixed;pointer-events:none;top:0;left:0;width:100vw;height:100vh;z-index:999;display:none;"></canvas>
+</div>
+
+<script>
+let blankQuestions = [];
+let blankIdx = 0;
+let blankCorrect = 0;
+let blankStartTime = 0;
+let blankTimerInterval = null;
+function generateBlankQuestions() {
+  const sentences = window.blankSentences || [];
+  blankQuestions = [];
+  sentences.forEach(text => {
+    const words = text.split(' ');
+    if (words.length > 2) {
+      const idx = Math.floor(Math.random() * words.length);
+      const answer = words[idx];
+      const blanked = words.map((w, i) => i === idx ? '_____' : w).join(' ');
+      blankQuestions.push({q: blanked, a: answer, full: text});
+    }
+  });
+  for (let i = blankQuestions.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [blankQuestions[i], blankQuestions[j]] = [blankQuestions[j], blankQuestions[i]];
+  }
+  blankIdx = 0;
+  blankCorrect = 0;
+}
+function showBlankQuestion() {
+  if (blankIdx >= blankQuestions.length) {
+    endBlankTest();
+    return;
+  }
+  document.getElementById('blankQuestion').textContent = blankQuestions[blankIdx].q;
+  document.getElementById('blankAnswer').value = '';
+  document.getElementById('blankAnswer').style.display = '';
+  document.getElementById('blankSubmitBtn').style.display = '';
+  document.getElementById('blankFeedback').textContent = '';
+  document.getElementById('blankSummary').textContent = '';
+  document.getElementById('blankProgress').textContent = `Question ${blankIdx+1} of ${blankQuestions.length}`;
+  updateProgressBar();
+}
+function checkBlank() {
+  const ans = document.getElementById('blankAnswer').value.trim().toLowerCase();
+  const correct = blankQuestions[blankIdx].a.trim().toLowerCase();
+  if (ans === correct) {
+    showAnimatedFeedback('✅ Correct!', true);
+    blankCorrect++;
+    blankIdx++;
+    setTimeout(showBlankQuestion, 900);
+  } else {
+    showAnimatedFeedback(`❌ Try again. <span class='hint'>Hint: The full sentence is "${blankQuestions[blankIdx].full}"</span>`, false);
+  }
+  updateProgressBar();
+}
+function showAnimatedFeedback(msg, success) {
+  const feedback = document.getElementById('blankFeedback');
+  feedback.innerHTML = msg;
+  feedback.style.animation = success ? 'pop-success 0.5s' : 'pop-error 0.5s';
+  setTimeout(() => { feedback.style.animation = ''; }, 500);
+}
+function startBlankTimer() {
+  blankStartTime = Date.now();
+  blankTimerInterval = setInterval(() => {
+    const elapsed = Math.floor((Date.now() - blankStartTime)/1000);
+    document.getElementById('blankTimer').textContent = `Time: ${elapsed}s`;
+  }, 1000);
+}
+function endBlankTest() {
+  if (blankTimerInterval) clearInterval(blankTimerInterval);
+  document.getElementById('blankQuestion').textContent = 'Test Complete!';
+  document.getElementById('blankAnswer').style.display = 'none';
+  document.getElementById('blankSubmitBtn').style.display = 'none';
+  const total = blankQuestions.length;
+  const percent = Math.round((blankCorrect/total)*100);
+  const elapsed = Math.floor((Date.now() - blankStartTime)/1000);
+  document.getElementById('blankSummary').innerHTML = `<b>Your Score:</b> ${blankCorrect} / ${total} (${percent}%)<br><b>Time Taken:</b> ${elapsed} seconds`;
+  document.getElementById('blankFeedback').textContent = 'Great job!';
+  launchConfetti();
+}
+function updateProgressBar() {
+  const bar = document.getElementById('progressBar');
+  if (!bar) return;
+  const percent = blankQuestions.length ? (blankIdx / blankQuestions.length) * 100 : 0;
+  bar.style.width = percent + '%';
+}
+window.onload = function() {
+  generateBlankQuestions();
+  showBlankQuestion();
+  startBlankTimer();
+};
+// Simple confetti effect
+function launchConfetti() {
+  const canvas = document.getElementById('confettiCanvas');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  canvas.style.display = 'block';
+  const ctx = canvas.getContext('2d');
+  let pieces = [];
+  for (let i = 0; i < 120; i++) {
+    pieces.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height/2,
+      r: Math.random() * 8 + 4,
+      c: `hsl(${Math.random()*360},90%,60%)`,
+      v: Math.random()*2+1
+    });
+  }
+  let frame = 0;
+  function draw() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    pieces.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, 2*Math.PI);
+      ctx.fillStyle = p.c;
+      ctx.fill();
+      p.y += p.v;
+      if (p.y > canvas.height) p.y = -10;
+    });
+    frame++;
+    if (frame < 80) requestAnimationFrame(draw);
+    else canvas.style.display = 'none';
+  }
+  draw();
+}
+</script>
+
+<style>
+.lesson-container {
+  max-width: 600px;
+  margin: 2rem auto;
+  background: #fffbe6;
+  border-radius: 1.5rem;
+  box-shadow: 0 4px 24px #ffd60a33;
+  padding: 2rem;
+  position: relative;
+}
+.lesson-title { color: #ff4066; font-size: 2rem; margin-bottom: 1rem; text-align:center; }
+.test-instructions { color: #2d6a4f; font-size: 1.1rem; margin-bottom: 1rem; text-align:center; }
+.progress-bar-bg { width:100%; height:12px; background:#eee; border-radius:8px; margin-bottom:1.2rem; overflow:hidden; }
+.progress-bar { height:100%; width:0; background:#ff4066; border-radius:8px; transition:width 0.4s; }
+.test-progress { display: flex; gap: 2rem; font-size: 1.1rem; margin-bottom: 1rem; justify-content:center; }
+.blank-question { font-size: 1.3rem; color: #2d6a4f; margin-bottom: 1rem; text-align:center; font-weight:500; }
+.blank-input { font-size:1.2rem; padding:0.7rem 1.2rem; border-radius:0.7rem; border:2px solid #ffd60a; margin-bottom:0.7rem; width:80%; display:block; margin-left:auto; margin-right:auto; }
+.blank-feedback { font-size: 1.1rem; margin-top: 0.5rem; color: #ff4066; text-align:center; min-height:2.2em; }
+.blank-feedback .hint { color:#2d6a4f; font-size:0.95em; display:block; margin-top:0.3em; }
+.blank-summary { font-size: 1.2rem; margin-top: 1.2rem; color: #2d6a4f; text-align:center; }
+.check-btn { background:#2d6a4f; color:#fff; border:none; border-radius:0.7rem; padding:0.7rem 1.5rem; font-size:1.1rem; margin-top:0.5rem; cursor:pointer; display:block; margin-left:auto; margin-right:auto; box-shadow:0 2px 8px #2d6a4f22; }
+@keyframes pop-success { 0%{transform:scale(1);} 50%{transform:scale(1.2);} 100%{transform:scale(1);} }
+@keyframes pop-error { 0%{transform:scale(1);} 50%{transform:scale(1.15);} 100%{transform:scale(1);} }
+</style>
+{% endblock %}

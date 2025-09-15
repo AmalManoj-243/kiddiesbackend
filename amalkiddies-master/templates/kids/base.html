@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kids Zone</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+        <style>
+        /* --- Modern, kid-friendly design improvements --- */
+        body {
+            background: linear-gradient(120deg, #f8ffae 0%, #23cae0 100%, #ffd6e0 120%);
+        }
+        .color-card {
+            border-radius: 2rem;
+            box-shadow: 0 12px 32px #ffd60a33, 0 2px 8px #2d6a4f22;
+            border: 3px solid #ff8c40;
+            background: linear-gradient(135deg, #e0ffe5 60%, #fff 100%, #ffd6e0 120%);
+            padding: 1.2rem 1rem;
+        }
+        .color-card:hover {
+            box-shadow: 0 16px 40px #ffd60a55, 0 4px 12px #2d6a4f33;
+            border: 3px solid #ffd60a;
+            background: linear-gradient(135deg, #fffbe6 60%, #ffe5e5 100%, #ffd6e0 120%);
+        }
+        .shape-label {
+            font-family: 'Luckiest Guy', 'Comic Sans MS', cursive;
+            font-size: 2.1rem;
+            color: #ff4066;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 8px #ffd60a44;
+            margin-bottom: 0.7rem;
+        }
+        .card-body {
+            padding: 1.2rem 0.7rem;
+        }
+        .shape-img {
+            border-radius: 1.2rem;
+            box-shadow: 0 4px 18px #ffd60a22;
+            border: 4px solid #43c6ac;
+            background: #fffbe6;
+        }
+        .shape-img:hover {
+            border: 4px solid #ffd60a;
+            box-shadow: 0 8px 32px #ffd60a88;
+        }
+        .speech-bubble {
+            background: linear-gradient(135deg, #fffbe6 0%, #e0ffe5 100%);
+            border: 3px dashed #ffd60a;
+            color: #2d6a4f;
+            font-size: 1.25rem;
+            border-radius: 1.2rem;
+            box-shadow: 0 6px 18px #ffd60a22;
+        }
+        .story-time-card {
+            background: linear-gradient(135deg, #e0ffe5 0%, #e0f7fa 50%, #fff9c4 100%, #ffd6e0 120%);
+            border: 2px dashed #ff4066;
+            border-radius: 2rem;
+            box-shadow: 0 8px 24px #ff406622;
+        }
+        .activity-section {
+            background: linear-gradient(135deg,#e0ffe5 0%,#43c6ac 100%, #ffd6e0 120%);
+            border-radius:2rem;
+            box-shadow: 0 8px 24px #43c6ac22;
+        }
+        .btn-lg {
+            font-size: 1.2rem;
+            border-radius: 2rem;
+            padding: 0.7rem 2rem;
+            font-family: 'Comic Sans MS', cursive;
+            box-shadow: 0 2px 8px #ffd60a22;
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+        }
+        .btn-lg:hover {
+            background: #ffd60a;
+            color: #2d6a4f;
+            box-shadow: 0 8px 24px #ffd60a44;
+        }
+        .shapes-bg {
+            position: fixed;
+            left: 0; top: 0; width: 100vw; height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .shapes-bg span {
+            position: absolute;
+            font-size: 3rem;
+            opacity: 0.10;
+            animation: floatShape 8s infinite linear alternate;
+        }
+        @keyframes floatShape {
+            0% { transform: translateY(0) scale(1); }
+            100% { transform: translateY(-40px) scale(1.2); }
+        }
+        /* --- Extra effects for shape images and cards --- */
+        .shape-img {
+            transition: transform 0.4s cubic-bezier(.68,-0.55,.27,1.55), box-shadow 0.3s;
+            box-shadow: 0 2px 8px #2d6a4f33;
+            position: relative;
+        }
+        .shape-img:hover {
+            transform: scale(1.18) rotate(-8deg);
+            box-shadow: 0 8px 24px #ffd60a88;
+        }
+        .sparkle {
+            position: absolute;
+            pointer-events: none;
+            font-size: 1.5rem;
+            color: #ffd60a;
+            animation: sparkleAnim 1.2s infinite alternate;
+        }
+        @keyframes sparkleAnim {
+            0% { opacity: 0.7; transform: scale(1) rotate(0deg); }
+            100% { opacity: 1; transform: scale(1.3) rotate(20deg); }
+        }
+        .color-card {
+            background: linear-gradient(135deg, #e0ffe5 60%, #fff 100%, #ffd60a 120%);
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 32px #ffd60a22;
+        }
+        /* --- Kid-friendly shape animations and effects --- */
+        .shape-animate {
+            animation: bounce 1.2s infinite alternate;
+            display: inline-block;
+            transition: transform 0.3s;
+        }
+        @keyframes bounce {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-12px); }
+        }
+        .color-card {
+            transition: box-shadow 0.3s, transform 0.3s;
+        }
+        .color-card:hover {
+            box-shadow: 0 12px 32px #2d6a4f55;
+            transform: scale(1.05) translateY(-6px);
+            border: 2px solid #ffd60a;
+        }
+        .card-body {
+            animation: fadeInUp 1s;
+        }
+        @keyframes fadeInUp {
+            0% { opacity: 0; transform: translateY(40px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .shape-label {
+            font-family: 'Luckiest Guy', 'Comic Sans MS', cursive;
+            font-size: 1.7rem;
+            color: #ff4066;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 8px #ffd60a44;
+        }
+        .shape-tooltip {
+            display: none;
+            position: absolute;
+            left: 50%;
+            top: 110%;
+            transform: translateX(-50%);
+            background: #fffbe6;
+            color: #2d6a4f;
+            border-radius: 1rem;
+            padding: 0.7rem 1.2rem;
+            box-shadow: 0 4px 18px #2d6a4f22;
+            font-size: 1.1rem;
+            z-index: 10;
+            font-family: 'Comic Sans MS', cursive;
+        }
+        .shape-card:hover .shape-tooltip {
+            display: block;
+        }
+        .shapes-bg {
+            position: fixed;
+            left: 0; top: 0; width: 100vw; height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .shapes-bg span {
+            position: absolute;
+            font-size: 3rem;
+            opacity: 0.12;
+            animation: floatShape 8s infinite linear alternate;
+        }
+        @keyframes floatShape {
+            0% { transform: translateY(0) scale(1); }
+            100% { transform: translateY(-40px) scale(1.2); }
+        }
+                    body {
+                        font-family: Arial, sans-serif;
+                        background: #f8f9fa;
+                        min-height: 100vh;
+                    }
+            .kids-header {
+                background: #7e22e7;
+                color: #23272f;
+                padding: 18px 0;
+                border-radius: 0 0 32px 32px;
+                box-shadow: 0 4px 18px rgba(42,124,255,0.13);
+                border-bottom: 2px solid #ff4066;
+            }
+            .kids-header h1 {
+                color: #ff4066;
+                font-weight: bold;
+                font-size: 2.5rem;
+                letter-spacing: 2px;
+                text-shadow: 0 2px 8px #2a7cff22;
+            }
+            .kids-header p {
+                color: #2a7cff;
+                font-size: 1.2rem;
+                font-weight: 600;
+            }
+            .kids-nav {
+                background: #0772dd;
+                border-radius: 16px;
+                margin-bottom: 24px;
+                box-shadow: 0 2px 8px #23272f22;
+                padding: 8px 0;
+            }
+            .kids-nav a {
+                color: #ff4066;
+                font-weight: 700;
+                font-size: 1.15rem;
+                padding: 12px 24px;
+                display: inline-block;
+                border-radius: 12px;
+                transition: background 0.2s, color 0.2s;
+            }
+            .kids-nav a:hover {
+                background: #ff8c40;
+                color: #23272f;
+                text-decoration: none;
+            }
+            .btn-warning {
+                background-color: #ff8c40;
+                border: none;
+                color: #fff;
+                font-weight: bold;
+            }
+            .btn-danger {
+                background-color: #ff4066;
+                border: none;
+                color: #fff;
+                font-weight: bold;
+            }
+            .btn-info {
+                background-color: #2a7cff;
+                border: none;
+                color: #fff;
+                font-weight: bold;
+            }
+        
+
+    
+  .kids-header-responsive {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 18px;
+    background: linear-gradient(90deg,#00b8ff 0%,#232b2b 100%);
+    margin-bottom: 18px;
+    box-sizing: border-box;
+  }
+  .kids-header-title {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: 1px;
+    margin: 0;
+    flex: 1;
+    text-align: left;
+  }
+  .kids-header-logout {
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 8px 18px;
+    border-radius: 8px;
+    background: #ff4066;
+    color: #fff;
+    box-shadow: 0 2px 8px #ff406688;
+    text-decoration: none;
+    display: inline-block;
+    transition: background 0.2s;
+    margin-left: 16px;
+    border: none;
+  }
+  .kids-header-logout:hover {
+    background: #e03050;
+    color: #fff;
+  }
+  @media (max-width: 600px) {
+    .kids-header-responsive {
+      flex-direction: column;
+      align-items: stretch;
+      padding: 10px 8px;
+    }
+    .kids-header-title {
+      font-size: 1.1rem;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .kids-header-logout {
+      font-size: 0.95rem;
+      padding: 10px 0;
+      width: 100%;
+      margin-left: 0;
+    }
+  }
+</style>
+</head>
+<body>
+</div>
+
+</div>
+<div class="kids-header professional-kids-header">
+    <div class="kids-logo" style="font-size:1.5rem;font-weight:700;color:#fff;letter-spacing:1px;display:flex;align-items:center;gap:8px;">
+        <span style="font-size:2rem;">🎈</span> <span style="font-family:'Comic Sans MS',cursive;color:#fff;">kidzzone</span>
+    </div>
+    <div class="auth-buttons-bar" style="margin-top:0;">
+        {% if not user.is_authenticated %}
+            <a href="{% url 'login' %}" class="kids-auth-btn">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </a>
+        {% else %}
+            <a href="/parents-mode/" class="parents-mode-btn">
+                <i class="fas fa-user-shield"></i> Parents Mode
+            </a>
+            <a href="{% url 'logout' %}" class="logout-block-btn" style="font-size:0.8rem;padding:2px 8px;border-radius:4px;background:#ff4066;color:#fff;display:inline-block;font-weight:600;border:none;line-height:1.1;min-width:0;text-align:center;max-width:80px;transition:background 0.2s;white-space:nowrap;">
+                <i class="fas fa-sign-out-alt" style="font-size:0.9rem;margin-right:2px;"></i> Logout
+            </a>
+        {% endif %}
+    </div>
+</div>
+</div>
+<style>
+    .professional-kids-header {
+        width: 100%;
+        margin-bottom: 12px;
+        background: linear-gradient(90deg, #181848 60%, #00b8ff 100%);
+        border-radius: 0 0 18px 18px;
+        box-shadow: 0 4px 16px rgba(0,184,255,0.10);
+        border-bottom: 2px solid #00b8ff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 24px 8px 24px;
+        position: relative;
+        z-index: 2;
+        min-height: 44px;
+        height: auto;
+    }
+    .auth-buttons-bar {
+        width: 100%;
+        margin-top: 10px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 18px;
+    }
+    .parents-mode-btn {
+        font-size: 1rem;
+        padding: 8px 20px;
+        border-radius: 8px;
+        background: linear-gradient(90deg, #00b8ff 60%, #181848 100%);
+        color: #fff;
+        box-shadow: 0 2px 8px #00b8ff33;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        border: none;
+        transition: background 0.2s, box-shadow 0.2s;
+        text-decoration: none;
+    }
+    .parents-mode-btn:hover {
+        background: linear-gradient(90deg, #181848 60%, #00b8ff 100%);
+        box-shadow: 0 4px 16px #00b8ff33;
+    }
+    .kids-auth-btn {
+        font-size: 1rem;
+        padding: 8px 24px;
+        border-radius: 8px;
+        background: linear-gradient(90deg, #181848 60%, #00b8ff 100%);
+        color: #fff;
+        box-shadow: 0 2px 8px #00b8ff33;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        border: 2px solid #00b8ff;
+        transition: background 0.2s, box-shadow 0.2s, border 0.2s;
+        text-decoration: none;
+    }
+    .kids-auth-btn:hover {
+        background: linear-gradient(90deg, #00b8ff 60%, #181848 100%);
+        box-shadow: 0 4px 16px #00b8ff33;
+        border: 2px solid #181848;
+    }
+    .logout-block-btn {
+        background: #ff4066 !important;
+        color: #fff !important;
+        border: none !important;
+        font-size: 0.8rem !important;
+        padding: 2px 8px !important;
+        border-radius: 4px !important;
+        display: inline-block !important;
+        font-weight: 600 !important;
+                            min-width: 40px !important;
+                            line-height: 1.1 !important;
+                            text-align: center !important;
+                            box-shadow: none !important;
+                            outline: none !important;
+                            text-shadow: none !important;
+                            background-image: none !important;
+                            transition: background 0.2s;
+                        }
+                    .logout-block-btn:hover {
+                        background: #e03050 !important;
+                        color: #fff !important;
+                    }
+            @media (max-width: 600px) {
+                .professional-kids-header {
+                    flex-direction: column;
+                    align-items: stretch;
+                    padding: 8px 6px;
+                    border-radius: 0 0 12px 12px;
+                    min-height: 44px;
+                }
+                .kids-logo {
+                    font-size: 1.1rem !important;
+                    justify-content: center;
+                    margin-bottom: 8px;
+                }
+                .kids-nav {
+                    justify-content: center;
+                    gap: 6px !important;
+                }
+                .logout-block-btn {
+                    width: 90px !important;
+                    max-width: 90px !important;
+                    min-width: 0 !important;
+                    font-size: 0.85rem !important;
+                    padding: 6px 0 !important;
+                    border-radius: 6px !important;
+                    text-align: center !important;
+                    white-space: nowrap !important;
+                }
+            }
+</style>
+</div>
+    <nav class="kids-nav text-center mb-4" style="background:#4b429e; border-radius:16px; box-shadow:0 2px 8px #232b2b44; padding:12px 0;">
+        <a href="/kids/" style="color:#f2f6f8;">Home</a>
+        <a href="/kids/games/" style="color:#eaf2f5;">Games</a>
+        <a href="/kids/movies/" style="color:#e3ebee;">Movies</a>
+        <a href="/kids/learning/" style="color:#e0e9ec;">Learning</a>
+    </nav>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

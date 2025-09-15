@@ -1,0 +1,756 @@
+{% extends 'base.html' %}
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  .highlight-option {
+    background: #2196f3 !important;
+    color: #fff !important;
+    box-shadow: 0 0 8px #2196f3cc !important;
+    border: 2px solid #1976d2 !important;
+    transform: scale(1.08);
+    z-index: 2;
+  }
+  body {
+    background: linear-gradient(120deg, #f8ffae 0%, #e0f7fa 100%, #ffd6e0 120%);
+    overflow-x: hidden;
+    font-family: 'Baloo 2', cursive, Arial, sans-serif;
+  }
+  .quiz-container {
+    max-width: 600px;
+    margin: 2rem auto;
+    background: #fffbe6;
+    border-radius: 2rem;
+    box-shadow: 0 8px 32px #ffd60a33;
+    padding: 2.5rem 1.5rem 2rem 1.5rem;
+    text-align: center;
+    position: relative;
+    font-family: 'Baloo 2', cursive, Arial, sans-serif;
+  }
+  .mascot {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: #ffd60a;
+    box-shadow: 0 2px 12px #ffd60a55;
+    margin-bottom: 1rem;
+    animation: bounceIn 0.7s;
+  }
+  @keyframes bounceIn {
+    0% { transform: scale(0.7); opacity: 0.2; }
+    80% { transform: scale(1.15); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .progress-bar {
+    width: 100%;
+    height: 18px;
+    background: #e0f7fa;
+    border-radius: 1rem;
+    margin-bottom: 1.2rem;
+    overflow: hidden;
+    box-shadow: 0 2px 8px #ffd60a22;
+  }
+  .progress {
+    height: 100%;
+    background: linear-gradient(90deg,#ffd60a 0%,#ff9800 100%);
+    border-radius: 1rem;
+    transition: width 0.3s;
+  }
+  .score-panel {
+    font-size: 1.1rem;
+    color: #2d6a4f;
+    font-family: 'Baloo 2', cursive;
+    margin-bottom: 1rem;
+    font-weight: bold;
+    font-family: 'Baloo 2', cursive, Arial, sans-serif;
+  }
+  .quiz-question {
+    font-size: 1.3rem;
+    color: #ff4066;
+    font-family: 'Baloo 2', cursive;
+    margin-bottom: 1.2rem;
+    font-weight: bold;
+    animation: bounceIn 0.7s;
+    font-family: 'Baloo 2', cursive, Arial, sans-serif;
+  }
+  .quiz-options {
+    margin-bottom: 1.2rem;
+  }
+  .quiz-option {
+    display: block;
+    background: linear-gradient(90deg,#ffd60a 0%,#ff9800 100%);
+    color: #2d6a4f;
+    border-radius: 1rem;
+    font-size: 1.1rem;
+    font-family: 'Baloo 2', cursive;
+    font-weight: bold;
+    box-shadow: 0 2px 8px #ffd60a88;
+    padding: 0.6rem 1.2rem;
+    margin: 0.5rem auto;
+    cursor: pointer;
+    border: none;
+    transition: background 0.2s, color 0.2s;
+    font-family: 'Baloo 2', cursive, Arial, sans-serif;
+  }
+  .quiz-option:hover {
+    background: #ff4066;
+    color: #fff;
+    transform: scale(1.05);
+  }
+  .quiz-feedback {
+    font-size: 1.1rem;
+    color: #43e97b;
+    margin-bottom: 1rem;
+    font-family: 'Comic Sans MS', cursive;
+    animation: bounceIn 0.7s;
+  }
+  .quiz-next-btn {
+    background: linear-gradient(90deg,#43e97b 0%,#38f9d7 100%);
+    color: #2d6a4f;
+    border-radius: 1rem;
+    font-size: 1.1rem;
+    font-family: 'Baloo 2', cursive;
+    font-weight: bold;
+    box-shadow: 0 2px 8px #38f9d799;
+    padding: 0.6rem 1.2rem;
+    margin-top: 1rem;
+    cursor: pointer;
+    border: none;
+    transition: background 0.2s, color 0.2s;
+    font-family: 'Baloo 2', cursive, Arial, sans-serif;
+  }
+  .quiz-next-btn:hover {
+    background: #ffd60a;
+    color: #fff;
+    transform: scale(1.05);
+  }
+  .confetti {
+    position: fixed;
+    left: 50vw;
+    top: 50vh;
+    font-size: 2.5rem;
+    pointer-events: none;
+    animation: confettiAnim 1.2s ease-out;
+    z-index: 9999;
+  }
+  @keyframes confettiAnim {
+    0% { opacity: 1; transform: scale(1) translateY(0); }
+    100% { opacity: 0; transform: scale(1.5) translateY(80px); }
+  }
+  .level-complete {
+  display: none;
+  }
+</style>
+<div class="quiz-container">
+  <img src="https://cdn-icons-png.flaticon.com/512/189/189665.png" alt="Mascot" class="mascot" id="mascot">
+  <div class="score-panel" id="scorePanel">Score: 0</div>
+  <div class="progress-bar"><div class="progress" id="progressBar" style="width:0%"></div></div>
+  <!-- Removed status badge above question -->
+  <div id="quizGame">
+  <!-- Quiz game will be rendered here by JS -->
+  </div>
+  <button id="replay-btn" class="btn btn-warning mt-3" style="display:none; font-size:1.1rem; font-weight:bold; background:linear-gradient(90deg,#ffd60a 0%,#2196f3 100%); color:#2d6a4f; border:none; border-radius:1.2rem; box-shadow:0 4px 18px #ffd60a55; padding:0.6rem 2.2rem; margin:0 1rem;" onclick="location.reload()">Play Again</button>
+  <form id="complete-phonics-form" method="post" action="{% url 'complete_phonics_quiz' lesson.id %}" style="display:none; margin-top:1.5rem; text-align:center;">
+    {% csrf_token %}
+    <button type="submit" id="confirm-phonics-btn" class="btn btn-warning" style="font-size:1.15rem; font-weight:bold; background:linear-gradient(90deg,#ffd60a 0%,#ff4066 100%); color:#2d6a4f; border:none; border-radius:1.2rem; box-shadow:0 4px 18px #ffd60a55; padding:0.6rem 2.2rem; margin:0 1rem;">Confirm</button>
+  </form>
+</div>
+<script>
+  // Ensure lessonId is available for exit button redirect
+  var lessonId = "{{ lesson.id|default:'' }}";
+  // Show phonics quiz completion status badge on load
+  document.addEventListener('DOMContentLoaded', function() {
+    var badge = document.getElementById('phonics-quiz-status-badge');
+    var completed = localStorage.getItem('phonicsQuizCompleted');
+    if (badge) {
+      if (completed === 'true') {
+        badge.textContent = 'Completed';
+        badge.style.background = '#d4f7c5';
+        badge.style.color = '#388e3c';
+        badge.style.border = '2px solid #43e97b';
+      } else {
+  badge.textContent = '';
+        badge.style.background = '#ffd6e0';
+        badge.style.color = '#ff4066';
+        badge.style.border = '2px solid #ff4066';
+      }
+    }
+  });
+  let sweetVoice = null;
+  function loadSweetVoice() {
+    var voices = window.speechSynthesis.getVoices();
+    sweetVoice = voices.find(function(v) {
+      return v.name.toLowerCase().includes('child') || v.name.toLowerCase().includes('kids') || v.name.toLowerCase().includes('girl') || v.name.toLowerCase().includes('boy') || v.name.toLowerCase().includes('sweet') || v.name.toLowerCase().includes('samantha') || v.name.toLowerCase().includes('zira');
+    });
+  }
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.onvoiceschanged = loadSweetVoice;
+    loadSweetVoice();
+  }
+  // Example questions data (replace with context from Django)
+  const questions = [
+  { type: 'multiple_choice', question: 'What sound does the letter "A" make in "Apple"?', options: ['/æ/', '/ɑː/', '/eɪ/', '/ə/'], answer: 0 },
+  { type: 'multiple_choice', question: 'What sound does the letter "G" make in "Giraffe"?', options: ['/g/', '/dʒ/', '/j/', '/z/'], answer: 1 },
+    { type: 'listen_and_identify', question: 'Listen to the sound and choose the correct letter.', sound: 'B', options: ['B', 'D', 'P', 'G'], answer: 0 },
+    { type: 'fill_blank', question: 'The word "Ball" starts with the letter ___', answer: 'B' },
+    { type: 'drag_and_drop', question: 'Drag the word to its starting letter: Cat', options: ['C', 'A', 'T', 'D'], answer: 0 },
+    { type: 'matching', question: 'Match the word to its starting sound: Cat', options: ['/k/', '/s/', '/t/', '/d/'], answer: 0 },
+    { type: 'true_false', question: 'The letter "E" in "Elephant" makes the /e/ sound.', answer: false },
+    { type: 'rearrangement', question: 'Rearrange the letters to make a word: G O D', answer: 'Dog' },
+    { type: 'multiple_choice', question: 'Which word contains the blend "ch"?', options: ['Chair', 'Cat', 'Hat', 'Apple'], answer: 0 },
+    { type: 'listen_and_identify', question: 'Listen and choose the word that starts with the sound /s/.', sound: 'S', options: ['Sun', 'Cat', 'Dog', 'Bat'], answer: 0 },
+  { type: 'multiple_choice', question: 'The word "Queen" starts with the blend ___.', options: ['Qu', 'Kw', 'Q', 'K'], answer: 0 },
+    { type: 'drag_and_drop', question: 'Drag the word to its starting letter: Rabbit', options: ['R', 'B', 'G', 'L'], answer: 0 },
+    { type: 'matching', question: 'Match the word to its starting sound: Rabbit', options: ['/r/', '/b/', '/g/', '/l/'], answer: 0 },
+    { type: 'true_false', question: '"Kite" starts with the /k/ sound.', answer: true },
+    { type: 'rearrangement', question: 'Rearrange the letters to make a word: N E S T', answer: 'Nest' },
+    { type: 'multiple_choice', question: 'Which word contains the digraph "sh"?', options: ['Ship', 'Sun', 'Hat', 'Pig'], answer: 0 },
+    { type: 'listen_and_identify', question: 'Listen and choose the word that starts with the sound /m/.', sound: 'M', options: ['Monkey', 'Lion', 'Rabbit', 'Goat'], answer: 0 },
+    { type: 'fill_blank', question: 'The word "Umbrella" starts with the letter ___.', answer: 'U' },
+    { type: 'drag_and_drop', question: 'Drag the word to its starting letter: Lion', options: ['L', 'N', 'R', 'G'], answer: 0 },
+    { type: 'matching', question: 'Match the word to its starting sound: Lion', options: ['/l/', '/n/', '/r/', '/g/'], answer: 0 },
+    { type: 'true_false', question: '"Violin" starts with the /v/ sound.', answer: true },
+    { type: 'rearrangement', question: 'Rearrange the letters to make a word: S U N', answer: 'Sun' },
+    { type: 'multiple_choice', question: 'What sound does the letter "X" make in "Xylophone"?', options: ['/ks/', '/z/', '/s/', '/x/'], answer: 1 },
+    { type: 'fill_blank', question: 'The word "Zebra" starts with the letter ___.', answer: 'Z' },
+    { type: 'drag_and_drop', question: 'Drag the word to its starting letter: Apple', options: ['A', 'P', 'L', 'E'], answer: 0 },
+    { type: 'true_false', question: '"Fish" starts with the /f/ sound.', answer: true }
+  ];
+
+  let current = 0;
+  let score = 0;
+
+  function renderQuestion() {
+    updateProgress();
+    updateScore();
+    const q = questions[current];
+    // Add question number bar with Read Aloud button
+  let readAloudBtn = `<button id='read-aloud-btn' class='btn btn-info' style='float:right; margin-left:0.7rem; font-size:0.95rem; padding:0.2rem 0.7rem; border-radius:0.7rem;' onclick='readAloud()'>🔊</button>`;
+  let qnBar = `<div id='qnNoBar' style='width:100%; display:flex; align-items:center; justify-content:space-between; margin-bottom:0.7rem;'><span style='flex:1; text-align:center; font-size:1.1rem; color:#005f73; font-family:"Baloo 2",cursive; font-weight:bold;'>Question ${current+1} of ${questions.length}</span>${readAloudBtn}</div>`;
+    let html = qnBar;
+    // For rearrangement questions, do not show the main question prompt
+    if (q.type !== 'rearrangement') {
+      html += `<div class='quiz-question'>${q.question}</div>`;
+      window.currentQuestionText = q.question;
+      // Automatically read aloud the question when it appears
+      if ('speechSynthesis' in window) {
+        if (window.speechSynthesis.getVoices().length === 0) {
+          window.speechSynthesis.onvoiceschanged = readAloud;
+        } else {
+          setTimeout(readAloud, 400);
+        }
+      }
+    } else {
+      // For rearrangement, show the instruction visually and set for read aloud
+      let word = q.answer;
+      let letters = word.split('');
+      for (let i = letters.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [letters[i], letters[j]] = [letters[j], letters[i]];
+      }
+      let shuffled = letters.join(' ');
+  html += `<div style='margin-bottom:1rem; color:red; font-weight:bold; font-size:1.25rem; font-family:\"Baloo 2\",cursive;'>Rearrange the letters to make a word: <b>${shuffled}</b></div>`;
+      window.currentQuestionText = `Rearrange the letters to make a word: ${shuffled}`;
+      if ('speechSynthesis' in window) {
+        if (window.speechSynthesis.getVoices().length === 0) {
+          window.speechSynthesis.onvoiceschanged = readAloud;
+        } else {
+          setTimeout(readAloud, 400);
+        }
+      }
+    }
+        if (q.type === 'multiple_choice' || q.type === 'matching') {
+      html += `<div class='quiz-options' style='display:flex;justify-content:center;gap:1rem;'>`;
+      q.options.forEach((opt, i) => {
+        html += `<button class='quiz-option' onclick='checkAnswer(${i})' id='option${i}' style='margin:0;'>${opt}</button>`;
+      });
+      html += `</div>`;
+    } else if (q.type === 'listen_and_identify') {
+      html += `<div style='margin-top:0.5rem; margin-bottom:0.7rem;'><button class='quiz-next-btn' onclick='playSound(questions[current].sound)' style='font-size:1rem; padding:0.2rem 0.8rem; border-radius:0.7rem;'>🔊 Listen</button></div>`;
+      html += `<div class='quiz-options' style='display:flex;justify-content:center;gap:1rem;'>`;
+      q.options.forEach((opt, i) => {
+        html += `<button class='quiz-option' onclick='checkAnswer(${i})' id='option${i}' style='margin:0;'>${opt}</button>`;
+      });
+      html += `</div>`;
+    } else if (q.type === 'drag_and_drop') {
+      // Show only the draggable word below the question number bar
+      let dragWord = q.question.split(':')[1] ? q.question.split(':')[1].trim() : '';
+      html += `<div style='margin:0.7rem 0 1.2rem 0; text-align:center;'>
+        <span id='dragWord' draggable='true' style='display:inline-block;padding:0.5rem 1rem;background:#ffd60a;border-radius:1rem;cursor:grab;font-weight:bold;'>${dragWord}</span>
+      </div>`;
+      html += `<div class='quiz-dragdrop'>`;
+      html += `<div style='margin-bottom:1rem;'>Drag the word to the correct starting letter:</div>`;
+      html += `<div class='quiz-options' style='display:flex;justify-content:center;gap:1rem;'>`;
+      q.options.forEach((opt, i) => {
+        html += `<div class='drop-target' data-idx='${i}' style='min-width:50px;padding:0.7rem 1.2rem;background:#e0f7fa;border-radius:1rem;border:2px dashed #ffd60a;text-align:center;font-weight:bold;cursor:pointer;margin:0;'>${opt}</div>`;
+      });
+      html += `</div>`;
+      html += `<div id='dragDropFeedback'></div>`;
+  // Touch drag-and-drop for mobile
+  let dragging = false;
+  let dragWordEl = null;
+  let dragOverIdx = null;
+  document.addEventListener('touchstart', function(e) {
+    if (e.target && e.target.id === 'dragWord') {
+      dragging = true;
+      dragWordEl = e.target;
+      dragWordEl.style.opacity = '0.7';
+    }
+  }, {passive: false});
+
+  document.addEventListener('touchmove', function(e) {
+    if (dragging && dragWordEl) {
+      e.preventDefault();
+      const touch = e.touches[0];
+      dragWordEl.style.position = 'fixed';
+      dragWordEl.style.left = (touch.clientX - dragWordEl.offsetWidth/2) + 'px';
+      dragWordEl.style.top = (touch.clientY - dragWordEl.offsetHeight/2) + 'px';
+      // Check if over a drop target
+      document.querySelectorAll('.drop-target').forEach(target => {
+        const rect = target.getBoundingClientRect();
+        if (touch.clientX > rect.left && touch.clientX < rect.right && touch.clientY > rect.top && touch.clientY < rect.bottom) {
+          dragOverIdx = parseInt(target.getAttribute('data-idx'));
+          target.style.background = '#ffd60a';
+        } else {
+          target.style.background = '#e0f7fa';
+        }
+      });
+    }
+  }, {passive: false});
+
+  document.addEventListener('touchend', function(e) {
+    if (dragging && dragWordEl) {
+      dragWordEl.style.opacity = '0.5';
+      dragWordEl.style.position = '';
+      dragWordEl.style.left = '';
+      dragWordEl.style.top = '';
+      if (dragOverIdx !== null && !window.answered) {
+        window.answered = true;
+        const q = questions[current];
+        let correct = dragOverIdx === q.answer;
+        let msg = correct ? 'Correct! 🎉' : 'Wrong answer!';
+        document.getElementById('dragDropFeedback').innerHTML = `<div class='quiz-feedback'>${msg}</div><button class='quiz-next-btn' onclick='nextQuestion()'>Next</button>`;
+        if (correct) {
+          score++;
+          setMascot('happy');
+          showConfetti();
+          playSound('correct');
+        } else {
+          setMascot('sad');
+          playSound('wrong');
+        }
+        updateScore();
+      }
+      document.querySelectorAll('.drop-target').forEach(target => {
+        target.style.background = '#e0f7fa';
+      });
+      dragging = false;
+      dragWordEl = null;
+      dragOverIdx = null;
+    }
+  }, {passive: false});
+    } else if (q.type === 'fill_blank') {
+      html += `<input type='text' id='fillInput' class='quiz-option' placeholder='Type your answer'>`;
+      html += `<button class='quiz-next-btn' onclick='checkFillBlank()' id='submitBtn'>Submit</button>`;
+    } else if (q.type === 'rearrangement') {
+      // Only show rearrangement input and submit button; prompt is already shown above
+      html += `<input type='text' id='fillInput' class='quiz-option' placeholder='Type your answer'>`;
+      html += `<button class='quiz-next-btn' onclick='checkFillBlank()' id='submitBtn'>Submit</button>`;
+  } else if (q.type === 'true_false') {
+      html += `<div class='quiz-options'>
+        <button class='quiz-option' onclick='checkAnswer(true)' id='optionTrue'>True</button>
+        <button class='quiz-option' onclick='checkAnswer(false)' id='optionFalse'>False</button>
+      </div>`;
+    }
+    document.getElementById('quizGame').innerHTML = html;
+    setMascot('neutral');
+    window.answered = false;
+  }
+
+  function allowDrop(ev) {
+    ev.preventDefault();
+  }
+
+  function dropOption(ev, idx) {
+    ev.preventDefault();
+    if (window.answered) return;
+    window.answered = true;
+    const q = questions[current];
+    let correct = idx === q.answer;
+    document.getElementById('dragWord').style.opacity = '0.5';
+    let msg = correct ? 'Correct! 🎉' : 'Wrong answer!';
+    document.getElementById('dragDropFeedback').innerHTML = `<div class='quiz-feedback'>${msg}</div><button class='quiz-next-btn' onclick='nextQuestion()'>Next</button>`;
+    if (correct) {
+      score++;
+      setMascot('happy');
+      showConfetti();
+      playSound('correct');
+    } else {
+      setMascot('sad');
+      playSound('wrong');
+    }
+    updateScore();
+  }
+
+  function checkAnswer(selected) {
+    if (window.answered) return;
+    window.answered = true;
+    const q = questions[current];
+    let correct = false;
+    // Highlight chosen answer in red
+    if (q.type === 'multiple_choice' || q.type === 'matching' || q.type === 'listen_and_identify') {
+      // Special case: allow both '/dʒ/' and 'j' for 'G' in 'Giraffe'
+      if (q.question && q.question.includes('G') && q.question.includes('Giraffe')) {
+        correct = (selected === 1 || selected === 2);
+      } else {
+        correct = selected === q.answer;
+      }
+      // Highlight chosen option in red
+      q.options.forEach((_, i) => {
+        const btn = document.getElementById('option'+i);
+        if (btn) {
+          btn.disabled = true;
+          if (i === selected) {
+            btn.style.background = '#ff4066';
+            btn.style.color = '#fff';
+            btn.style.border = '2px solid #b71c1c';
+          }
+        }
+      });
+    } else if (q.type === 'true_false') {
+      correct = selected === q.answer;
+      const btnTrue = document.getElementById('optionTrue');
+      const btnFalse = document.getElementById('optionFalse');
+      if (btnTrue) btnTrue.disabled = true;
+      if (btnFalse) btnFalse.disabled = true;
+    } else if (q.type === 'fill_blank' || q.type === 'rearrangement') {
+      // handled in checkFillBlank
+    }
+    showFeedback(correct);
+  }
+
+  function checkFillBlank() {
+    if (window.answered) return;
+    window.answered = true;
+    const q = questions[current];
+    const val = document.getElementById('fillInput').value.trim();
+    const btn = document.getElementById('submitBtn');
+    if (btn) btn.style.display = 'none';
+    const input = document.getElementById('fillInput');
+    if (input) input.style.display = 'none';
+    showFeedback(val.toUpperCase() === q.answer.toUpperCase());
+  }
+
+  function showFeedback(correct) {
+    let msg = correct ? 'Correct! 🎉' : 'Wrong answer!';
+    let html = `<div class='quiz-feedback'>${msg}</div>`;
+    html += `<button class='quiz-next-btn' onclick='nextQuestion()'>Next</button>`;
+    document.getElementById('quizGame').innerHTML += html;
+    if (correct) {
+      score++;
+      setMascot('happy');
+      showConfetti();
+      playSound('correct');
+    } else {
+      setMascot('sad');
+      playSound('wrong');
+    }
+    updateScore();
+  }
+
+  function nextQuestion() {
+    current++;
+    if (current < questions.length) {
+      renderQuestion();
+    } else {
+      showResult();
+    }
+  }
+
+  function showResult() {
+    if (score >= 20) {
+      showLevelComplete();
+    } else {
+      let quizGame = document.getElementById('quizGame');
+      let html = `<div class='level-complete' style='display:block;text-align:center;padding:2rem 0;'>
+        <span class='big-trophy' style='font-size:3rem;'>😔</span><br>
+        <span class='level-text' style='font-size:1.5rem;font-weight:bold;'>Try Again!</span><br>
+        <span class='score-text' style='font-size:1.2rem;'>You scored <b>${score}</b> out of <b>${questions.length}</b>. You need 20 or more to complete the quiz.</span><br>
+        <span style='color:red;font-size:1.1rem;'>You need to score 20 or more to complete the quiz. Please try again!</span>
+        <div id='completion-action-row' style='display:flex;justify-content:center;align-items:flex-end;gap:0.7rem;margin-top:1.2rem;'></div>
+      </div>`;
+      quizGame.innerHTML = html;
+      // Add action buttons to completion-action-row
+      let actionRow = document.getElementById('completion-action-row');
+      // Play Again button
+      var replayBtn = document.getElementById('replay-btn');
+      if (replayBtn) {
+        replayBtn.style.display = 'inline-block';
+        replayBtn.style.fontSize = '0.95rem';
+        replayBtn.style.padding = '0.32rem 1.1rem';
+        replayBtn.style.borderRadius = '0.7rem';
+        replayBtn.style.margin = '0';
+        replayBtn.style.background = 'linear-gradient(90deg,#2196f3 0%,#1976d2 100%)';
+        replayBtn.style.color = '#fff';
+        replayBtn.style.border = 'none';
+        replayBtn.style.boxShadow = '0 4px 18px #2196f355';
+        actionRow.appendChild(replayBtn);
+      }
+      // Exit button
+      var exitBtn = document.getElementById('exit-btn');
+      if (!exitBtn) {
+        exitBtn = document.createElement('button');
+        exitBtn.id = 'exit-btn';
+        exitBtn.className = 'btn btn-primary btn-sm';
+        exitBtn.textContent = 'Exit';
+        exitBtn.style.fontSize = '0.95rem';
+        exitBtn.style.fontWeight = '500';
+        exitBtn.style.borderRadius = '0.7rem';
+        exitBtn.style.padding = '0.32rem 1.1rem';
+        exitBtn.style.background = 'linear-gradient(90deg,#2196f3 0%,#1976d2 100%)';
+        exitBtn.style.color = '#fff';
+        exitBtn.onclick = function() {
+          if (typeof lesson !== 'undefined' && lesson && lesson.id) {
+            window.location.href = '/kids/lesson/' + lesson.id + '/?scroll=quiz';
+          } else if (typeof lessonId !== 'undefined' && lessonId) {
+            window.location.href = '/kids/lesson/' + lessonId + '/?scroll=phonics-quiz';
+          } else {
+            window.location.href = '/kids/?scroll=quiz';
+          }
+        };
+      } else {
+        exitBtn.style.display = 'inline-block';
+        exitBtn.style.fontSize = '0.95rem';
+        exitBtn.style.padding = '0.32rem 1.1rem';
+        exitBtn.style.borderRadius = '0.7rem';
+        exitBtn.style.margin = '0';
+        exitBtn.onclick = function() {
+          if (typeof lesson !== 'undefined' && lesson && lesson.id) {
+            window.location.href = '/kids/lesson/' + lesson.id + '/?scroll=quiz';
+          } else if (typeof lessonId !== 'undefined' && lessonId) {
+            window.location.href = '/kids/lesson/' + lessonId + '/?scroll=quiz';
+          } else {
+            window.location.href = '/kids/?scroll=quiz';
+          }
+        };
+      }
+      actionRow.appendChild(exitBtn);
+    }
+  }
+
+  function updateProgress() {
+    const percent = Math.round((current / questions.length) * 100);
+    document.getElementById('progressBar').style.width = percent + '%';
+  }
+
+  function updateScore() {
+    document.getElementById('scorePanel').innerText = `Score: ${score}`;
+  }
+
+  function setMascot(state) {
+    const mascot = document.getElementById('mascot');
+    if (state === 'happy') {
+      mascot.src = 'https://cdn-icons-png.flaticon.com/512/189/189665.png';
+      mascot.style.background = '#43e97b';
+    } else if (state === 'sad') {
+      mascot.src = 'https://cdn-icons-png.flaticon.com/512/189/189665.png';
+      mascot.style.background = '#ff4066';
+    } else {
+      mascot.src = 'https://cdn-icons-png.flaticon.com/512/189/189665.png';
+      mascot.style.background = '#ffd60a';
+    }
+  }
+
+  function showConfetti() {
+    var confetti = document.createElement('span');
+    confetti.className = 'confetti';
+    confetti.innerHTML = '🎉';
+    document.body.appendChild(confetti);
+    setTimeout(function(){ confetti.remove(); }, 1200);
+  }
+
+  function playSound(arg) {
+    // If called with 'correct' or 'wrong', play feedback sound
+    if (arg === 'correct' || arg === 'wrong') {
+      var audio = new Audio('https://cdn.pixabay.com/audio/2022/03/15/audio_115b9b2b3e.mp3');
+      audio.play();
+      return;
+    }
+    // Otherwise, use SpeechSynthesis for letter/word sound
+    if ('speechSynthesis' in window) {
+      var utter = new SpeechSynthesisUtterance(arg);
+      utter.lang = 'en-US';
+      utter.pitch = 1.5;
+      utter.rate = 1.1;
+      if (sweetVoice) {
+        utter.voice = sweetVoice;
+      }
+      window.speechSynthesis.speak(utter);
+    } else {
+      alert('Sorry, your browser does not support speech synthesis.');
+    }
+  }
+
+  // Read Aloud logic for all questions
+  function readAloud() {
+    if (!window.currentQuestionText) return;
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel(); // Stop any previous speech
+      // Convert slashes in question text to child-friendly phrase
+      let questionText = window.currentQuestionText;
+      if (/^\/.+\/$/.test(questionText)) {
+        let sound = questionText.replace(/\//g, '');
+        questionText = `the sound ${sound}`;
+      } else {
+        // Replace any /.../ in the question with 'the sound ...'
+        questionText = questionText.replace(/\/(.+?)\//g, (m, p1) => `the sound ${p1}`);
+      }
+      var utter = new SpeechSynthesisUtterance(questionText);
+      utter.lang = 'en-US';
+      utter.pitch = 1.5;
+      utter.rate = 1.1;
+      if (sweetVoice) {
+        utter.voice = sweetVoice;
+      }
+      utter.onend = function() {
+        // After question, read options if present, but skip for listen_and_identify
+        const q = questions[current];
+        if (q.type === 'listen_and_identify') return;
+        // If already answered, do not highlight or read options
+        if (window.answered) return;
+        if (q.options && q.options.length) {
+          let idx = 0;
+          function speakOption() {
+            // Highlight option
+            let optBtn = document.getElementById('option'+idx);
+            if (optBtn) {
+              optBtn.classList.add('highlight-option');
+            }
+            // Detect phonetic symbol and convert to child-friendly phrase
+            let optText = q.options[idx];
+            let spokenText = optText;
+            // If option looks like /æ/ or /ɑː/ etc, speak as "the sound a" or "the sound ar"
+            if (/^\/.+\/$/.test(optText)) {
+              let sound = optText.replace(/\//g, '');
+              spokenText = `the sound ${sound}`;
+            } else {
+              // Replace any /.../ in the option with 'the sound ...'
+              spokenText = spokenText.replace(/\/(.+?)\//g, (m, p1) => `the sound ${p1}`);
+            }
+            var optUtter = new SpeechSynthesisUtterance(spokenText);
+            optUtter.lang = 'en-US';
+            optUtter.pitch = 1.2;
+            optUtter.rate = 1.1;
+            if (sweetVoice) {
+              optUtter.voice = sweetVoice;
+            }
+            optUtter.onend = function() {
+              if (optBtn) {
+                optBtn.classList.remove('highlight-option');
+              }
+              idx++;
+              if (idx < q.options.length) {
+                setTimeout(speakOption, 250);
+              }
+            };
+            window.speechSynthesis.speak(optUtter);
+          }
+          speakOption();
+        }
+      };
+      window.speechSynthesis.speak(utter);
+    } else {
+      alert('Sorry, your browser does not support speech synthesis.');
+    }
+  }
+
+  function showLevelComplete() {
+    let quizGame = document.getElementById('quizGame');
+    let html = `<div class='level-complete' style='display:block;text-align:center;padding:2rem 0;'>
+      <span class='big-trophy' style='font-size:3rem;'>🏆</span><br>
+      <span class='level-text' style='font-size:1.5rem;font-weight:bold;'>Game Complete!</span><br>
+      <span class='score-text' style='font-size:1.2rem;'>Your Total Score: <b>${score}</b> out of <b>${questions.length}</b>!</span><br>
+      <span style='color:green;font-size:1.1rem;'>🎉🎊 Well done! You finished the game!</span>
+      <div id='completion-action-row' style='display:flex;justify-content:center;align-items:flex-end;gap:0.7rem;margin-top:1.2rem;'></div>
+    </div>`;
+    quizGame.innerHTML = html;
+    // Ensure localStorage is set for review button logic
+    try {
+      localStorage.setItem('phonicsQuizCompleted', 'true');
+    } catch (e) {}
+    // Add action buttons to completion-action-row
+    let actionRow = document.getElementById('completion-action-row');
+    // Play Again button
+    var replayBtn = document.getElementById('replay-btn');
+    if (replayBtn) {
+      replayBtn.style.display = 'inline-block';
+      replayBtn.style.fontSize = '0.95rem';
+      replayBtn.style.padding = '0.32rem 1.1rem';
+      replayBtn.style.borderRadius = '0.7rem';
+      replayBtn.style.margin = '0';
+      replayBtn.style.background = 'linear-gradient(90deg,#2196f3 0%,#1976d2 100%)';
+      replayBtn.style.color = '#fff';
+      replayBtn.style.border = 'none';
+      replayBtn.style.boxShadow = '0 4px 18px #2196f355';
+      actionRow.appendChild(replayBtn);
+    }
+    // Confirm button (form)
+    var completeForm = document.getElementById('complete-phonics-form');
+    if (completeForm) {
+      completeForm.style.display = 'inline-block';
+      completeForm.style.margin = '0';
+      completeForm.style.textAlign = 'center';
+      var confirmBtn = document.getElementById('confirm-phonics-btn');
+      if (confirmBtn) {
+        confirmBtn.style.fontSize = '0.95rem';
+        confirmBtn.style.padding = '0.32rem 1.1rem';
+        confirmBtn.style.borderRadius = '0.7rem';
+        confirmBtn.style.margin = '0';
+      }
+      actionRow.appendChild(completeForm);
+    }
+    // Exit button
+    var exitBtn = document.getElementById('exit-btn');
+    if (!exitBtn) {
+      exitBtn = document.createElement('button');
+      exitBtn.id = 'exit-btn';
+      exitBtn.className = 'btn btn-primary btn-sm';
+      exitBtn.textContent = 'Exit';
+      exitBtn.style.fontSize = '0.95rem';
+      exitBtn.style.fontWeight = '500';
+      exitBtn.style.borderRadius = '0.7rem';
+      exitBtn.style.padding = '0.32rem 1.1rem';
+      exitBtn.style.background = 'linear-gradient(90deg,#2196f3 0%,#1976d2 100%)';
+      exitBtn.style.color = '#fff';
+      exitBtn.onclick = function() {
+        if (typeof lesson !== 'undefined' && lesson && lesson.id) {
+          window.location.href = '/kids/lesson/' + lesson.id + '/?scroll=quiz';
+        } else if (typeof lessonId !== 'undefined' && lessonId) {
+          window.location.href = '/kids/lesson/' + lessonId + '/?scroll=phonics-quiz';
+        } else {
+          window.location.href = '/kids/?scroll=quiz';
+        }
+      };
+    } else {
+      exitBtn.style.display = 'inline-block';
+      exitBtn.style.fontSize = '0.95rem';
+      exitBtn.style.padding = '0.32rem 1.1rem';
+      exitBtn.style.borderRadius = '0.7rem';
+      exitBtn.style.margin = '0';
+      exitBtn.onclick = function() {
+        if (typeof lesson !== 'undefined' && lesson && lesson.id) {
+          window.location.href = '/kids/lesson/' + lesson.id + '/?scroll=quiz';
+        } else if (typeof lessonId !== 'undefined' && lessonId) {
+          window.location.href = '/kids/lesson/' + lessonId + '/?scroll=quiz';
+        } else {
+          window.location.href = '/kids/?scroll=quiz';
+        }
+      };
+    }
+    actionRow.appendChild(exitBtn);
+    updateProgress(true);
+    showConfetti();
+  }
+
+  window.onload = renderQuestion;
+</script>
+{% endblock %}

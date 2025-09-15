@@ -1,0 +1,111 @@
+
+{% extends 'base.html' %}
+{% block content %}
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+    .quiz-hero {
+        background: linear-gradient(120deg, #ff4066 60%, #ff8c40 100%);
+        border-radius: 24px;
+        box-shadow: 0 8px 32px rgba(255,64,102,0.18);
+        padding: 32px 0 16px 0;
+        margin-bottom: 24px;
+        position: relative;
+        overflow: hidden;
+        text-align: center;
+        color: #fff;
+    }
+    .quiz-card {
+        transition: transform 0.3s, box-shadow 0.3s;
+        border-radius: 18px;
+        box-shadow: 0 2px 12px rgba(255,64,102,0.10);
+        background: #fff;
+        position: relative;
+        overflow: hidden;
+        animation: fadeInUp 0.8s;
+        margin-bottom: 16px;
+    }
+    .quiz-card:hover {
+        transform: scale(1.03) translateY(-2px);
+        box-shadow: 0 8px 32px rgba(255,64,102,0.18);
+        z-index: 2;
+    }
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .quiz-btn {
+        font-size: 1rem;
+        font-weight: 700;
+        padding: 10px 24px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(255,64,102,0.13);
+        background: linear-gradient(90deg, #ff4066 60%, #ff8c40 100%);
+    }
+    @media (max-width: 768px) {
+        .quiz-hero {
+            padding: 12px 0 6px 0;
+            margin-bottom: 8px;
+        }
+        .quiz-card {
+            margin-bottom: 8px;
+        }
+        .quiz-btn {
+            font-size: 0.95rem;
+            padding: 8px 16px;
+        }
+    }
+    .quiz-btn {
+        color: #fff;
+        border: none;
+        transition: background 0.3s, box-shadow 0.3s;
+    }
+    .quiz-btn:hover {
+        background: linear-gradient(90deg, #ff8c40 60%, #ff4066 100%);
+        box-shadow: 0 4px 16px rgba(255,64,102,0.18);
+        color: #fff;
+    }
+    .progress {
+        height: 18px;
+        border-radius: 12px;
+        margin-bottom: 24px;
+        background: #f8f9fa;
+        box-shadow: 0 2px 8px rgba(255,64,102,0.08);
+    }
+    .progress-bar {
+        background: linear-gradient(90deg, #ff4066 60%, #ff8c40 100%);
+        font-weight: 600;
+        font-size: 1rem;
+    }
+</style>
+<div class="container mt-3 mb-4 py-4">
+    <div class="quiz-hero mb-5">
+        <h1 class="display-4 font-weight-bold mb-3">Movie Quiz Game</h1>
+        <p class="lead mb-2">Test your movie knowledge and win rewards!</p>
+        <span class="badge badge-pill badge-warning px-4 py-2" style="font-size:1.2rem;">New Questions Every Time!</span>
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        <div class="progress">
+            <div class="progress-bar" role="progressbar" style="width:100%;">{{ questions|length }} Questions</div>
+        </div>
+        {% for q in questions %}
+        <div class="card quiz-card mb-4">
+            <div class="card-body">
+                <h5 class="mb-3">{{ forloop.counter }}. {{ q.question }}</h5>
+                <div class="row">
+                    {% for opt in q.options %}
+                    <div class="col-md-6 mb-2">
+                        <div class="form-check text-left">
+                            <input class="form-check-input" type="radio" name="q{{ forloop.parentloop.counter0 }}" value="{{ opt }}" required>
+                            <label class="form-check-label">{{ opt }}</label>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        <button type="submit" class="quiz-btn w-100 mt-4">Submit Answers</button>
+    </form>
+</div>
+{% endblock %}

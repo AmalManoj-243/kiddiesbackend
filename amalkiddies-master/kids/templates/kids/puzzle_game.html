@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advanced Candy Puzzle Game</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+      color: #fff;
+      font-family: 'Comic Sans MS', 'Montserrat', Arial, sans-serif;
+    }
+    .game-container {
+      max-width: 480px;
+      margin: 0 auto;
+      background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+      border-radius: 24px;
+      box-shadow: 0 4px 24px #23272f44;
+      padding: 2rem 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border: 4px solid #ffe066;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 1.2rem;
+      width: 100%;
+    }
+    .header h1 {
+      color: #ff6f91;
+      font-size: 2.2rem;
+      margin-bottom: 0.3rem;
+      text-shadow: 2px 2px 0 #ffe066, 4px 4px 0 #ff6f91;
+    }
+    .header .level, .header .moves, .header .score {
+      font-size: 1.2rem;
+      margin: 0.2rem 0;
+      color: #ff6f91;
+      font-weight: bold;
+    }
+    .board {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      grid-template-rows: repeat(8, 1fr);
+      gap: 4px;
+  width: 100%;
+      max-width: 370px;
+      aspect-ratio: 1 / 1;
+      background: linear-gradient(135deg, #fcb69f 0%, #ffecd2 100%);
+      border-radius: 16px;
+      box-shadow: 0 2px 12px #23272f44;
+      margin: 0 auto 1rem auto;
+      border: 3px solid #ff6f91;
+    }
+    .cell {
+      width: 100%;
+      height: 100%;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.2rem;
+      cursor: pointer;
+      user-select: none;
+      transition: box-shadow 0.2s, transform 0.2s, background 0.2s;
+      background: linear-gradient(135deg, #ffe066 0%, #ff6f91 100%);
+      box-shadow: 0 2px 8px #ff6f9144;
+      position: relative;
+      border: 2px solid #fff;
+    }
+    .cell.selected {
+      box-shadow: 0 0 0 4px #ff6f91;
+      z-index: 2;
+      background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+    }
+    .cell.animate {
+      animation: bounce 0.5s;
+    }
+    @keyframes bounce {
+      0% { transform: scale(1); }
+      30% { transform: scale(1.3) rotate(-10deg); }
+      60% { transform: scale(1.1) rotate(10deg); }
+      100% { transform: scale(1); }
+    }
+    .goal-bar {
+      background: linear-gradient(90deg, #ffe066 0%, #ff6f91 100%);
+      color: #fff;
+      border-radius: 12px;
+      padding: 0.6rem 1rem;
+      text-align: center;
+      font-weight: 900;
+      margin-bottom: 1rem;
+      width: 100%;
+      font-size: 1.2rem;
+      box-shadow: 0 2px 8px #ff6f9144;
+    }
+    .btn {
+      background: linear-gradient(90deg, #ff6f91 0%, #ffe066 100%);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 0.8rem 1.2rem;
+      font-size: 1.1rem;
+      font-weight: 900;
+      margin: 1rem auto;
+      display: block;
+      cursor: pointer;
+      box-shadow: 0 2px 12px #ff6f9144;
+      transition: background 0.2s;
+    }
+    .btn:hover {
+      background: linear-gradient(90deg, #ffe066 0%, #ff6f91 100%);
+    }
+    .message {
+      text-align: center;
+      font-size: 1.2rem;
+      color: #ff6f91;
+      margin-top: 1rem;
+      font-weight: bold;
+      text-shadow: 1px 1px 0 #ffe066;
+    }
+    @media (max-width: 600px) {
+      .game-container { max-width: 100vw; border-radius: 0; box-shadow: none; padding: 0.5rem 0.1rem; }
+      .header h1 { font-size: 1.3rem; }
+      .board { max-width: 98vw; aspect-ratio: 1 / 1; }
+      .cell { font-size: 1.2rem; }
+      .goal-bar, .btn, .message { font-size: 1rem; padding: 0.3rem 0.5rem; }
+    }
+    @keyframes popupScore {
+      0% { opacity: 0; transform: scale(0.7) translate(-50%,-50%); }
+      10% { opacity: 1; transform: scale(1.1) translate(-50%,-50%); }
+      80% { opacity: 1; transform: scale(1) translate(-50%,-50%); }
+      100% { opacity: 0; transform: scale(0.7) translate(-50%,-50%); }
+    }
+  </style>
+</head>
+<body>
+  <div class="game-container">
+    <div class="header">
+      <h1>Candy Puzzle</h1>
+      <div class="level">Level: <span id="level">1</span></div>
+      <div class="moves">Moves Left: <span id="moves">30</span></div>
+      <div class="score">Score: <span id="score">0</span></div>
+    </div>
+  <div class="goal-bar" id="goalBar">Goal: 200 points</div>
+    <div class="board" id="board"></div>
+    <div id="scorePopup" style="display:none;position:fixed;left:50%;top:30%;transform:translate(-50%,-50%);background:#ff6f91;color:#fff;font-size:2rem;padding:1rem 2rem;border-radius:16px;box-shadow:0 2px 16px #ff6f9144;z-index:9999;text-align:center;animation:popupScore 3s linear;pointer-events:none;"></div>
+    <button class="btn" id="nextLevelBtn" style="display:none;">Next Level</button>
+    <button class="btn" id="restartBtn" style="display:none;">Restart Level</button>
+    <div class="message" id="message"></div>
+  </div>
+  <script>
+    const boardSize = 8;
+    const candyTypes = ['🍒','🍋','🍇','🍊','🍏','🍉','🍭','🍫'];
+  let board = [];
+  let selected = null;
+  let score = 0;
+  let moves = 30;
+  let level = 1;
+  let goal = 200;
+  let animating = false;
+    const boardDiv = document.getElementById('board');
+    const scoreSpan = document.getElementById('score');
+    const movesSpan = document.getElementById('moves');
+    const levelSpan = document.getElementById('level');
+    const goalBar = document.getElementById('goalBar');
+    const messageDiv = document.getElementById('message');
+    const restartBtn = document.getElementById('restartBtn');
+    function randomCandy() { return { type: candyTypes[Math.floor(Math.random()*candyTypes.length)] }; }
+    function createBoard() {
+      board = [];
+      score = 0;
+      scoreSpan.textContent = score;
+      for(let r=0;r<boardSize;r++){
+        let row=[];
+        for(let c=0;c<boardSize;c++){
+          row.push(randomCandy());
+        }
+        board.push(row);
+      }
+  while(checkMatches(true)) { clearMatches(true); dropCandies(); refillBoard(); }
+    }
+    function renderBoard() {
+      boardDiv.innerHTML = '';
+      for(let r=0;r<boardSize;r++){
+        for(let c=0;c<boardSize;c++){
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          cell.textContent = board[r][c] ? board[r][c].type : '';
+          cell.dataset.row = r;
+          cell.dataset.col = c;
+      function checkWin() {
+        if(score >= goal) {
+          nextLevel();
+        } else if(moves <= 0) {
+          endGame();
+        }
+      }
+          if(selected && selected[0]===r && selected[1]===c) cell.classList.add('selected');
+          cell.onclick = () => handleSelect(r,c);
+          // Touch support
+          cell.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            handleTouchStart(r, c);
+          }, {passive: false});
+          cell.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            handleTouchEnd(r, c);
+          }, {passive: false});
+          boardDiv.appendChild(cell);
+        }
+      }
+    }
+
+    let touchStart = null;
+    function handleTouchStart(r, c) {
+      touchStart = [r, c];
+    }
+    function handleTouchEnd(r, c) {
+      if (!touchStart) return;
+      const [sr, sc] = touchStart;
+      if ((Math.abs(sr - r) + Math.abs(sc - c)) === 1) {
+        handleSelect(r, c);
+      } else {
+        handleSelect(r, c);
+      }
+      touchStart = null;
+    }
+    function handleSelect(r,c) {
+      if(animating || moves<=0) return;
+      if(!selected) { selected = [r,c]; renderBoard(); return; }
+      const [sr,sc] = selected;
+      if((Math.abs(sr-r)+Math.abs(sc-c))===1) {
+        swap(sr,sc,r,c);
+        if(checkMatches(false)) {
+          moves--;
+          movesSpan.textContent = moves;
+          try {
+            const audio = new Audio('/media/movies/confirmation_004.ogg');
+            audio.volume = 1.0;
+            audio.play().catch(()=>{});
+          } catch(e) {}
+          do {
+            clearMatches();
+            dropCandies();
+            refillBoard();
+          } while(checkMatches(false));
+          renderBoard();
+          checkWin();
+        } else {
+          swap(sr,sc,r,c); // swap back if no match
+          renderBoard();
+        }
+        selected = null;
+      } else {
+        selected = [r,c];
+        renderBoard();
+      }
+    }
+    function swap(r1,c1,r2,c2) {
+      let temp = board[r1][c1];
+      board[r1][c1] = board[r2][c2];
+      board[r2][c2] = temp;
+    }
+    function checkMatches(ignoreMark) {
+      let found = false;
+      for(let r=0;r<boardSize;r++){
+        for(let c=0;c<boardSize-2;c++){
+          if(board[r][c] && board[r][c+1] && board[r][c+2] &&
+             board[r][c].type===board[r][c+1].type && board[r][c].type===board[r][c+2].type) {
+            found = true;
+          }
+        }
+      }
+      for(let c=0;c<boardSize;c++){
+        for(let r=0;r<boardSize-2;r++){
+          if(board[r][c] && board[r+1][c] && board[r+2][c] &&
+             board[r][c].type===board[r+1][c].type && board[r][c].type===board[r+2][c].type) {
+            found = true;
+          }
+        }
+      }
+      return found;
+    }
+    function markMatch(r,c,dir) {
+  // No longer used. All marking/clearing is done in clearMatches.
+    }
+    function clearMatches(isInit) {
+      let cleared = 0;
+      let totalScore = 0;
+      let foundMatch = false;
+      let matchLengths = [];
+      // Horizontal matches
+      for(let r=0;r<boardSize;r++){
+        let c=0;
+        while(c<boardSize-2){
+          let candy = board[r][c];
+          if(candy && board[r][c+1] && board[r][c+2] &&
+             candy.type === board[r][c+1].type && candy.type === board[r][c+2].type) {
+            let len = 3;
+            while(c+len<boardSize && board[r][c+len] && board[r][c+len].type === candy.type) len++;
+            matchLengths.push(len);
+            for(let k=0;k<len;k++) board[r][c+k]=null;
+            cleared += len;
+            foundMatch = true;
+            c += len;
+          } else {
+            c++;
+          }
+        }
+      }
+      // Vertical matches
+      for(let c=0;c<boardSize;c++){
+        let r=0;
+        while(r<boardSize-2){
+          let candy = board[r][c];
+          if(candy && board[r+1][c] && board[r+2][c] &&
+             candy.type === board[r+1][c].type && candy.type === board[r+2][c].type) {
+            let len = 3;
+            while(r+len<boardSize && board[r+len][c] && board[r+len][c].type === candy.type) len++;
+            matchLengths.push(len);
+            for(let k=0;k<len;k++) board[r+k][c]=null;
+            cleared += len;
+            foundMatch = true;
+            r += len;
+          } else {
+            r++;
+          }
+        }
+      }
+      // Play sound immediately after match is found (user move only)
+      if (!isInit && foundMatch) {
+        let soundFile = null;
+        if (matchLengths.some(len => len > 3)) {
+          soundFile = '/media/movies/maximize_005.ogg';
+        } else if (matchLengths.includes(3)) {
+          soundFile = '/media/movies/confirmation_004.ogg';
+        }
+        if (soundFile) {
+          if(window.lastAudio && !window.lastAudio.paused) {
+            window.lastAudio.pause();
+            window.lastAudio.currentTime = 0;
+          }
+          const audio = new Audio(soundFile);
+          audio.volume = 1.0;
+          audio.play().catch(()=>{});
+          window.lastAudio = audio;
+        }
+      }
+      // Only add score and show popup if not initialization
+      if (!isInit) {
+        matchLengths.forEach(len => {
+          if(len === 3) totalScore += 60;
+          else if(len === 4) totalScore += 120;
+          else if(len >= 5) totalScore += 200;
+        });
+        // Cascade bonus
+        if(foundMatch && matchLengths.length > 1) totalScore += 50 * (matchLengths.length - 1);
+        if(totalScore > 0) {
+          showScorePopup(totalScore);
+        }
+        score += totalScore;
+        scoreSpan.textContent = score;
+        if(score >= goal) {
+          showWinScreen();
+          return 0; // Prevent further cascades after win
+        }
+      }
+      return cleared;
+    }
+
+    // Show score popup for 3 seconds
+    function showScorePopup(points) {
+      const popup = document.getElementById('scorePopup');
+      popup.textContent = `+${points} Points!`;
+      popup.style.display = 'block';
+      popup.style.animation = 'popupScore 3s linear';
+  // Sound is played in clearMatches, not here
+      setTimeout(()=>{
+        popup.style.display = 'none';
+        popup.style.animation = '';
+      }, 3000);
+    }
+
+    // Show win screen with final score and Next Level button
+    function showWinScreen() {
+      messageDiv.textContent = `🎉 Level Complete! Final Score: ${score} 🎉`;
+      document.getElementById('nextLevelBtn').style.display = 'block';
+      animating = true;
+    }
+
+    // Next Level button logic
+    document.getElementById('nextLevelBtn').onclick = function() {
+      document.getElementById('nextLevelBtn').style.display = 'none';
+      messageDiv.textContent = '';
+      animating = false;
+  level++;
+  goal += 100;
+  moves = 30;
+  score = 0;
+  levelSpan.textContent = level;
+  movesSpan.textContent = moves;
+  goalBar.textContent = 'Goal: '+goal+' points';
+  scoreSpan.textContent = score;
+  createBoard();
+  renderBoard();
+    }
+    function animateMatches() {
+      animating = true;
+      const cells = document.querySelectorAll('.cell');
+      cells.forEach(cell => {
+        if(cell.textContent==='') cell.classList.add('animate');
+      });
+      setTimeout(()=>{ animating = false; }, 400);
+    }
+    function dropCandies() {
+      for(let c=0;c<boardSize;c++){
+        for(let r=boardSize-1;r>=0;r--){
+          if(board[r][c]===null){
+            for(let k=r-1;k>=0;k--){
+              if(board[k][c]!=null){
+                board[r][c]=board[k][c];
+                board[k][c]=null;
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+    function refillBoard() {
+      for(let r=0;r<boardSize;r++){
+        for(let c=0;c<boardSize;c++){
+          if(board[r][c]==null){
+            board[r][c]=randomCandy();
+          }
+        }
+      }
+    }
+    function nextLevel() {
+  // Deprecated: replaced by showWinScreen and Next Level button
+    // Confetti effect for win
+    function showConfetti() {
+      const confettiColors = ['#ffe066','#ff6f91','#a1c4fd','#fcb69f','#c2e9fb'];
+      for(let i=0;i<60;i++) {
+        const conf = document.createElement('div');
+        conf.style.position = 'fixed';
+        conf.style.left = Math.random()*100+'vw';
+        conf.style.top = '-4vh';
+        conf.style.width = '16px';
+        conf.style.height = '16px';
+        conf.style.borderRadius = '50%';
+        conf.style.background = confettiColors[Math.floor(Math.random()*confettiColors.length)];
+        conf.style.zIndex = 9999;
+        conf.style.opacity = 0.8;
+        conf.style.transition = 'top 2.2s linear, opacity 0.5s';
+        document.body.appendChild(conf);
+        setTimeout(()=>{
+          conf.style.top = '100vh';
+          conf.style.opacity = 0;
+        }, 100);
+        setTimeout(()=>{
+          conf.remove();
+        }, 2300);
+      }
+    }
+    }
+    function endGame() {
+      messageDiv.textContent = 'Game Over!';
+      restartBtn.style.display = 'block';
+    }
+    restartBtn.onclick = function() {
+      moves = 30;
+      score = 0;
+      scoreSpan.textContent = score;
+      messageDiv.textContent = '';
+      restartBtn.style.display = 'none';
+      createBoard();
+      renderBoard();
+      movesSpan.textContent = moves;
+    };
+    createBoard();
+    renderBoard();
+  </script>
+</body>
+</html>

@@ -1,0 +1,384 @@
+<h1 style="color:red;text-align:center;">TEST CHANGE - If you see this, template is working!</h1>
+
+{% extends 'base.html' %}
+{% block content %}
+<style>
+  body {
+    background: linear-gradient(120deg, #f8ffae 0%, #e0f7fa 100%, #ffd6e0 120%);
+  }
+  .hero-section {
+    background: linear-gradient(135deg, #e0f7fa 0%, #fffbe6 100%);
+    border-radius: 2rem;
+    box-shadow: 0 8px 32px #ffd60a33;
+    padding: 2.5rem 1.5rem 1.2rem 1.5rem;
+    margin-bottom: 2rem;
+    text-align: center;
+    position: relative;
+  }
+  .hero-mascot {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: #fffbe6;
+    box-shadow: 0 4px 18px #ffd60a22;
+    display: inline-block;
+    margin-bottom: 1rem;
+    animation: bounceMascot 1.2s infinite alternate;
+  }
+  @keyframes bounceMascot {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-12px); }
+  }
+  .hero-title {
+    color: #ff4066;
+    font-family: 'Baloo 2', cursive;
+    font-size: 2.7rem;
+    font-weight: bold;
+    margin-bottom: 0.7rem;
+    letter-spacing: 2px;
+    text-shadow: 0 2px 8px #ffd60a44;
+  }
+  .hero-desc {
+    font-size: 1.3rem;
+    color: #005f73;
+    margin-bottom: 1.2rem;
+    font-family: 'Comic Sans MS', cursive;
+  }
+  .progress-stars {
+    margin: 1rem 0 0.5rem 0;
+    text-align: center;
+    font-size: 1.7rem;
+    color: #ffd60a;
+    font-family: 'Baloo 2', cursive;
+  }
+  .word-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.5rem;
+    justify-items: center;
+    margin: 2rem auto 1.5rem auto;
+    max-width: 900px;
+  }
+  .word-card {
+    border-radius: 1.5rem;
+    box-shadow: 0 4px 18px #ffd60a33, 0 2px 8px #e0f7fa88;
+    background: linear-gradient(135deg, #fffbe6 60%, #e0f7fa 100%);
+    padding: 1.5rem 0.7rem 1.2rem 0.7rem;
+    font-size: 2.2rem;
+    font-family: 'Baloo 2', cursive;
+    color: #2d6a4f;
+    font-weight: bold;
+    transition: transform 0.25s, box-shadow 0.25s, background 0.25s;
+    cursor: pointer;
+    position: relative;
+    margin-bottom: 1.2rem;
+    will-change: transform, box-shadow, background;
+    animation: bounceIn 0.8s;
+    text-align: center;
+    border: 3px solid #ffd60a;
+    min-height: 180px;
+    overflow: visible;
+  }
+  .word-card:hover {
+    transform: scale(1.09) rotate(-2deg);
+    box-shadow: 0 16px 40px #ffd60a55, 0 2px 8px #e0f7fa88;
+    background: linear-gradient(135deg, #ffe066 60%, #fffbe6 100%);
+    z-index: 2;
+    border-color: #ff4066;
+  }
+  @keyframes bounceIn {
+    0% { transform: scale(0.7); opacity: 0.2; }
+    80% { transform: scale(1.15); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .word-img {
+    max-width: 80px;
+    margin: 0.7rem auto 0.2rem auto;
+    border-radius: 1rem;
+    box-shadow: 0 4px 16px #ffd60a33;
+    background: #fffbe6;
+    display: block;
+    border: 2px solid #e0f7fa;
+    transition: box-shadow 0.2s, border 0.2s;
+  }
+  .word-card:hover .word-img {
+    box-shadow: 0 8px 32px #ff406655;
+    border: 2px solid #ff4066;
+  }
+  .confetti {
+    position: fixed;
+    left: 50vw;
+    top: 50vh;
+    font-size: 2.5rem;
+    pointer-events: none;
+    animation: confettiAnim 1.2s ease-out;
+  }
+  @keyframes confettiAnim {
+    0% { opacity: 1; transform: scale(1) translateY(0); }
+    100% { opacity: 0; transform: scale(1.5) translateY(80px); }
+  }
+  .quiz-btn {
+    background: linear-gradient(90deg,#ffd60a 0%,#ff9800 100%);
+    color: #2d6a4f;
+    border-radius: 1.5rem;
+    font-size: 1.3rem;
+    font-family: 'Baloo 2', cursive;
+    font-weight: bold;
+    box-shadow: 0 2px 8px #ffd60a88;
+    padding: 0.8rem 2.2rem;
+    transition: transform 0.2s;
+    margin-top: 1.2rem;
+    display: inline-block;
+  }
+  .quiz-btn:hover {
+    transform: scale(1.08);
+    background: #ff4066;
+    color: #fff;
+    box-shadow: 0 8px 24px #ffd60a44;
+  }
+</style>
+<div class="container py-4">
+  <div class="hero-section">
+    <img src="https://cdn-icons-png.flaticon.com/512/189/189665.png" alt="Mascot" class="hero-mascot">
+    <div class="hero-title">Simple ords</div>
+  <!-- Progress bar and stars removed as requested -->
+    <div id="mascotTip" style="display:inline-block; background:#fffbe6; border-radius:1.2rem; box-shadow:0 2px 8px #ffd60a22; padding:0.7rem 1.2rem; font-size:1.1rem; color:#005f73; font-family:'Comic Sans MS',cursive; margin-bottom:0.7rem; position:relative;">Tip: Tap a card to hear the word and see fun stickers!</div>
+    <div class="hero-desc">Learn to read and say easy words! Tap a card to hear the word and celebrate your progress.</div>
+    {% if lesson.video_url %}
+      <div class="video-section mb-4" style="text-align:center;">
+        <div class="video-card" style="max-width:650px; margin:2rem auto; background:#fffbe6; border-radius:1.5rem; box-shadow:0 6px 32px #ffd60a33; padding:2rem 1.2rem; text-align:center;">
+          <h4 style="font-family:'Baloo 2',cursive; color:#ff9800; font-size:1.3rem; margin-bottom:1rem;">Watch and Learn!</h4>
+          <div class="responsive-video" style="width:100%; max-width:600px; margin:auto; aspect-ratio:16/9; background:#000; border-radius:1rem; box-shadow:0 4px 24px #ffd60a22; display:flex; align-items:center; justify-content:center;">
+            {% if 'youtube.com' in lesson.video_url or 'youtu.be' in lesson.video_url %}
+              <iframe src="{{ video_embed_url }}" title="Simple Words Video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="width:100%; height:100%; min-height:220px; min-width:320px; border-radius:1.5rem; background:#000; cursor:pointer; touch-action: manipulation; box-shadow:0 6px 32px #ffd60a33; transition:box-shadow 0.2s;" tabindex="0"></iframe>
+            {% else %}
+              <video controls style="width:100%; height:100%; border-radius:1rem; background:#000;" preload="metadata">
+                <source src="{{ lesson.video_url }}" type="video/mp4">
+                Your browser does not support the video tag.
+              </video>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+  <div class="word-grid">
+    <div class="word-card" onclick="playWord('Cat', this)">
+      <span class="word-text">Cat</span>
+      <img src="/media/movies/f5VK0h2bprRhR6iRrixcuEfRxSUF4l14F66vQYrsJGmKZ5nTA1.jpg" alt="Cat" class="word-img">
+      <span class="sticker" style="display:none; position:absolute; top:-30px; right:-20px; font-size:2.2rem;">⭐</span>
+    </div>
+    <div class="word-card" onclick="playWord('Dog', this)">
+      <span class="word-text">Dog</span>
+      <img src="/media/movies/feUv2SYumXlT8E2RhzlYbZxfEGLG5AVrCPxP1gmAaCusxyPnA1.jpg" alt="Dog" class="word-img">
+      <span class="sticker" style="display:none; position:absolute; top:-30px; right:-20px; font-size:2.2rem;">🐶</span>
+    </div>
+    <div class="word-card" onclick="playWord('Sun', this)">
+      <span class="word-text">Sun</span>
+      <img src="/media/movies/IQsBhg9t747dLhjXfsChIGZy4XfugER8BF0Gw5MDhIcnY5nTA1.jpg" alt="Sun" class="word-img">
+      <span class="sticker" style="display:none; position:absolute; top:-30px; right:-20px; font-size:2.2rem;">🌞</span>
+    </div>
+    <div class="word-card" onclick="playWord('Hat', this)">
+      <span class="word-text">Hat</span>
+      <img src="/media/movies/download.jpeg" alt="Hat" class="word-img">
+      <span class="sticker" style="display:none; position:absolute; top:-30px; right:-20px; font-size:2.2rem;">🎩</span>
+    </div>
+    <div class="word-card" onclick="playWord('Car', this)">
+      <span class="word-text">Car</span>
+      <img src="https://cdn-icons-png.flaticon.com/512/743/743007.png" alt="Car" class="word-img">
+      <span class="sticker" style="display:none; position:absolute; top:-30px; right:-20px; font-size:2.2rem;">🚗</span>
+    </div>
+    <div class="word-card" onclick="playWord('Fish', this)">
+      <span class="word-text">Fish</span>
+      <img src="https://cdn-icons-png.flaticon.com/512/616/616408.png" alt="Fish" class="word-img">
+      <span class="sticker" style="display:none; position:absolute; top:-30px; right:-20px; font-size:2.2rem;">🐟</span>
+    </div>
+    <div class="word-card" onclick="playWord('Tree', this)">
+      <span class="word-text">Tree</span>
+      <img src="https://cdn-icons-png.flaticon.com/512/616/616408.png" alt="Tree" class="word-img">
+      <span class="sticker" style="display:none; position:absolute; top:-30px; right:-20px; font-size:2.2rem;">🌳</span>
+    </div>
+    <div class="word-card" onclick="playWord('Book', this)">
+      <span class="word-text">Book</span>
+      <img src="https://cdn-icons-png.flaticon.com/512/29/29302.png" alt="Book" class="word-img">
+      <span class="sticker" style="display:none; position:absolute; top:-30px; right:-20px; font-size:2.2rem;">📚</span>
+    </div>
+    <div class="word-card" onclick="playWord('Ball', this)">
+      <span class="word-text">Ball</span>
+      <img src="https://cdn-icons-png.flaticon.com/512/616/616408.png" alt="Ball" class="word-img">
+      <span class="sticker" style="display:none; position:absolute; top:-30px; right:-20px; font-size:2.2rem;">⚽</span>
+    </div>
+    <div class="word-card" onclick="playWord('Cake', this)">
+      <span class="word-text">Cake</span>
+      <img src="https://cdn-icons-png.flaticon.com/512/616/616408.png" alt="Cake" class="word-img">
+      <span class="sticker" style="display:none; position:absolute; top:-30px; right:-20px; font-size:2.2rem;">🍰</span>
+    </div>
+  </div>
+  <div class="text-center">
+    <a href="/kids/lessons/simple-words-quiz/" class="quiz-btn" style="
+      display: inline-flex;
+      align-items: center;
+      gap: 0.7rem;
+      background: linear-gradient(90deg,#ffd60a 0%,#ff9800 100%);
+      color: #2d6a4f;
+      border-radius: 2.2rem;
+      font-size: 1.5rem;
+      font-family: 'Baloo 2', cursive;
+      font-weight: bold;
+      box-shadow: 0 4px 18px #ffd60a88, 0 2px 8px #ff406655;
+      padding: 1.1rem 2.7rem;
+      margin-top: 1.2rem;
+      border: 3px solid #ff4066;
+      transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+      text-decoration: none;
+      position: relative;
+      overflow: hidden;
+    "
+    onmouseover="this.style.transform='scale(1.08) rotate(-2deg)'; this.style.background='#ff4066'; this.style.color='#fff'; this.style.boxShadow='0 8px 24px #ffd60a44';"
+    onmouseout="this.style.transform='scale(1)'; this.style.background='linear-gradient(90deg,#ffd60a 0%,#ff9800 100%)'; this.style.color='#2d6a4f'; this.style.boxShadow='0 4px 18px #ffd60a88, 0 2px 8px #ff406655';"
+    >
+      <span style="font-size:2.2rem; vertical-align:middle; animation:bounceMascot 1.2s infinite alternate;">🎮</span>
+      <span style="font-size:1.7rem; vertical-align:middle;">Take the Big Quiz!</span>
+      <span style="font-size:1.7rem; vertical-align:middle;">📝</span>
+      <span style="position:absolute; right:18px; top:18px; font-size:1.3rem; color:#ffd60a; animation: bounceIn 1.2s infinite alternate;">⭐</span>
+    </a>
+  </div>
+  <p class="mt-4 text-center" style="font-size:1.1rem; color:#2d6a4f;">Can you say each word out loud? Try to sound out each letter!</p>
+</div>
+<script>
+  function playWord(word, cardElem) {
+    if ('speechSynthesis' in window) {
+      var utter = new SpeechSynthesisUtterance(word);
+      utter.lang = 'en-US';
+      utter.pitch = 1.5;
+      utter.rate = 1.1;
+      // Try to select a child-like voice
+      var voices = window.speechSynthesis.getVoices();
+      // Prefer Microsoft Susan voice if available
+      var susanVoice = voices.find(function(v) {
+        return v.name.toLowerCase().includes('susan');
+      });
+      if (susanVoice) {
+        utter.voice = susanVoice;
+      } else {
+        // Fallback to child-like or female voice
+        var childVoice = voices.find(function(v) {
+          return v.name.toLowerCase().includes('child') || v.name.toLowerCase().includes('kid') || v.name.toLowerCase().includes('boy') || v.name.toLowerCase().includes('girl');
+        });
+        if (childVoice) {
+          utter.voice = childVoice;
+        } else {
+          var femaleVoice = voices.find(function(v) {
+            return v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('woman') || v.gender === 'female';
+          });
+          if (femaleVoice) utter.voice = femaleVoice;
+        }
+      }
+      window.speechSynthesis.speak(utter);
+    }
+    showConfetti();
+    showSticker(cardElem);
+    highlightLetters(cardElem);
+    updateProgressBar();
+    updateProgress();
+    showMascotTip();
+  }
+
+  function showSticker(cardElem) {
+    if (!cardElem) return;
+    var sticker = cardElem.querySelector('.sticker');
+    if (sticker) {
+      sticker.style.display = 'inline';
+      sticker.style.animation = 'bounceIn 0.8s';
+      setTimeout(function(){ sticker.style.display = 'none'; }, 1200);
+    }
+  }
+
+  function highlightLetters(cardElem) {
+    if (!cardElem) return;
+    var wordSpan = cardElem.querySelector('.word-text');
+    if (!wordSpan) return;
+    var word = wordSpan.textContent;
+    wordSpan.innerHTML = '';
+    for (let i = 0; i < word.length; i++) {
+      let letter = document.createElement('span');
+      letter.textContent = word[i];
+      letter.style.display = 'inline-block';
+      letter.style.transition = 'transform 0.3s, color 0.3s';
+      letter.style.fontWeight = 'bold';
+      letter.style.color = '#ff4066';
+      letter.style.transform = 'scale(1.5)';
+      wordSpan.appendChild(letter);
+      setTimeout(() => {
+        letter.style.transform = 'scale(1)';
+        letter.style.color = '#2d6a4f';
+      }, 350 + i * 120);
+    }
+    setTimeout(() => { wordSpan.textContent = word; }, 1200);
+  }
+
+  function updateProgressBar() {
+    var bar = document.getElementById('progressBar');
+    if (bar) {
+      let current = parseInt(bar.style.width) || 25;
+      let next = current + 25;
+      if (next > 100) next = 100;
+      bar.style.width = next + '%';
+      setTimeout(function(){ bar.style.width = '25%'; }, 1500);
+    }
+  }
+
+  function showMascotTip() {
+    var tips = [
+      "Great job! Can you say the word slowly?",
+      "Try tracing the letters with your finger!",
+      "Can you find this word around you?",
+      "Say the word in a silly voice!",
+      "Tap all the cards to earn more stickers!"
+    ];
+    var tipElem = document.getElementById('mascotTip');
+    if (tipElem) {
+      var tip = tips[Math.floor(Math.random() * tips.length)];
+      tipElem.textContent = tip;
+      tipElem.style.background = '#ffe066';
+      tipElem.style.color = '#ff4066';
+      setTimeout(function(){
+        tipElem.textContent = "Tip: Tap a card to hear the word and see fun stickers!";
+        tipElem.style.background = '#fffbe6';
+        tipElem.style.color = '#005f73';
+      }, 2200);
+    }
+  }
+  function showConfetti() {
+    var confetti = document.createElement('span');
+    confetti.className = 'confetti';
+    confetti.innerHTML = '🎉';
+    document.body.appendChild(confetti);
+    setTimeout(function(){ confetti.remove(); }, 1200);
+  }
+  function updateProgress() {
+    var stars = document.getElementById('progressStars');
+    if (stars) {
+      stars.innerHTML = '⭐⭐⭐⭐⭐⭐';
+      setTimeout(function(){ stars.innerHTML = '⭐⭐⭐⭐⭐'; }, 1500);
+    }
+  }
+  function openQuiz() {
+    var questions = [
+      {q: 'Which word starts with C?', a: 'Cat'},
+      {q: 'Which word is an animal that barks?', a: 'Dog'},
+      {q: 'Which word is something you wear on your head?', a: 'Hat'},
+      {q: 'Which word is bright in the sky?', a: 'Sun'}
+    ];
+    var idx = Math.floor(Math.random() * questions.length);
+    var user = prompt(questions[idx].q);
+    if (user && user.trim().toLowerCase() === questions[idx].a.toLowerCase()) {
+      alert('Correct! 🎉');
+      showConfetti();
+      updateProgress();
+    } else {
+      alert('Try again!');
+    }
+  }
+</script>
+{% endblock %}

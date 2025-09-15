@@ -1,0 +1,419 @@
+{% extends 'base.html' %}
+<style>
+  body {
+    background: linear-gradient(120deg, #f8ffae 0%, #e0f7fa 100%, #ffd6e0 120%);
+  }
+  .color-card {
+    border-radius: 2rem;
+    box-shadow: 0 12px 32px #ffd60a33, 0 2px 8px #2d6a4f22;
+    border: 3px solid #ff8c40;
+    background: linear-gradient(135deg, #e0ffe5 60%, #fff 100%, #ffd6e0 120%);
+    padding: 1.2rem 1rem;
+    transition: box-shadow 0.3s, border 0.3s, background 0.3s;
+  }
+  .color-card:hover {
+    box-shadow: 0 16px 40px #ffd60a55, 0 4px 12px #2d6a4f33;
+    border: 3px solid #ffd60a;
+    background: linear-gradient(135deg, #fffbe6 60%, #ffe5e5 100%, #ffd6e0 120%);
+  }
+  .shape-label {
+    font-family: 'Luckiest Guy', 'Comic Sans MS', cursive;
+    font-size: 2.1rem;
+    color: #ff4066;
+    letter-spacing: 2px;
+    text-shadow: 0 2px 8px #ffd60a44;
+    margin-bottom: 0.7rem;
+  }
+  .card-body {
+    padding: 1.2rem 0.7rem;
+  }
+  .shape-img {
+    border-radius: 1.2rem;
+    box-shadow: 0 4px 18px #ffd60a22;
+    border: 4px solid #43c6ac;
+    background: #fffbe6;
+    transition: transform 0.4s cubic-bezier(.68,-0.55,.27,1.55), box-shadow 0.3s, border 0.3s;
+    position: relative;
+  }
+  .shape-img:hover {
+    border: 4px solid #ffd60a;
+    box-shadow: 0 8px 32px #ffd60a88;
+    transform: scale(1.18) rotate(-8deg);
+  }
+  .sparkle {
+    position: absolute;
+    pointer-events: none;
+    font-size: 1.5rem;
+    color: #ffd60a;
+    animation: sparkleAnim 1.2s infinite alternate;
+  }
+  @keyframes sparkleAnim {
+    0% { opacity: 0.7; transform: scale(1) rotate(0deg); }
+    100% { opacity: 1; transform: scale(1.3) rotate(20deg); }
+  }
+  .speech-bubble {
+    background: linear-gradient(135deg, #fffbe6 0%, #e0ffe5 100%);
+    border: 3px dashed #ffd60a;
+    color: #2d6a4f;
+    font-size: 1.25rem;
+    border-radius: 1.2rem;
+    box-shadow: 0 6px 18px #ffd60a22;
+  }
+  .story-time-card {
+    background: linear-gradient(135deg, #e0ffe5 0%, #e0f7fa 50%, #fff9c4 100%, #ffd6e0 120%);
+    border: 2px dashed #ff4066;
+    border-radius: 2rem;
+    box-shadow: 0 8px 24px #ff406622;
+  }
+  .activity-section {
+    background: linear-gradient(135deg,#e0ffe5 0%,#43c6ac 100%, #ffd6e0 120%);
+    border-radius:2rem;
+    box-shadow: 0 8px 24px #43c6ac22;
+  }
+  .btn-lg {
+    font-size: 1.2rem;
+    border-radius: 2rem;
+    padding: 0.7rem 2rem;
+    font-family: 'Comic Sans MS', cursive;
+    box-shadow: 0 2px 8px #ffd60a22;
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  }
+  .btn-lg:hover {
+    background: #ffd60a;
+    color: #2d6a4f;
+    box-shadow: 0 8px 24px #ffd60a44;
+  }
+  .shapes-bg {
+    position: fixed;
+    left: 0; top: 0; width: 100vw; height: 100vh;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .shapes-bg span {
+    position: absolute;
+    font-size: 3rem;
+    opacity: 0.10;
+    animation: floatShape 8s infinite linear alternate;
+  }
+  @keyframes floatShape {
+    0% { transform: translateY(0) scale(1); }
+    100% { transform: translateY(-40px) scale(1.2); }
+  }
+</style>
+
+<script>
+  // Add confetti effect on card hover
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.color-card').forEach(function(card) {
+      card.addEventListener('mouseenter', function() {
+        let confetti = document.createElement('span');
+        confetti.innerHTML = '🎉';
+        confetti.style.position = 'absolute';
+        confetti.style.left = Math.random()*80+10+'%';
+        confetti.style.top = Math.random()*40+10+'%';
+        confetti.style.fontSize = '2rem';
+        confetti.style.opacity = '0.7';
+        confetti.style.pointerEvents = 'none';
+        confetti.className = 'confetti';
+        card.appendChild(confetti);
+        setTimeout(function(){ confetti.remove(); }, 900);
+      });
+    });
+  });
+</script>
+{% block content %}
+<div class="shapes-bg">
+  <span style="left:10vw;top:12vh;">&#9679;</span>
+  <span style="left:30vw;top:22vh;">&#9632;</span>
+  <span style="left:60vw;top:18vh;">&#9651;</span>
+  <span style="left:80vw;top:28vh;">&#9645;</span>
+  <span style="left:50vw;top:60vh;">&#11036;</span>
+</div>
+
+<div class="container py-4" style="background: linear-gradient(135deg, #f8ffae 0%, #43c6ac 100%); border-radius: 2rem; box-shadow: 0 8px 32px rgba(0,0,0,0.12); padding: 2.5rem 1.5rem;">
+  <div class="row justify-content-center">
+    <div class="col-lg-10 col-md-12">
+      <div class="mb-5 text-center">
+        <h1 class="fw-bold animate__animated animate__fadeInDown" style="color:#2d6a4f; letter-spacing:2px; font-family:'Comic Sans MS', 'Comic Sans', cursive; font-size:2.5rem;">
+          <span style="font-size:2.5rem;">&#11035;&#128308;&#9651;&#128994;</span> Let's Learn About Shapes!
+        </h1>
+        <p class="lead animate__animated animate__fadeIn animate__delay-1s" style="color:#333; font-family:'Comic Sans MS', 'Comic Sans', cursive; font-size:1.3rem;">
+          Here are some basic shapes: <span style="color:#d90429; font-weight:bold;">Circle</span>, <span style="color:#005f73; font-weight:bold;">Square</span>, <span style="color:#ffd60a; font-weight:bold;">Triangle</span>, and <span style="color:#2d6a4f; font-weight:bold;">Rectangle</span>.<br>
+          Click or hover on each shape to see them pop!
+        </p>
+      </div>
+      <div class="row g-4 mb-5">
+        {% for label, images in shape_images_by_label.items %}
+          <div class="col-md-4" style="margin-bottom: 2.5rem;">
+            <style>
+              .animated-shape-icon {
+                display:inline-block;
+                animation: bounceShape 1.2s infinite alternate;
+                transition: transform 0.3s;
+              }
+              .animated-shape-icon:hover, .animated-shape-icon:active {
+                transform: scale(1.18) rotate(-8deg);
+                animation: none;
+              }
+              @keyframes bounceShape {
+                0% { transform: translateY(0) scale(1); }
+                100% { transform: translateY(-18px) scale(1.12); }
+              }
+              .find-btn {
+                margin-top: 1.2rem;
+                font-size: 1.1rem;
+                border-radius: 1.2rem;
+                background: linear-gradient(90deg,#ffd60a 0%,#a7ffeb 100%);
+                color: #2d6a4f;
+                font-family: 'Baloo 2', cursive;
+                font-weight: bold;
+                box-shadow: 0 2px 8px #ffd60a22;
+                border: none;
+                padding: 0.6rem 1.5rem;
+                cursor: pointer;
+                transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+              }
+              .find-btn:hover {
+                background: #ff4066;
+                color: #fff;
+                box-shadow: 0 8px 24px #ffd60a44;
+              }
+            </style>
+            <div class="card color-card shape-card shadow-lg border-0 animate__animated animate__fadeInUp" style="background: linear-gradient(135deg, #a7ffeb 0%, #ffd6e0 100%); border-radius:3rem; position:relative; border:6px solid #ffd60a; box-shadow:0 16px 48px #43c6ac44; max-width:420px; margin:auto;">
+              <div class="card-body text-center" style="padding:2.8rem 1.5rem;">
+                <div class="shape-label mb-2" style="font-size:3rem; font-family:'Baloo 2', 'Comic Sans MS', cursive; color:#ff4066; text-shadow:2px 2px 0 #ffd60a, 0 2px 8px #43c6ac44; margin-bottom:1.5rem;">
+                  {% if label|lower == 'circle' %}
+                    <span class="shape-animate animated-shape-icon" style="width:110px;height:110px;background:radial-gradient(circle at 30% 30%, #fffbe6 60%, #ffd60a 100%);border-radius:50%;box-shadow:0 12px 40px #ffd60a88,0 2px 8px #43c6ac22;line-height:110px;text-align:center;font-size:4rem;color:#fff;vertical-align:middle;border:5px solid #ff4066;">&#9679;</span>
+                  {% elif label|lower == 'square' %}
+                    <span class="shape-animate animated-shape-icon" style="width:110px;height:110px;background:linear-gradient(135deg,#ff4066 60%,#fffbe6 100%);border-radius:28px;box-shadow:0 12px 40px #ff406688,0 2px 8px #43c6ac22;line-height:110px;text-align:center;font-size:4rem;color:#fff;vertical-align:middle;border:5px solid #ffd60a;">&#9632;</span>
+                  {% elif label|lower == 'triangle' %}
+                    <span class="shape-animate animated-shape-icon" style="width:0;height:0;border-left:55px solid transparent;border-right:55px solid transparent;border-bottom:110px solid #43c6ac;box-shadow:0 12px 40px #43c6ac88,0 2px 8px #ffd60a22;vertical-align:middle;border-bottom-left-radius:22px;border-bottom-right-radius:22px;"></span>
+                  {% elif label|lower == 'rectangle' %}
+                    <span class="shape-animate animated-shape-icon" style="width:150px;height:70px;background:linear-gradient(135deg,#2d6a4f 60%,#fffbe6 100%);border-radius:22px;box-shadow:0 12px 40px #2d6a4f88,0 2px 8px #ffd60a22;line-height:70px;text-align:center;font-size:4rem;color:#fff;vertical-align:middle;border:5px solid #ffd60a;">&#9645;</span>
+                  {% else %}
+                    <span class="shape-animate animated-shape-icon" style="width:110px;height:110px;background:#eee;border-radius:28px;box-shadow:0 12px 40px #ffd60a22,0 2px 8px #43c6ac22;line-height:110px;text-align:center;font-size:4rem;color:#2d6a4f;vertical-align:middle;border:5px solid #43c6ac;">&#11036;</span>
+                  {% endif %}
+                  <div style="font-size:2.5rem; font-family:'Baloo 2', cursive; color:#2d6a4f; margin-top:0.7rem; font-weight:bold;">{{ label|title }}</div>
+                  <div class="shape-tooltip" style="font-size:1.2rem; color:#005f73; background:#fffbe6; border-radius:1.2rem; padding:0.7rem 1.2rem; margin-top:1rem; box-shadow:0 2px 12px #ffd60a22; font-family:'Baloo 2', cursive;">
+                    {% if label|lower == 'circle' %}
+                      Circles are everywhere! Look for wheels, coins, and clocks.
+                    {% elif label|lower == 'square' %}
+                      Squares are easy to spot! Chessboards and windows are squares.
+                    {% elif label|lower == 'triangle' %}
+                      Triangles are fun! Pizza slices and road signs are triangles.
+                    {% elif label|lower == 'rectangle' %}
+                      Rectangles are common! Books and doors are rectangles.
+                    {% else %}
+                      Can you find something like this around you?
+                    {% endif %}
+                  </div>
+                </div>
+                <style>
+                  .shape-img-effect {
+                    transition: transform 0.35s cubic-bezier(.68,-0.55,.27,1.55), box-shadow 0.3s, border 0.3s;
+                    border-radius: 1.2rem;
+                    background: #fffbe6;
+                    box-shadow: 0 2px 8px #ffd60a22;
+                    border: 3px dashed #43c6ac;
+                  }
+                  .shape-img-effect:hover, .shape-img-effect:active {
+                    transform: scale(1.18) rotate(-8deg);
+                    box-shadow: 0 8px 32px #ffd60a88;
+                    border: 3px solid #ffd60a;
+                  }
+                  .shape-img-effect {
+                    animation: popIn 0.7s cubic-bezier(.68,-0.55,.27,1.55);
+                  }
+                  @keyframes popIn {
+                    0% { transform: scale(0.7); opacity: 0.2; }
+                    80% { transform: scale(1.15); opacity: 1; }
+                    100% { transform: scale(1); opacity: 1; }
+                  }
+                </style>
+                <div style="overflow-x:auto; white-space:nowrap; padding-bottom:8px; margin-bottom:8px;">
+                  {% for img in images %}
+                    <div style="display:inline-block; position:relative; vertical-align:top;">
+                      <img src="{{ img.image.url }}" alt="{{ img.label }}" class="img-fluid shape-img-effect" style="width:100px; height:100px; object-fit:cover; border-radius:1.2rem; margin:0; box-shadow:0 4px 18px #ffd60a55; transition:transform 0.3s; background:#fffbe6; animation: popIn 0.7s cubic-bezier(.68,-0.55,.27,1.55);">
+                      <span class="sparkle" style="top:-12px; left:18px;">✨</span>
+                      <span class="sparkle" style="top:8px; left:60px; animation-delay:0.5s;">✨</span>
+                      <div style="font-size:1.1rem; color:#ff4066; font-family:'Baloo 2', cursive; margin-top:6px; font-weight:bold; text-align:center;">{{ img.label }}</div>
+                    </div>
+                  {% endfor %}
+                </div>
+                <div class="mt-3" style="font-size:1.3rem; color:#005f73; font-family:'Baloo 2', cursive; background:#e0f7fa; border-radius:1rem; padding:0.7rem 1.2rem; margin-top:1rem; box-shadow:0 2px 12px #ffd60a22;">
+                  <div style="display:flex; align-items:center; justify-content:center; gap:1rem;">
+                    <span style="font-size:2.1rem; color:#ff4066; cursor:pointer;" onclick="speakShape('{{ label|title }}')" title="Hear pronunciation">🔊</span>
+                    <span style="font-size:1.5rem; font-weight:bold; color:#005f73;">{{ label|title }}</span>
+                  </div>
+                  <div style="margin-top:0.7rem; font-size:1.1rem; color:#2d6a4f;">
+                    <b>Fun Fact:</b>
+                    {% if label|lower == 'circle' %}
+                      Circles are everywhere! Wheels, coins, and pizzas are all circles.
+                    {% elif label|lower == 'square' %}
+                      Squares have 4 equal sides. Chess boards and windows are squares!
+                    {% elif label|lower == 'triangle' %}
+                      Triangles are strong shapes. Roofs and pizza slices are triangles!
+                    {% elif label|lower == 'rectangle' %}
+                      Rectangles are like stretched squares. Books and doors are rectangles!
+                    {% else %}
+                      This shape is special! Can you spot it around you?
+                    {% endif %}
+                  </div>
+                  <div style="margin-top:0.7rem; font-size:1.1rem; color:#005f73;">
+                    <b>Real World Example:</b>
+                    {% if label|lower == 'circle' %}
+                      <span>Look for a clock or a ball!</span>
+                    {% elif label|lower == 'square' %}
+                      <span>Find a napkin or a tile!</span>
+                    {% elif label|lower == 'triangle' %}
+                      <span>See a traffic sign or a sandwich!</span>
+                    {% elif label|lower == 'rectangle' %}
+                      <span>Spot a book or a phone!</span>
+                    {% else %}
+                      <span>Can you find this shape at home?</span>
+                    {% endif %}
+                  </div>
+                  
+
+                </div>
+                <script>
+                  function speakShape(text) {
+                    if ('speechSynthesis' in window) {
+                      var utter = new SpeechSynthesisUtterance(text);
+                      utter.lang = 'en-US';
+                      window.speechSynthesis.speak(utter);
+                    }
+                  }
+                  function showQuiz(shape, idx) {
+                    var questions = {
+                      'Circle': 'How many sides does a circle have?',
+                      'Square': 'How many sides does a square have?',
+                      'Triangle': 'How many sides does a triangle have?',
+                      'Rectangle': 'How many sides does a rectangle have?'
+                    };
+                    var answers = {
+                      'Circle': '0',
+                      'Square': '4',
+                      'Triangle': '3',
+                      'Rectangle': '4'
+                    };
+                    var q = questions[shape] || 'Can you describe this shape?';
+                    var a = answers[shape] || '';
+                    var user = prompt(q);
+                    var quizSpan = document.getElementById('quiz-' + idx);
+                    if (user !== null) {
+                      if (user.trim() === a) {
+                        quizSpan.innerHTML = '<span style="color:#2d6a4f;font-weight:bold;">Correct! 🎉</span>';
+                      } else {
+                        quizSpan.innerHTML = '<span style="color:#ff4066;font-weight:bold;">Try again!</span>';
+                      }
+                    }
+                  }
+                </script>
+                </div>
+                <!-- Removed speech-bubble field as requested -->
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+  <div style="height: 2.5rem;"></div>
+  <div class="card p-4 mb-5 story-time-card animate__animated animate__flipInY animate__slow" style="background: linear-gradient(135deg, #e0ffe5 0%, #e0f7fa 50%, #fff9c4 100%); box-shadow: 0 4px 24px rgba(0,0,0,0.10); border-radius: 1.5rem; border: 2px dashed #2d6a4f;">
+        <h2 class="fw-bold mb-3" style="color:#2d6a4f; font-family: 'Comic Sans MS', 'Comic Sans', cursive; letter-spacing: 1px;">
+          <span style="font-size:2rem;">📖</span> Story Time: The Shape Adventure
+        </h2>
+        <div>
+          <p class="story-line" style="font-size:1.15rem; font-family: 'Comic Sans MS', 'Comic Sans', cursive; color:#d90429; font-weight:bold;">
+            Circle rolled down the hill,
+          </p>
+          <p class="story-line" style="font-size:1.15rem; font-family: 'Comic Sans MS', 'Comic Sans', cursive; color:#005f73; font-weight:bold;">
+            Square stacked up high,
+          </p>
+          <p class="story-line" style="font-size:1.15rem; font-family: 'Comic Sans MS', 'Comic Sans', cursive; color:#ffd60a; font-weight:bold;">
+            Triangle pointed to the sky.
+          </p>
+          <p style="font-size:1.2rem; color:#2d6a4f;">
+            Can you spot these shapes in your home?
+          </p>
+          <div class="text-center mt-4">
+            <a href="{% url 'kids_stories' %}?lesson_id={{ lesson.id }}" class="btn btn-lg btn-primary animate__animated animate__pulse animate__infinite" style="border-radius:2rem; font-size:1.15rem; font-weight:bold; letter-spacing:1px; box-shadow:0 2px 8px rgba(0,0,0,0.10);">
+              <span style="font-size:1.3rem;">&#128214;</span> View More Stories
+            </a>
+          </div>
+        </div>
+      </div>
+      {% if video_embed_url %}
+      <div class="row mb-5">
+        <div class="col-12">
+          <div class="card shadow-lg border-0 animate__animated animate__fadeInUp" style="background: linear-gradient(135deg, #e0f7fa 60%, #ffe5e5 100%); border-radius:1.5rem;">
+            <div class="card-body text-center">
+              <h2 class="fw-bold mb-3" style="color:#2d6a4f; font-family:'Comic Sans MS', 'Comic Sans', cursive;">
+                <span style="font-size:2rem;">🎬</span> Watch & Learn!
+              </h2>
+              <div class="ratio ratio-16x9 mb-3">
+                <iframe width="100%" height="360" src="{{ video_embed_url }}" title="Lesson Video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border-radius:1rem; box-shadow:0 4px 24px rgba(0,0,0,0.10);"></iframe>
+              </div>
+              <p class="mt-2" style="font-size:1.15rem; color:#333;">Learn with this fun video and try the activities below!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+      <div class="card p-4 mb-5 shadow-lg activity-section" style="border-radius:1.5rem; background:linear-gradient(135deg,#e0ffe5 0%,#43c6ac 100%);">
+        <div class="d-flex align-items-center mb-3" style="gap:12px;">
+          <span style="font-size:2rem;">🔺</span>
+          <h2 class="fw-bold mb-0" style="color:#2d6a4f; font-family:'Comic Sans MS', 'Comic Sans', cursive;">Activity Time!</h2>
+        </div>
+        <p class="mb-3" style="font-size:1.15rem; color:#005f73; font-family:'Comic Sans MS', 'Comic Sans', cursive;">
+          Find objects shaped like a <span style="color:#d90429;font-weight:bold;">circle</span>, <span style="color:#005f73;font-weight:bold;">square</span>, <span style="color:#ffd600;font-weight:bold;">triangle</span>, or <span style="color:#2d6a4f;font-weight:bold;">rectangle</span>.<br>
+          <span style="background:#fffbe6; border-radius:8px; padding:2px 8px;">Draw one or upload your artwork below!</span>
+        </p>
+        <div class="row g-3 justify-content-center">
+          <div class="col-md-4 text-center mb-2">
+            <a href="/kids/digital_drawing/" class="btn btn-lg btn-warning w-100" style="border-radius:2rem; font-size:1.1rem; font-weight:bold; letter-spacing:1px; box-shadow:0 2px 8px rgba(0,0,0,0.10);">
+              <span style="font-size:1.3rem;">&#9998;</span> Draw Now (Digital Drawing Game)
+            </a>
+          </div>
+          <div class="col-md-4 text-center mb-2">
+            <a href="{% url 'upload_drawing' lesson.id %}" class="btn btn-lg btn-success w-100" style="border-radius:2rem; font-size:1.1rem; font-weight:bold; letter-spacing:1px; box-shadow:0 2px 8px rgba(0,0,0,0.10);">
+              <span style="font-size:1.3rem;">📤</span> Upload Your Drawing
+            </a>
+          </div>
+          <div class="col-md-4 text-center mb-2">
+            <a href="{% url 'drawing_gallery' lesson.id %}" class="btn btn-lg btn-info w-100" style="border-radius:2rem; font-size:1.1rem; font-weight:bold; letter-spacing:1px; box-shadow:0 2px 8px rgba(0,0,0,0.10);">
+              <span style="font-size:1.3rem;">🖼️</span> View Your Gallery
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="card game-time-card" style="max-width: 340px; margin: 18px auto 24px auto; background: linear-gradient(135deg, #e0ffe5 0%, #e0f7fa 100%); border-radius: 2rem; box-shadow: 0 8px 24px #2d6a4f55; padding: 1.2rem 1rem; border: 4px dashed #2d6a4f; position: relative; overflow: hidden;">
+        <div style="position: absolute; top: -18px; right: -18px; opacity: 0.18; font-size: 4.5rem; pointer-events: none;">🔺</div>
+        <h2 style="color: #2d6a4f; font-family: 'Luckiest Guy', 'Comic Sans MS', cursive; font-size: 1.5rem; letter-spacing: 2px; text-shadow: 2px 2px 0 #ffd60a, 0 4px 12px #2d6a4f44; margin-bottom: 0.7rem;">
+          <span style="font-size:2rem;">🧩</span> Game Time!
+        </h2>
+        <div class="game-desc" style="font-size: 1.05rem; color: #005f73; margin-bottom: 0.7rem; font-family: 'Baloo 2', cursive; background: #fffbe6; border-radius: 1rem; padding: 0.4rem 0.7rem; box-shadow: 0 2px 8px #2d6a4f33;">
+          Match the shapes! Can you find the right shape for each object? Try the shape matching game!
+        </div>
+        <div class="card mt-2 mb-2" style="max-width: 340px; margin: auto;">
+          <div class="card-header bg-info text-white text-center" style="border-radius:1rem 1rem 0 0; font-size:1.1rem;">
+            <strong>How to Play the Shape Matching Game</strong>
+          </div>
+          <div class="card-body" style="font-size:1rem; background:#e0f7fa; border-radius:0 0 1rem 1rem;">
+            <ul style="padding-left: 18px; margin-bottom:0;">
+              <li>Drag each shape to its matching outline.</li>
+              <li>If you match correctly, the shape will stay in place.</li>
+              <li>Try to match all the shapes!</li>
+              <li>Play on mobile or desktop—it's easy and fun!</li>
+            </ul>
+          </div>
+        </div>
+        <div class="text-center mt-3">
+          <a href="{% url 'shape_matching_game' %}" class="btn btn-lg btn-success" style="border-radius:2rem; font-size:1.1rem; font-weight:bold; letter-spacing:1px; box-shadow:0 2px 8px #43c6ac22;">
+            <span style="font-size:1.3rem;">🧩</span> Play Shape Matching Game
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+

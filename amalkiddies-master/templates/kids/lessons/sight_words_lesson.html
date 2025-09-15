@@ -1,0 +1,279 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+  body {
+    background: linear-gradient(120deg, #e0f7fa 0%, #ffd6e0 100%, #f8ffae 120%);
+  }
+  .hero-section {
+    background: linear-gradient(135deg, #fffbe6 0%, #e0f7fa 100%);
+    border-radius: 2.5rem;
+    box-shadow: 0 12px 40px #ffd60a33;
+    padding: 3rem 2rem 1.5rem 2rem;
+    margin-bottom: 2.5rem;
+    text-align: center;
+    position: relative;
+  }
+  .hero-mascot {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    background: #fffbe6;
+    box-shadow: 0 6px 24px #ffd60a22;
+    display: inline-block;
+    margin-bottom: 1.2rem;
+    animation: bounceMascot 1.2s infinite alternate;
+  }
+  @keyframes bounceMascot {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-16px); }
+  }
+  .hero-title {
+    color: #ff4066;
+    font-family: 'Baloo 2', cursive;
+    font-size: 3rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    letter-spacing: 2px;
+    text-shadow: 0 2px 12px #ffd60a44;
+  }
+  .hero-desc {
+    font-size: 1.5rem;
+    color: #005f73;
+    margin-bottom: 1.5rem;
+    font-family: 'Comic Sans MS', cursive;
+  }
+  .word-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 2rem;
+    justify-items: center;
+    margin: 2.5rem auto 2rem auto;
+    max-width: 1000px;
+  }
+  .word-card {
+    border-radius: 1.7rem;
+    box-shadow: 0 6px 24px #ffd60a33, 0 2px 8px #e0f7fa88;
+    background: linear-gradient(135deg, #e0f7fa 60%, #fffbe6 100%);
+    padding: 1.7rem 0.7rem 1.2rem 0.7rem;
+    font-size: 2.3rem;
+    font-family: 'Baloo 2', cursive;
+    color: #2d6a4f;
+    font-weight: bold;
+    transition: transform 0.25s, box-shadow 0.25s, background 0.25s;
+    cursor: pointer;
+    position: relative;
+    margin-bottom: 1.2rem;
+    will-change: transform, box-shadow, background;
+    animation: bounceIn 0.8s;
+    text-align: center;
+    border: 3px solid #ffd60a;
+    min-height: 140px;
+    overflow: visible;
+  }
+  .word-card:hover {
+    transform: scale(1.12) rotate(-2deg);
+    box-shadow: 0 20px 48px #ffd60a55, 0 2px 8px #e0f7fa88;
+    background: linear-gradient(135deg, #ffe066 60%, #fffbe6 100%);
+    z-index: 2;
+    border-color: #ff4066;
+  }
+  .word-img {
+    max-width: 60px;
+    margin: 0.7rem auto 0.2rem auto;
+    border-radius: 1rem;
+    box-shadow: 0 4px 16px #ffd60a33;
+    background: #fffbe6;
+    display: block;
+    border: 2px solid #e0f7fa;
+    transition: box-shadow 0.2s, border 0.2s;
+  }
+  .word-card:hover .word-img {
+    box-shadow: 0 8px 32px #ff406655;
+    border: 2px solid #ff4066;
+  }
+  .sticker {
+    display:none; position:absolute; top:-30px; right:-20px; font-size:2.2rem;
+  }
+  .confetti {
+    position: fixed;
+    left: 50vw;
+    top: 50vh;
+    font-size: 2.5rem;
+    pointer-events: none;
+    animation: confettiAnim 1.2s ease-out;
+  }
+  @keyframes confettiAnim {
+    0% { opacity: 1; transform: scale(1) translateY(0); }
+    100% { opacity: 0; transform: scale(1.5) translateY(80px); }
+  }
+  .quiz-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    background: linear-gradient(90deg,#ffd60a 0%,#ff9800 100%);
+    color: #2d6a4f;
+    border-radius: 2.2rem;
+    font-size: 1.5rem;
+    font-family: 'Baloo 2', cursive;
+    font-weight: bold;
+    box-shadow: 0 4px 18px #ffd60a88, 0 2px 8px #ff406655;
+    padding: 1.1rem 2.7rem;
+    margin-top: 1.2rem;
+    border: 3px solid #ff4066;
+    transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+  }
+  .quiz-btn:hover {
+    transform: scale(1.08) rotate(-2deg);
+    background: #ff4066;
+    color: #fff;
+    box-shadow: 0 8px 24px #ffd60a44;
+  }
+</style>
+<div class="container py-4">
+  <div class="hero-section">
+    <img src="https://cdn-icons-png.flaticon.com/512/189/189665.png" alt="Mascot" class="hero-mascot">
+    <div class="hero-title">Sight Words</div>
+    <div class="hero-desc">Learn important sight words! Tap a card to hear the word, see fun effects, and get ready for the quiz.</div>
+    {% if lesson.video_url %}
+      <div class="video-section mb-4" style="text-align:center;">
+        <div class="video-card" style="max-width:650px; margin:2rem auto; background:#fffbe6; border-radius:1.5rem; box-shadow:0 6px 32px #ffd60a33; padding:2rem 1.2rem; text-align:center;">
+          <h4 style="font-family:'Baloo 2',cursive; color:#ff9800; font-size:1.3rem; margin-bottom:1rem;">Watch and Learn!</h4>
+          <div class="responsive-video" style="width:100%; max-width:600px; margin:auto; aspect-ratio:16/9; background:#000; border-radius:1rem; box-shadow:0 4px 24px #ffd60a22; display:flex; align-items:center; justify-content:center;">
+            {% if 'youtube.com' in lesson.video_url or 'youtu.be' in lesson.video_url %}
+              <iframe src="{{ video_embed_url }}" title="Sight Words Video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="width:100%; height:100%; min-height:220px; min-width:320px; border-radius:1.5rem; background:#000; cursor:pointer; touch-action: manipulation; box-shadow:0 6px 32px #ffd60a33; transition:box-shadow 0.2s;" tabindex="0"></iframe>
+            {% else %}
+              <video controls style="width:100%; height:100%; border-radius:1rem; background:#000;" preload="metadata">
+                <source src="{{ lesson.video_url }}" type="video/mp4">
+                Your browser does not support the video tag.
+              </video>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+  <div class="word-grid">
+    <div class="word-card" onclick="playWord('the', this)">
+      <span class="word-text">the</span>
+      <img src="https://cdn-icons-png.flaticon.com/512/189/189665.png" alt="the" class="word-img">
+      <span class="sticker" style="display:none;">⭐</span>
+    </div>
+    <div class="word-card" onclick="playWord('and', this)">
+      <span class="word-text">and</span>
+      <img src="https://cdn-icons-png.flaticon.com/512/616/616408.png" alt="and" class="word-img">
+      <span class="sticker" style="display:none;">🌟</span>
+    </div>
+    <div class="word-card" onclick="playWord('is', this)">
+      <span class="word-text">is</span>
+      <img src="https://cdn-icons-png.flaticon.com/512/616/616408.png" alt="is" class="word-img">
+      <span class="sticker" style="display:none;">🎈</span>
+    </div>
+    <div class="word-card" onclick="playWord('you', this)">
+      <span class="word-text">you</span>
+      <img src="https://cdn-icons-png.flaticon.com/512/616/616408.png" alt="you" class="word-img">
+      <span class="sticker" style="display:none;">💡</span>
+    </div>
+    <div class="word-card" onclick="playWord('it', this)">
+      <span class="word-text">it</span>
+      <img src="https://cdn-icons-png.flaticon.com/512/616/616408.png" alt="it" class="word-img">
+      <span class="sticker" style="display:none;">🍀</span>
+    </div>
+    <div class="word-card" onclick="playWord('to', this)">
+      <span class="word-text">to</span>
+      <img src="https://cdn-icons-png.flaticon.com/512/616/616408.png" alt="to" class="word-img">
+      <span class="sticker" style="display:none;">🚀</span>
+    </div>
+    <div class="word-card" onclick="playWord('in', this)">
+      <span class="word-text">in</span>
+      <img src="https://cdn-icons-png.flaticon.com/512/616/616408.png" alt="in" class="word-img">
+      <span class="sticker" style="display:none;">🌈</span>
+    </div>
+    <div class="word-card" onclick="playWord('of', this)">
+      <span class="word-text">of</span>
+      <img src="https://cdn-icons-png.flaticon.com/512/616/616408.png" alt="of" class="word-img">
+      <span class="sticker" style="display:none;">🎉</span>
+    </div>
+    <div class="word-card" onclick="playWord('for', this)">
+      <span class="word-text">for</span>
+      <img src="https://cdn-icons-png.flaticon.com/512/616/616408.png" alt="for" class="word-img">
+      <span class="sticker" style="display:none;">🦋</span>
+    </div>
+    <div class="word-card" onclick="playWord('on', this)">
+      <span class="word-text">on</span>
+      <img src="https://cdn-icons-png.flaticon.com/512/616/616408.png" alt="on" class="word-img">
+      <span class="sticker" style="display:none;">🌻</span>
+    </div>
+  </div>
+  <div class="text-center">
+    <a href="/kids/lessons/sight-words-quiz/" class="quiz-btn">
+      <span style="font-size:2.2rem; vertical-align:middle; animation:bounceMascot 1.2s infinite alternate;">🎮</span>
+      <span style="font-size:1.7rem; vertical-align:middle;">Take the Sight Words Quiz!</span>
+      <span style="font-size:1.7rem; vertical-align:middle;">📝</span>
+      <span style="position:absolute; right:18px; top:18px; font-size:1.3rem; color:#ffd60a; animation: bounceIn 1.2s infinite alternate;">⭐</span>
+    </a>
+  </div>
+  <p class="mt-4 text-center" style="font-size:1.1rem; color:#2d6a4f;">Can you read each sight word out loud? Tap to hear and see effects!</p>
+</div>
+<script>
+  function playWord(word, cardElem) {
+    if ('speechSynthesis' in window) {
+      var utter = new SpeechSynthesisUtterance(word);
+      utter.lang = 'en-US';
+      utter.pitch = 1.5;
+      utter.rate = 1.1;
+      var voices = window.speechSynthesis.getVoices();
+      var susanVoice = voices.find(function(v) {
+        return v.name.toLowerCase().includes('susan');
+      });
+      if (susanVoice) {
+        utter.voice = susanVoice;
+      }
+      window.speechSynthesis.speak(utter);
+    }
+    showConfetti();
+    showSticker(cardElem);
+    highlightLetters(cardElem);
+  }
+  function showSticker(cardElem) {
+    if (!cardElem) return;
+    var sticker = cardElem.querySelector('.sticker');
+    if (sticker) {
+      sticker.style.display = 'inline';
+      sticker.style.animation = 'bounceIn 0.8s';
+      setTimeout(function(){ sticker.style.display = 'none'; }, 1200);
+    }
+  }
+  function highlightLetters(cardElem) {
+    if (!cardElem) return;
+    var wordSpan = cardElem.querySelector('.word-text');
+    if (!wordSpan) return;
+    var word = wordSpan.textContent;
+    wordSpan.innerHTML = '';
+    for (let i = 0; i < word.length; i++) {
+      let letter = document.createElement('span');
+      letter.textContent = word[i];
+      letter.style.display = 'inline-block';
+      letter.style.transition = 'transform 0.3s, color 0.3s';
+      letter.style.fontWeight = 'bold';
+      letter.style.color = '#ff4066';
+      letter.style.transform = 'scale(1.5)';
+      wordSpan.appendChild(letter);
+      setTimeout(() => {
+        letter.style.transform = 'scale(1)';
+        letter.style.color = '#2d6a4f';
+      }, 350 + i * 120);
+    }
+    setTimeout(() => { wordSpan.textContent = word; }, 1200);
+  }
+  function showConfetti() {
+    var confetti = document.createElement('span');
+    confetti.className = 'confetti';
+    confetti.innerHTML = '🎉';
+    document.body.appendChild(confetti);
+    setTimeout(function(){ confetti.remove(); }, 1200);
+  }
+</script>
+{% endblock %}

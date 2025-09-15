@@ -1,0 +1,356 @@
+
+{% extends 'users/basic.html' %}
+{% block content %}
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<div class="container mt-3 mb-4 py-4">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card shadow-lg">
+        <div class="card-header bg-warning text-white text-center">
+          <h3 class="mb-0"><i class="fas fa-brain me-2"></i> Memory Match Game</h3>
+        </div>
+        <div class="card-body text-center">
+          <div id="gameArea">
+            <!-- Add volume icon button above the game grid -->
+            <div style="position:absolute;top:16px;right:24px;z-index:1000;">
+              <button id="volumeBtn" style="background:none;border:none;outline:none;cursor:pointer;font-size:2rem;color:#ff8c40;">
+                <span id="volumeIcon">🔊</span>
+              </button>
+            </div>
+            <div id="memoryGrid" class="memory-grid" style="display:grid; gap:12px; margin-bottom:24px; border:2px dashed #ff8c40; min-height:180px; background:#fffbe6; border-radius:16px; position:relative; grid-template-columns: repeat(4, minmax(40px, 1fr)); grid-template-rows: repeat(4, minmax(40px, 1fr)); justify-content:center; max-width:98vw;">
+              <span id="jsFallback" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#ff4066;font-size:1.2rem;display:none;">If you see this, JavaScript is not running.</span>
+            </div>
+            <div class="mt-3 d-flex justify-content-center align-items-center" style="gap:32px;">
+              <div><span style="font-weight:700; color:#ff8c40;">Level:</span> <span id="levelDisplay">1</span></div>
+              <div><span style="font-weight:700; color:#ff8c40;">Moves:</span> <span id="movesDisplay">0</span></div>
+              <div><span style="font-weight:700; color:#00e676;">Time Left:</span> <span id="timerDisplay" style="font-weight:900; color:#ff4066; background:#fffbe6; border-radius:8px; padding:2px 10px; box-shadow:0 2px 8px #ff406633;">1:00</span></div>
+              <div><span style="font-weight:700; color:#23272f;">Score:</span> <span id="scoreDisplay">0</span></div>
+              <div><span style="font-weight:700; color:#ffd700;">Coins:</span> <span id="coinsDisplay">0</span></div>
+            </div>
+            <h5 id="rewardDisplay" class="mt-2"></h5>
+            <button id="replayBtn" class="btn btn-warning mt-3" style="display:none;" onclick="resetGame()">Replay</button>
+            <form id="coinForm" method="POST" action="/users/update_coins/" style="display:none;">
+              {% csrf_token %}
+              <input type="hidden" name="coins" id="finalCoinsInput" value="0">
+              <input type="hidden" name="game" value="memory_match">
+            </form>
+            <div id="winModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center;">
+              <div id="winModalContent" style="background:#fffbe6; border-radius:18px; padding:32px 24px; box-shadow:0 2px 24px #23272f66; text-align:center;">
+                <h3 id="winModalTitle" style="color:#ff8c40; font-weight:800;">🎉 You Won!</h3>
+                <div class="mt-2" style="font-size:1.2rem; color:#23272f;">Final Score: <span id="finalScoreModal"></span></div>
+                <div style="font-size:1.1rem; color:#00e676;">Moves: <span id="finalMovesModal"></span></div>
+                <div style="font-size:1.1rem; color:#ffd700;">Coins: <span id="finalCoinsModal"></span></div>
+                <button id="nextLevelBtn" class="btn btn-success mt-3" style="display:none;" onclick="nextLevel()">Next Level</button>
+                <button class="btn btn-primary mt-3" onclick="closeWinModal()">Close</button>
+              </div>
+            <script>
+            // Improved Memory Match Game
+            let muted = false;
+            let bgMusic = new Audio('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3');
+            bgMusic.loop = true;
+            function playBackgroundMusic() {
+              bgMusic.volume = muted ? 0 : 0.25;
+              bgMusic.play();
+            }
+            function stopBackgroundMusic() {
+              bgMusic.pause();
+              bgMusic.currentTime = 0;
+            }
+            function playSound(type) {
+              if (muted) return;
+              let audio;
+              // Use a short, reliable sound for all effects
+              audio = new Audio('https://www.soundjay.com/buttons/sounds/button-16.mp3');
+              if(audio) audio.play();
+            }
+            const TIME_LIMIT = 60; // 1 minute
+            let gameOver = false;
+            let level = 1;
+            document.getElementById('jsFallback').style.display = 'none';
+            const images = ['🍎','🍌','🍇','🍉','🍒','🍍','🥝','🍑','🍋','🍊','🍏','🍈','🍐','🍔','🍕','🍦','🍭','🍫','🍤','🍟','🍩','🍪','🍰','🍿','🍱','🍜','🍙','🍚','🍛','🍝','🍞','🥨','🥐','🥯','🥞','🧇','🧀','🍖','🍗','🥩','🥓','🍔','🌭','🍕','🥪','🥙','🧆','🌮','🌯','🥗','🥘','🍲','🍿','🍱','🍚','🍘','🍙','🍛','🍜','🍝','🍞','🥐','🥯','🥞','🧇','🧀','🍖','🍗','🥩','🥓','🍔','🌭','🍕','🥪','🥙','🧆','🌮','🌯','🥗','🥘','🍲'];
+            let grid = [];
+            let firstPick = null;
+            let secondPick = null;
+            let score = 0;
+            let matches = 0;
+            let moves = 0;
+            let timer = 0;
+            let timerInterval = null;
+            let lock = false;
+            function shuffle(arr) {
+              for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+              }
+            }
+            function startTimer() {
+              timer = TIME_LIMIT;
+              updateTimerDisplay();
+              if (timerInterval) clearInterval(timerInterval);
+              timerInterval = setInterval(() => {
+                timer--;
+                updateTimerDisplay();
+                if (timer <= 10) {
+                  document.getElementById('timerDisplay').style.color = '#d32f2f';
+                  document.getElementById('timerDisplay').style.background = '#fff0f0';
+                  document.getElementById('timerDisplay').style.boxShadow = '0 2px 12px #d32f2f33';
+                } else {
+                  document.getElementById('timerDisplay').style.color = '#ff4066';
+                  document.getElementById('timerDisplay').style.background = '#fffbe6';
+                  document.getElementById('timerDisplay').style.boxShadow = '0 2px 8px #ff406633';
+                }
+                if (timer <= 0 && !gameOver) {
+                  stopTimer();
+                  gameOver = true;
+                  showLossModal();
+                }
+              }, 1000);
+            }
+            function updateTimerDisplay() {
+              let min = Math.floor(timer/60);
+              let sec = timer%60;
+              document.getElementById('timerDisplay').innerText = `${min}:${sec.toString().padStart(2,'0')}`;
+            }
+            function stopTimer() {
+              if (timerInterval) clearInterval(timerInterval);
+            }
+            function setupGrid() {
+              playBackgroundMusic();
+              let pairCount = 8;
+              let gridSize = 4;
+              if (level === 2) { pairCount = 12; gridSize = 6; }
+              if (level === 3) { pairCount = 16; gridSize = 8; }
+              let selectedImages = images.slice(0, pairCount);
+              grid = [...selectedImages, ...selectedImages];
+              shuffle(grid);
+              const gridDiv = document.getElementById('memoryGrid');
+              gridDiv.innerHTML = '';
+              gridDiv.style.gridTemplateColumns = `repeat(${gridSize}, 54px)`;
+              gridDiv.style.gridTemplateRows = `repeat(${gridSize}, 54px)`;
+              grid.forEach((img, idx) => {
+                const card = document.createElement('div');
+                card.className = 'memory-card';
+                card.style.width = '54px';
+                card.style.height = '54px';
+                card.style.background = '#23272f';
+                card.style.borderRadius = '12px';
+                card.style.display = 'flex';
+                card.style.alignItems = 'center';
+                card.style.justifyContent = 'center';
+                card.style.fontSize = '2.2rem';
+                card.style.color = '#ffe066';
+                card.style.cursor = 'pointer';
+                card.style.boxShadow = '0 2px 8px #23272f33';
+                card.style.transition = 'transform 0.3s, background 0.3s';
+                card.dataset.idx = idx;
+                card.dataset.flipped = 'false';
+                card.dataset.img = img;
+                card.innerHTML = '<span style="opacity:0;">'+img+'</span>';
+                card.onclick = () => { playSound('flip'); pickCard(card, img, idx); };
+                gridDiv.appendChild(card);
+              });
+              score = 0;
+              matches = 0;
+              moves = 0;
+              gameOver = false;
+              document.getElementById('scoreDisplay').innerText = score;
+              document.getElementById('movesDisplay').innerText = moves;
+              document.getElementById('levelDisplay').innerText = level;
+              document.getElementById('rewardDisplay').innerText = '';
+              document.getElementById('replayBtn').style.display = 'none';
+              document.getElementById('coinsDisplay').innerText = 0;
+              stopTimer();
+              startTimer();
+              document.getElementById('winModal').style.display = 'none';
+              document.getElementById('winModalTitle').innerText = '🎉 You Won!';
+              document.getElementById('nextLevelBtn').style.display = 'none';
+            }
+            function pickCard(card, img, idx) {
+              if (lock || card.dataset.flipped === 'true') return;
+              card.style.transform = 'scale(1.08)';
+              card.style.background = '#ffe066';
+              card.style.color = '#23272f';
+              card.innerHTML = '<span>'+img+'</span>';
+              card.dataset.flipped = 'true';
+              if (!firstPick) {
+                firstPick = {card, img, idx};
+              } else if (!secondPick && idx !== firstPick.idx) {
+                secondPick = {card, img, idx};
+                lock = true;
+                moves++;
+                document.getElementById('movesDisplay').innerText = moves;
+                setTimeout(() => {
+                  if (firstPick.img === secondPick.img) {
+                    playSound('match');
+                    score += 10;
+                    matches++;
+                    document.getElementById('rewardDisplay').innerText = '🎉 Match! +10 points';
+                    let pairCount = 8;
+                    if (level === 2) pairCount = 12;
+                    if (level === 3) pairCount = 16;
+                    if (matches === pairCount) {
+                      stopTimer();
+                      stopBackgroundMusic();
+                      let coins = 0;
+                      if (level === 1) {
+                        coins = Math.floor(score * 0.4);
+                      } else if (level === 2) {
+                        coins = Math.floor(score * 0.6);
+                      } else if (level === 3) {
+                        coins = Math.floor(score * 0.8);
+                      }
+                      document.getElementById('rewardDisplay').innerText = `🏅 All matched! Final Score: ${score} | Coins Awarded: ${coins}`;
+                      document.getElementById('replayBtn').style.display = 'inline-block';
+                      showWinModal();
+                      // Submit coins to backend
+                      document.getElementById('finalCoinsInput').value = coins;
+                      document.getElementById('coinForm').submit();
+                      // Show coins popup
+                      document.getElementById('coinsPopupText').innerText = `+${coins} coins added to your total!`;
+                      document.getElementById('coinsPopup').style.display = 'block';
+                      setTimeout(function() {
+                        document.getElementById('coinsPopup').style.display = 'none';
+                      }, 2500);
+                      if (level < 3) {
+                        document.getElementById('nextLevelBtn').style.display = 'inline-block';
+                      }
+                      if (level === 1) {
+                        setTimeout(() => {
+                          nextLevel();
+                        }, 10000); // Auto-load level 2 after 10s
+                      } else if (level === 2) {
+                        setTimeout(() => {
+                          nextLevel();
+                        }, 1800); // Auto-load level 3 after 1.8s
+                      }
+                    }
+                  } else {
+                    playSound('mismatch');
+                    playSound('mismatch');
+                    firstPick.card.style.transform = '';
+                    secondPick.card.style.transform = '';
+                    firstPick.card.style.background = 'linear-gradient(135deg,#23272f 70%,#ff4066 100%)';
+                    secondPick.card.style.background = 'linear-gradient(135deg,#23272f 70%,#ff4066 100%)';
+                    firstPick.card.style.color = '#ffe066';
+                    secondPick.card.style.color = '#ffe066';
+                    firstPick.card.innerHTML = '<span style="opacity:0;">'+firstPick.img+'</span>';
+                    secondPick.card.innerHTML = '<span style="opacity:0;">'+secondPick.img+'</span>';
+                    firstPick.card.dataset.flipped = 'false';
+                    secondPick.card.dataset.flipped = 'false';
+                    document.getElementById('rewardDisplay').innerText = '❌ Not a match!';
+                  }
+                  document.getElementById('scoreDisplay').innerText = score;
+                  let coins = 0;
+                  if (level === 1) {
+                    coins = Math.floor(score * 0.4);
+                  } else if (level === 2) {
+                    coins = Math.floor(score * 0.6);
+                  } else if (level === 3) {
+                    coins = Math.floor(score * 0.8);
+                  }
+                  document.getElementById('coinsDisplay').innerText = coins;
+                  firstPick = null;
+                  secondPick = null;
+                  lock = false;
+                }, 900);
+              }
+            }
+            // In showWinModal, redirect to leaderboard after 3s
+            function showWinModal() {
+              document.getElementById('winModal').style.display = 'flex';
+              document.getElementById('winModalTitle').innerText = '🎉 You Won!';
+              document.getElementById('finalScoreModal').innerText = score;
+              document.getElementById('finalMovesModal').innerText = moves;
+              let coins = 0;
+              if (level === 1) {
+                coins = Math.floor(score * 0.4);
+              } else if (level === 2) {
+                coins = Math.floor(score * 0.6);
+              } else if (level === 3) {
+                coins = Math.floor(score * 0.8);
+              }
+              document.getElementById('finalCoinsModal').innerText = coins;
+              // Only redirect to leaderboard if last level
+              if (level === 3) {
+                setTimeout(function() {
+                  window.location.replace('/users/leaderboard/');
+                }, 3000);
+              }
+            }
+            // In showLossModal, redirect to leaderboard after 3s
+            function showLossModal() {
+              document.getElementById('winModal').style.display = 'flex';
+              let pairCount = 8;
+              if (level === 2) pairCount = 12;
+              if (level === 3) pairCount = 16;
+              let coins = 0;
+              if (level === 1) {
+                coins = Math.floor(score * 0.4);
+              } else if (level === 2) {
+                coins = Math.floor(score * 0.6);
+              } else if (level === 3) {
+                coins = Math.floor(score * 0.8);
+              }
+              document.getElementById('finalCoinsModal').innerText = coins;
+              document.getElementById('coinsPopupText').innerText = `+${coins} coins added to your total!`;
+              document.getElementById('coinsPopup').style.display = 'block';
+              setTimeout(function() {
+                document.getElementById('coinsPopup').style.display = 'none';
+              }, 2500);
+              if (matches < pairCount) {
+                document.getElementById('winModalTitle').innerText = 'Game Failed!';
+              } else {
+                document.getElementById('winModalTitle').innerText = '⏰ Time Up!';
+              }
+              document.getElementById('finalScoreModal').innerText = score;
+              document.getElementById('finalMovesModal').innerText = moves;
+              // Always redirect to leaderboard after loss
+              setTimeout(function() {
+                window.location.replace('/users/leaderboard/');
+              }, 3000);
+              Array.from(document.getElementsByClassName('memory-card')).forEach(card => card.onclick = null);
+              stopBackgroundMusic();
+              // Submit coins to backend
+              document.getElementById('finalCoinsInput').value = coins;
+              document.getElementById('coinForm').submit();
+            }
+            function closeWinModal() {
+              document.getElementById('winModal').style.display = 'none';
+              // Only show Next Level button if all matches are made and not already on last level
+              let pairCount = 8;
+              if (level === 2) pairCount = 12;
+              if (level === 3) pairCount = 16;
+              if (level < 3 && matches === pairCount) {
+                document.getElementById('nextLevelBtn').style.display = 'inline-block';
+              } else {
+                document.getElementById('nextLevelBtn').style.display = 'none';
+              }
+            }
+            function nextLevel() {
+              if (level < 3) {
+                level++;
+                document.getElementById('winModal').style.display = 'none';
+                document.getElementById('nextLevelBtn').style.display = 'none';
+                setupGrid();
+              }
+            }
+            function resetGame() {
+              setupGrid();
+            }
+            document.addEventListener('DOMContentLoaded', function() {
+              const volumeBtn = document.getElementById('volumeBtn');
+              const volumeIcon = document.getElementById('volumeIcon');
+              volumeBtn.onclick = function() {
+                muted = !muted;
+                bgMusic.volume = muted ? 0 : 0.25;
+                volumeIcon.textContent = muted ? '🔇' : '🔊';
+              };
+              setupGrid();
+            });
+            </script>
+            <!-- Add popup HTML after scoreboard -->
+            <div id="coinsPopup" style="display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%); background:#fffbe6; color:#23272f; border-radius:16px; box-shadow:0 2px 16px #23272f33; padding:24px 32px; font-size:1.3rem; z-index:99999; text-align:center;">
+              <span id="coinsPopupText"></span>
+            </div>
+
+{% endblock %}

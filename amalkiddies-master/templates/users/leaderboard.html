@@ -1,0 +1,125 @@
+{% extends 'users/basic.html' %}
+{% block content %}
+<style>
+  body {
+    background: linear-gradient(135deg,#23272f 60%,#23272f 100%);
+    min-height: 100vh;
+    color: #f8f9fa;
+  }
+  .leaderboard-header {
+    background: #23272f;
+    border-radius: 18px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+    padding: 32px 0 16px 0;
+    margin-bottom: 32px;
+    text-align: center;
+    color: #ffe066;
+  }
+  .leaderboard-header .display-4 {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    letter-spacing: 1px;
+    font-size: 2.5rem;
+    margin-bottom: 8px;
+    color: #ffe066;
+    text-shadow: 0 2px 8px #23272f;
+  }
+  .leaderboard-header .lead {
+    font-size: 1.15rem;
+    color: #ffe066cc;
+    margin-bottom: 12px;
+  }
+  .leaderboard-rewards {
+    margin-top: 10px;
+    text-align: center;
+  }
+  .leaderboard-rewards .badge {
+    font-size: 1rem;
+    margin: 0 6px 8px 6px;
+    padding: 8px 16px;
+    border-radius: 16px;
+    background: #23272f;
+    color: #ffe066;
+    font-weight: 500;
+    box-shadow: 0 2px 8px #23272f44;
+    border: 1px solid #ffe066;
+  }
+  .leaderboard-table {
+    background: #23272f;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    overflow: hidden;
+    margin-bottom: 32px;
+    color: #ffe066;
+  }
+  .leaderboard-table th, .leaderboard-table td {
+    padding: 14px;
+    font-size: 1.05rem;
+    text-align: center;
+    border-bottom: 1px solid #444;
+    background: #23272f;
+    color: #ffe066;
+  }
+  .leaderboard-table th {
+    background: #23272f;
+    color: #ffe066;
+    font-weight: 700;
+    letter-spacing: 1px;
+    border: none;
+  }
+  .leaderboard-table tr:nth-child(1) td {
+    background: #ffe06622;
+    font-weight: 700;
+    color: #ffe066;
+    font-size: 1.1rem;
+  }
+  .leaderboard-table tr:nth-child(2) td {
+    background: #ffd70011;
+  }
+  .leaderboard-table tr:nth-child(3) td {
+    background: #c0c0c011;
+  }
+  .leaderboard-table tr {
+    transition: background 0.2s;
+  }
+  .leaderboard-table tr:hover td {
+    background: #444;
+    color: #ffe066;
+  }
+</style>
+<div class="container py-5">
+  <div class="leaderboard-header mb-4">
+    <h1 class="display-4 font-weight-bold mb-2">
+      <i class="fas fa-trophy" style="color:#ffe066; margin-right:10px;"></i> Leaderboard
+    </h1>
+    <p class="lead mb-2">Top users win exclusive rewards!</p>
+    <div class="leaderboard-rewards">
+      <span class="badge">Top 1: Free Movie Ticket</span>
+      <span class="badge">Top 2: Movie Merchandise</span>
+      <span class="badge">Top 3: Popcorn Combo</span>
+    </div>
+  </div>
+  <div class="table-responsive">
+    <table class="table leaderboard-table">
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>User</th>
+          <th>Coins</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for entry in leaderboard %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td>{{ entry.user.username }}</td>
+          <td>{{ entry.coins }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3">No entries yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

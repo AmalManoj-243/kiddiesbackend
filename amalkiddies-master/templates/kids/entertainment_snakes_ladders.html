@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snakes and Ladders</title>
+    <style>
+        body { background: #222; margin: 0; }
+    #game-container { width: 100vw; height: 90vh; display: flex; align-items: flex-start; justify-content: center; margin-top: 110px; }
+        #snl-canvas { background: #fff; border-radius: 16px; width: 90vw; max-width: 540px; height: 90vw; max-height: 540px; display: block; }
+        @media (max-width: 600px) {
+            #game-container { height: auto; margin-top: 48px; }
+            #snl-canvas { width: 98vw; height: 98vw; max-width: 98vw; max-height: 98vw; }
+            .controls, #dice-container { margin-top: 4px !important; }
+            #dice-canvas { width: 48px !important; height: 48px !important; }
+        }
+        .controls { margin-top: 24px; text-align: center; }
+        button { font-size: 1.2rem; padding: 10px 28px; border-radius: 10px; border: none; cursor: pointer; background: #444; color: #fff; margin: 0 8px; }
+    </style>
+</head>
+<body>
+    <div style="width:100vw;display:flex;justify-content:space-between;align-items:center;margin-top:10px;margin-bottom:8px;">
+        <button id="pause-btn" style="font-size:0.95rem;padding:4px 12px;border-radius:6px;border:none;background:#44ff44;color:#222;cursor:pointer;font-weight:bold;box-shadow:0 1px 4px #0001;">⏸ Pause</button>
+        <button onclick="window.history.back()" style="font-size:0.95rem;padding:4px 12px;border-radius:6px;border:none;background:#ffaa00;color:#222;cursor:pointer;font-weight:bold;box-shadow:0 1px 4px #0001;">← Back</button>
+    </div>
+    <div id="mode-banner" style="text-align:center;font-size:1.2rem;color:#ffaa00;font-weight:bold;margin-bottom:16px;"></div>
+    <div id="turn-indicator" style="text-align:center;font-size:1.2rem;color:#44ff44;font-weight:bold;margin-bottom:8px;"></div>
+    <div id="game-container" style="margin-top:0px;">
+        <canvas id="snl-canvas" width="540" height="540"></canvas>
+    </div>
+    <div style="width:100vw;display:flex;flex-direction:column;align-items:center;justify-content:center;margin-top:8px;">
+    <div id="winner-message" style="display:none;margin-top:16px;font-size:1.5rem;font-weight:bold;color:#ffaa00;background:#222;padding:12px 32px;border-radius:16px;box-shadow:0 2px 12px #0003;"></div>
+        <div id="dice-container" style="display:flex;justify-content:center;align-items:center;">
+            <canvas id="dice-canvas" width="60" height="60" style="border-radius:12px;background:#fff;"></canvas>
+        </div>
+        <div class="controls" style="margin-top:8px;">
+            <button id="roll-btn">Roll Dice</button>
+            <span id="dice-result" style="font-size:1.2rem;color:#ffaa00;margin-left:18px;"></span>
+            <button id="reset-btn">Reset</button>
+        </div>
+    </div>
+    <script>
+    // --- Save/Load game state per mode/player combination ---
+    function saveGameStateForMode(mode, playersCount) {
+        const state = {
+            players: players.map(p => ({ pos: p.pos, color: p.color, name: p.name, isComputer: p.isComputer })),
+            currentPlayer,
+            playerCount: playersCount,
+            isSinglePlayer
+        };
+        const key = `snl_resume_${mode}_${playersCount}`;
+        sessionStorage.setItem(key, JSON.stringify(state));
+    }
+
+    function loadGameStateForMode(mode, playersCount) {
+        const key = `snl_resume_${mode}_${playersCount}`;
+        const raw = sessionStorage.getItem(key);
+        if (!raw) return false;
+        try {
+            const state = JSON.parse(raw);
+            if (!state.players || !Array.isArray(state.players)) return false;
+            players = state.players.map((p, i) => ({
+                pos: p.pos,
+                color: p.color,
+                name: p.name,
+                isComputer: p.isComputer
+            }));
+            currentPlayer = state.currentPlayer || 0;
+            playerCount = state.playerCount || players.length;
+            isSinglePlayer = !!state.isSinglePlayer;
+            return true;
+        } catch(e) { return false; }
+    }
+    // Resume and New Game button logic via URL query params
+    function getQueryParam(name) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(name);
+    }
+    window.addEventListener('DOMContentLoaded', function() {
+        let mode = getQueryParam('mode');
+        let playersCount = getQueryParam('players');
+        if (!mode) {
+            mode = (getQueryParam('players') === '1' || playerCount === 1) ? 'single' : 'multi';
+        }
+        if (!playersCount) {
+            playersCount = (mode === 'single') ? 1 : (playerCount || 2);
+        }
+        if (getQueryParam('resume') === '1') {
+            if (loadGameStateForMode(mode, playersCount)) {
+                drawBoard();
+                updateTurnIndicator();
+            } else {
+                alert('No saved game to resume.');
+                // Initialize default state and draw board immediately
+                if (mode === 'single' || playersCount == 1) {
+                    players = [
+                        { pos: 1, color: playerColors[0], name: 'You' },
+                        { pos: 1, color: playerColors[1], name: 'Computer', isComputer: true }
+                    ];
+                    playerCount = 2;
+                } else {
+                    players = Array.from({length: playersCount}, (_, i) => ({ pos: 1, color: playerColors[i], name: `Player ${i+1}` }));
+                }
+                currentPlayer = 0;
+                drawBoard();
+                updateTurnIndicator();
+            }
+        } else if (getQueryParam('newgame') === '1') {
+            if (mode === 'single' || playersCount == 1) {
+                players = [
+                    { pos: 1, color: playerColors[0], name: 'You' },
+                    { pos: 1, color: playerColors[1], name: 'Computer', isComputer: true }
+                ];
+                playerCount = 2;
+            } else {
+                players = Array.from({length: playersCount}, (_, i) => ({ pos: 1, color: playerColors[i], name: `Player ${i+1}` }));
+            }
+            currentPlayer = 0;
+            document.getElementById('roll-btn').disabled = false;
+            document.getElementById('dice-result').textContent = '';
+            drawBoard();
+            updateTurnIndicator();
+            saveGameStateForMode(mode, playersCount);
+        } else {
+            // Always restore state and draw tokens on normal load
+            if (!loadGameStateForMode(mode, playersCount)) {
+                // If no saved state, initialize default and draw
+                if (mode === 'single' || playersCount == 1) {
+                    players = [
+                        { pos: 1, color: playerColors[0], name: 'You' },
+                        { pos: 1, color: playerColors[1], name: 'Computer', isComputer: true }
+                    ];
+                    playerCount = 2;
+                } else {
+                    players = Array.from({length: playersCount}, (_, i) => ({ pos: 1, color: playerColors[i], name: `Player ${i+1}` }));
+                }
+                currentPlayer = 0;
+            }
+            drawBoard();
+            updateTurnIndicator();
+        }
+    });
+    // Local storage keys
+    const SNL_STATE_KEY = 'snl_game_state';
+    function saveGameState() {
+    // Only save per mode/player
+    const mode = getQueryParam('mode') || (isSinglePlayer ? 'single' : 'multi');
+    const playersCount = getQueryParam('players') || playerCount || 2;
+    saveGameStateForMode(mode, playersCount);
+    }
+    function loadGameState() {
+        const raw = localStorage.getItem(SNL_STATE_KEY);
+        if (!raw) return false;
+        try {
+            const state = JSON.parse(raw);
+            if (!state.players || !Array.isArray(state.players)) return false;
+            players = state.players.map((p, i) => ({
+                pos: p.pos,
+                color: p.color,
+                name: p.name,
+                isComputer: p.isComputer
+            }));
+            currentPlayer = state.currentPlayer || 0;
+            playerCount = state.playerCount || players.length;
+            isSinglePlayer = !!state.isSinglePlayer;
+            return true;
+        } catch(e) { return false; }
+    }
+    // Pause button logic
+    let paused = false;
+    document.getElementById('pause-btn').onclick = function() {
+        paused = !paused;
+        this.textContent = paused ? '▶ Resume' : '⏸ Pause';
+        // Optionally, disable roll button when paused
+        document.getElementById('roll-btn').disabled = paused;
+    };
+    function updateTurnIndicator() {
+        const turnDiv = document.getElementById('turn-indicator');
+        if (isSinglePlayer) {
+            if (players[currentPlayer].isComputer) {
+                turnDiv.textContent = "Computer's Turn";
+                turnDiv.style.color = '#ff4444';
+            } else {
+                turnDiv.textContent = "Your Turn";
+                turnDiv.style.color = '#44ff44';
+            }
+        } else {
+            turnDiv.textContent = `Player ${currentPlayer+1}'s Turn`;
+            turnDiv.style.color = '#ffaa00';
+        }
+    }
+    // Dice image and rolling effect
+    const diceImg = new window.Image();
+    diceImg.src = 'https://res.cloudinary.com/djc3qirsl/image/upload/v1757241682/6845771_zqwnwi.jpg';
+    let diceValue = 1;
+    let rolling = false;
+
+    function drawDice() {
+        const diceCanvas = document.getElementById('dice-canvas');
+        const dctx = diceCanvas.getContext('2d');
+        const diceSize = 60;
+        dctx.clearRect(0, 0, diceSize, diceSize);
+        dctx.save();
+        dctx.globalAlpha = 0.98;
+        dctx.beginPath();
+        dctx.moveTo(10, 0);
+        dctx.lineTo(diceSize - 10, 0);
+        dctx.quadraticCurveTo(diceSize, 0, diceSize, 10);
+        dctx.lineTo(diceSize, diceSize - 10);
+        dctx.quadraticCurveTo(diceSize, diceSize, diceSize - 10, diceSize);
+        dctx.lineTo(10, diceSize);
+        dctx.quadraticCurveTo(0, diceSize, 0, diceSize - 10);
+        dctx.lineTo(0, 10);
+        dctx.quadraticCurveTo(0, 0, 10, 0);
+        dctx.closePath();
+        dctx.fillStyle = '#fff';
+        dctx.fill();
+        dctx.globalAlpha = 1;
+        // Draw dice dots for the rolled value
+        function drawDot(dx, dy) {
+            dctx.beginPath();
+            dctx.arc(dx, dy, 5, 0, 2 * Math.PI);
+            dctx.fillStyle = '#222';
+            dctx.fill();
+        }
+        const center = diceSize / 2;
+        const offset = diceSize / 4;
+        // Dice face positions
+        const dots = {
+            1: [[center, center]],
+            2: [[center - offset, center - offset], [center + offset, center + offset]],
+            3: [[center, center], [center - offset, center - offset], [center + offset, center + offset]],
+            4: [[center - offset, center - offset], [center + offset, center - offset], [center - offset, center + offset], [center + offset, center + offset]],
+            5: [[center, center], [center - offset, center - offset], [center + offset, center - offset], [center - offset, center + offset], [center + offset, center + offset]],
+            6: [[center - offset, center - offset], [center, center - offset], [center + offset, center - offset], [center - offset, center + offset], [center, center + offset], [center + offset, center + offset]]
+        };
+        dots[diceValue].forEach(([dx, dy]) => drawDot(dx, dy));
+        dctx.restore();
+    // end drawDice
+    }
+
+    function rollDiceAnim(callback) {
+        rolling = true;
+        let frames = 18;
+        let interval = setInterval(() => {
+            diceValue = Math.floor(Math.random()*6)+1;
+            drawBoard();
+            frames--;
+            if (frames <= 0) {
+                clearInterval(interval);
+                rolling = false;
+                callback(diceValue);
+            }
+        }, 50);
+    }
+    // Simple snakes and ladders logic
+    const canvas = document.getElementById('snl-canvas');
+    const ctx = canvas.getContext('2d');
+    const boardSize = 10;
+    const cellSize = canvas.width / boardSize;
+    const snakes = { 28: 10, 37: 3, 48: 16, 75: 32, 94: 71, 96: 42 };
+    const ladders = { 4: 56, 12: 50, 14: 55, 22: 58, 41: 79, 54: 88 };
+    // Always use URL parameters for mode and player count
+    function getParam(name) {
+        const params = new URLSearchParams(window.location.search);
+        return params.get(name);
+    }
+    const playerColors = ['#00eaff', '#ff4444', '#44ff44', '#ffaa00', '#aa00ff'];
+    let mode = getParam('mode') || '';
+    let playerCount = parseInt(getParam('players'));
+    if (isNaN(playerCount) || playerCount < 1 || playerCount > 5) playerCount = 2;
+    let isSinglePlayer = (mode === 'single' || playerCount === 1);
+    let players;
+    let currentPlayer = 0;
+    if (getParam('resume') === '1') {
+        // Resume previous game state from sessionStorage per mode/player
+        if (!loadGameStateForMode(mode, playerCount)) {
+            alert('No saved game to resume.');
+            // Fallback to new game setup
+            if (isSinglePlayer) {
+                players = [
+                    { pos: 1, color: playerColors[0], name: 'You' },
+                    { pos: 1, color: playerColors[1], name: 'Computer', isComputer: true }
+                ];
+                playerCount = 2;
+            } else {
+                players = Array.from({length: playerCount}, (_, i) => ({ pos: 1, color: playerColors[i], name: `Player ${i+1}` }));
+            }
+        }
+        setTimeout(() => { drawBoard(); updateTurnIndicator(); }, 0);
+    } else {
+        // Always use URL params for new game
+        if (isSinglePlayer) {
+            players = [
+                { pos: 1, color: playerColors[0], name: 'You' },
+                { pos: 1, color: playerColors[1], name: 'Computer', isComputer: true }
+            ];
+            playerCount = 2;
+        } else {
+            players = Array.from({length: playerCount}, (_, i) => ({ pos: 1, color: playerColors[i], name: `Player ${i+1}` }));
+        }
+        setTimeout(() => { drawBoard(); updateTurnIndicator(); }, 0);
+    }
+    const boardImg = new window.Image();
+    boardImg.src = 'https://res.cloudinary.com/djc3qirsl/image/upload/v1757239050/snakes-and-ladders-board-game-boardgame-vector_peaeer.jpg';
+    boardImg.onload = function() {
+        // Ensure players array is initialized before drawing
+        if (!players || !Array.isArray(players) || players.length === 0) {
+            if (isSinglePlayer) {
+                players = [
+                    { pos: 1, color: playerColors[0], name: 'You' },
+                    { pos: 1, color: playerColors[1], name: 'Computer', isComputer: true }
+                ];
+                playerCount = 2;
+            } else {
+                players = Array.from({length: playerCount}, (_, i) => ({ pos: 1, color: playerColors[i], name: `Player ${i+1}` }));
+            }
+            currentPlayer = 0;
+        }
+        drawBoard();
+        updateTurnIndicator();
+    };
+    // Show mode banner
+    const modeBanner = document.getElementById('mode-banner');
+    if (isSinglePlayer) {
+        modeBanner.textContent = 'Single Player Mode (You vs Computer)';
+    } else {
+        modeBanner.textContent = `Multiplayer Mode: ${playerCount} Players`;
+    }
+    function drawBoard() {
+    saveGameState();
+    // Hide winner message on redraw
+    document.getElementById('winner-message').style.display = 'none';
+    updateTurnIndicator();
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        if (boardImg.complete) {
+            ctx.drawImage(boardImg, 0, 0, canvas.width, canvas.height);
+        } else {
+            boardImg.onload = () => {
+                ctx.drawImage(boardImg, 0, 0, canvas.width, canvas.height);
+            };
+        }
+        // Improved player placement
+        // Find all positions with multiple players
+        let posMap = {};
+        players.forEach((p, i) => {
+            if (!posMap[p.pos]) posMap[p.pos] = [];
+            posMap[p.pos].push(i);
+        });
+        players.forEach((p, i) => {
+            let {x, y} = getCellCenter(p.pos);
+            let overlap = posMap[p.pos].length;
+            let idx = posMap[p.pos].indexOf(i);
+            // Offset if overlapping
+            if (overlap > 1) {
+                let angle = (idx * (2 * Math.PI) / overlap);
+                x += Math.cos(angle) * 12;
+                y += Math.sin(angle) * 12;
+            }
+            ctx.beginPath();
+            ctx.arc(x, y, 16, 0, 2*Math.PI);
+            ctx.fillStyle = p.color;
+            ctx.shadowColor = (i === currentPlayer) ? '#ffaa00' : 'transparent';
+            ctx.shadowBlur = (i === currentPlayer) ? 12 : 0;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            ctx.strokeStyle = '#222';
+            ctx.stroke();
+            ctx.font = 'bold 18px Arial';
+            ctx.fillStyle = '#222';
+            // Show 'P' for player, 'C' for computer in single player mode
+            if (isSinglePlayer) {
+                ctx.fillText(p.isComputer ? 'C' : 'P', x-7, y+7);
+            } else {
+                ctx.fillText(i+1, x-5, y+6);
+            }
+            // No player name text below tokens in multiplayer mode
+        });
+    // Draw dice in separate canvas below board
+    drawDice();
+    }
+    function getCellCenter(pos) {
+        // Standard snakes & ladders: cell 1 is bottom-left, cell 100 is top-left
+    let row = boardSize - 1 - Math.floor((pos - 1) / boardSize); // 0 is top, 9 is bottom
+    let col;
+    if ((row % 2) === 0) {
+        // Even row: right-to-left
+        col = boardSize - 1 - ((pos - 1) % boardSize);
+    } else {
+        // Odd row: left-to-right
+        col = (pos - 1) % boardSize;
+    }
+    return {
+        x: col * cellSize + cellSize / 2,
+        y: row * cellSize + cellSize / 2
+    };
+    }
+    function drawLine(from, to, color) {
+        let start = getCellCenter(Number(from));
+        let end = getCellCenter(Number(to));
+        ctx.beginPath();
+        ctx.moveTo(start.x, start.y);
+        // If color is snake, draw a curve for sample
+        if (color === '#ff4444' && from == 16 && to == 6) {
+            // Example: Draw a bezier curve for snake from 16 to 6
+            let cp1x = (start.x + end.x) / 2 + cellSize;
+            let cp1y = start.y - cellSize * 2;
+            let cp2x = (start.x + end.x) / 2 - cellSize;
+            let cp2y = end.y + cellSize * 2;
+            ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, end.x, end.y);
+        } else {
+            ctx.lineTo(end.x, end.y);
+        }
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 6;
+        ctx.stroke();
+        ctx.lineWidth = 1;
+    }
+    function rollDice() {
+        return Math.floor(Math.random()*6)+1;
+    }
+    function movePlayer() {
+        let dice = rollDice();
+        document.getElementById('dice-result').textContent = `Dice: ${dice}`;
+        let p = players[currentPlayer];
+        let newPos = p.pos + dice;
+        if (newPos > 100) newPos = p.pos; // must land exactly on 100
+        if (ladders[newPos]) newPos = ladders[newPos];
+        if (snakes[newPos]) newPos = snakes[newPos];
+        p.pos = newPos;
+        drawBoard();
+        if (p.pos === 100) {
+            document.getElementById('roll-btn').disabled = true;
+            const winnerMsg = document.getElementById('winner-message');
+            if (isSinglePlayer) {
+                winnerMsg.textContent = p.isComputer ? 'Computer wins!' : 'You win!';
+            } else {
+                winnerMsg.textContent = `🎉 Player ${currentPlayer+1} wins! 🎉`;
+            }
+            winnerMsg.style.display = 'block';
+        } else {
+            currentPlayer = (currentPlayer+1)%players.length;
+        }
+    }
+    document.getElementById('roll-btn').onclick = function() {
+    if (rolling || paused) return;
+    let p = players[currentPlayer];
+    if (isSinglePlayer && p.isComputer) return; // Only human can click
+    // Multiplayer: random dice for each player, no animation
+    if (!isSinglePlayer) {
+        let dice = Math.floor(Math.random() * 6) + 1;
+        document.getElementById('dice-result').textContent = `Dice: ${dice}`;
+        let newPos = p.pos + dice;
+        if (newPos > 100) newPos = p.pos;
+        if (ladders[newPos]) newPos = ladders[newPos];
+        if (snakes[newPos]) newPos = snakes[newPos];
+        p.pos = newPos;
+        drawBoard();
+        // Save game state for current mode/player after every move
+        const mode = getQueryParam('mode') || (isSinglePlayer ? 'single' : 'multi');
+        const playersCount = getQueryParam('players') || playerCount || 2;
+        saveGameStateForMode(mode, playersCount);
+        if (p.pos === 100) {
+            setTimeout(() => alert(`${p.name} wins!`), 100);
+            document.getElementById('roll-btn').disabled = true;
+        } else {
+            currentPlayer = (currentPlayer+1)%players.length;
+            updateTurnIndicator();
+        }
+        return;
+    }
+    // Single player: keep dice animation and computer logic
+    rollDiceAnim(function(dice) {
+        document.getElementById('dice-result').textContent = `Dice: ${dice}`;
+        let newPos = p.pos + dice;
+        if (newPos > 100) newPos = p.pos;
+        if (ladders[newPos]) newPos = ladders[newPos];
+        if (snakes[newPos]) newPos = snakes[newPos];
+        p.pos = newPos;
+        drawBoard();
+        // Save game state for current mode/player after every move
+        const mode = getQueryParam('mode') || (isSinglePlayer ? 'single' : 'multi');
+        const playersCount = getQueryParam('players') || playerCount || 2;
+        saveGameStateForMode(mode, playersCount);
+        if (p.pos === 100) {
+            setTimeout(() => alert(`${p.name} wins!`), 100);
+            document.getElementById('roll-btn').disabled = true;
+        } else {
+            currentPlayer = (currentPlayer+1)%players.length;
+            updateTurnIndicator(); // Show next player's turn after move
+            // If next is computer, auto-roll after short delay
+            if (isSinglePlayer && players[currentPlayer].isComputer) {
+                // Show computer's turn only after player's move animation and board update
+                setTimeout(() => {
+                    updateTurnIndicator(); // Now show computer's turn
+                    // Computer selects a random dice value
+                    let dice2 = Math.floor(Math.random() * 6) + 1;
+                    document.getElementById('dice-result').textContent = `Dice: ${dice2}`;
+                    let cp = players[currentPlayer];
+                    let newPos2 = cp.pos + dice2;
+                    if (newPos2 > 100) newPos2 = cp.pos;
+                    if (ladders[newPos2]) newPos2 = ladders[newPos2];
+                    if (snakes[newPos2]) newPos2 = snakes[newPos2];
+                        cp.pos = newPos2;
+                        drawBoard();
+                        if (cp.pos === 100) {
+                            setTimeout(() => alert(`${cp.name} wins!`), 100);
+                            document.getElementById('roll-btn').disabled = true;
+                        } else {
+                            currentPlayer = (currentPlayer+1)%players.length;
+                            setTimeout(() => {
+                                updateTurnIndicator(); // Show 'Your Turn' after 2 sec delay
+                            }, 2000);
+                        }
+                    }, 3000); // 3 second delay for computer move
+                }
+            }
+        });
+    };
+    document.getElementById('reset-btn').onclick = function() {
+    if (isSinglePlayer) {
+        players = [
+            { pos: 1, color: playerColors[0], name: 'You' },
+            { pos: 1, color: playerColors[1], name: 'Computer', isComputer: true }
+        ];
+        playerCount = 2;
+    } else {
+        players = Array.from({length: playerCount}, (_, i) => ({ pos: 1, color: playerColors[i], name: `Player ${i+1}` }));
+    }
+    currentPlayer = 0;
+    document.getElementById('roll-btn').disabled = false;
+    document.getElementById('dice-result').textContent = '';
+    drawBoard();
+    saveGameState();
+    };
+    drawBoard();
+    </script>
+</body>
+</html>

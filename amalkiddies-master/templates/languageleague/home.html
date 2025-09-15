@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+.header-footer-center {
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.hero-bg {
+  background: linear-gradient(rgba(34, 49, 63, 0.7), rgba(34, 49, 63, 0.7)), url('https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=1200&q=80') center/cover no-repeat;
+  color: #fff;
+  padding: 32px 0 24px 0;
+  border-radius: 0 0 1.5rem 1.5rem;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+  width: 100%;
+  margin: 60px auto 0 auto;
+}
+@media (max-width: 900px) {
+  .header-footer-center, .hero-bg { max-width: 100%; }
+}
+@media (max-width: 768px) {
+  .hero-bg { padding: 18px 0 12px 0; border-radius: 0 0 1rem 1rem; margin-top: 40px; }
+  .hero-bg h1 { font-size: 2rem; }
+  .hero-bg .img-fluid { max-height: 100px; }
+}
+.fade-in { animation: fadeIn 1.2s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: none; } }
+.card-hover:hover { box-shadow: 0 8px 32px rgba(44, 130, 201, 0.2); transform: scale(1.03); transition: 0.3s; }
+.btn-animated { transition: background 0.3s, color 0.3s, box-shadow 0.3s; }
+.btn-animated:hover { background: #2a7cff; color: #fff; box-shadow: 0 4px 16px rgba(42,124,255,0.15); }
+</style>
+<div class="header-footer-center">
+  <div class="hero-bg mb-4 fade-in">
+    <div class="header-footer-center">
+      <div class="row align-items-center justify-content-center">
+        <div class="col-md-8">
+          <h1 class="fw-bold mb-2 text-primary text-center" style="font-size:2.2rem;">Language Learning League</h1>
+          <p class="lead mb-3 text-center">Compete, learn, and track your progress in multiple languages. Earn badges, certificates, and join a vibrant community!</p>
+          <div class="d-flex gap-2 mb-2 justify-content-center">
+            <a href="{% url 'league_leaderboard' %}" class="btn btn-success btn-animated"><i class="bi bi-trophy"></i> Leaderboard</a>
+            <a href="{% url 'analytics_dashboard' %}" class="btn btn-info btn-animated"><i class="bi bi-bar-chart"></i> My Analytics</a>
+          </div>
+          <div class="d-flex gap-3 mt-2 justify-content-center">
+            <span class="badge bg-primary"><i class="bi bi-award"></i> Certificates</span>
+            <span class="badge bg-warning text-dark"><i class="bi bi-star"></i> Badges</span>
+            <span class="badge bg-success"><i class="bi bi-people"></i> Community</span>
+          </div>
+        </div>
+        <div class="col-md-4 text-center">
+          <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Learning" class="img-fluid" style="max-height:120px; filter: drop-shadow(0 4px 16px #222);">
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="header-footer-center fade-in">
+    <div class="row mb-4 justify-content-center">
+      <div class="col-md-6">
+        <h3 class="mb-2 text-secondary text-center">Languages</h3>
+        <div class="row g-2 justify-content-center">
+          {% for language in languages %}
+          <div class="col-6">
+            <div class="card h-100 shadow-sm border-0 card-hover">
+              <div class="card-body text-center">
+                <h5 class="card-title fw-bold mb-1"><i class="bi bi-translate"></i> {{ language.name }}</h5>
+                <a href="{% url 'challenge_list' language.id %}" class="btn btn-primary btn-sm btn-animated">Start Challenges</a>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="col-md-6">
+        <h3 class="mb-2 text-secondary text-center">Available Courses</h3>
+        <input type="text" class="form-control mb-2" placeholder="Search courses..." id="courseSearch" onkeyup="filterCourses()">
+        <div id="courseList">
+          {% for course in courses %}
+          <div class="card mb-2 shadow-sm course-card border-0 card-hover">
+            <div class="card-body">
+              <h5 class="card-title fw-bold mb-1"><i class="bi bi-book"></i> {{ course.name }} <span class="badge bg-info">{{ course.language.name }}</span></h5>
+              <p class="mb-1">Level: <span class="badge bg-secondary">{{ course.level }}</span></p>
+              <a href="{% url 'unit_list' course.id %}" class="btn btn-outline-primary btn-sm btn-animated">View Units</a>
+            </div>
+          </div>
+          {% empty %}
+          <div class="alert alert-warning">No courses available yet.</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <div class="row mt-3 justify-content-center">
+      <div class="col-12">
+        <div class="alert alert-info text-center py-2">
+          <strong>Tip:</strong> Track your progress, earn badges, and download certificates as you complete courses!
+        </div>
+      </div>
+    </div>
+    <div class="row mt-4 justify-content-center">
+      <div class="col-md-8 mx-auto">
+        <div class="card border-0 shadow-sm p-3 text-center bg-light">
+          <h4 class="mb-2 text-success"><i class="bi bi-chat-quote"></i> What Our Learners Say</h4>
+          <blockquote class="blockquote mb-0">
+            <p>"This platform made learning fun and competitive! I love earning badges and certificates."</p>
+            <footer class="blockquote-footer">A. Student, <cite title="Source Title">Spanish League</cite></footer>
+          </blockquote>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+function filterCourses() {
+  var input = document.getElementById('courseSearch');
+  var filter = input.value.toLowerCase();
+  var cards = document.getElementsByClassName('course-card');
+  for (var i = 0; i < cards.length; i++) {
+    var title = cards[i].querySelector('.card-title').textContent.toLowerCase();
+    cards[i].style.display = title.includes(filter) ? '' : 'none';
+  }
+}
+</script>
+{% endblock %}

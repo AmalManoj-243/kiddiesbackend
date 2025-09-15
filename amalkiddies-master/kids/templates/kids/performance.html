@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-5">
+  <h2 class="fw-bold mb-4" style="color:#005f73;">Your Performance</h2>
+  <form method="get" class="mb-4">
+    <label for="course-select" class="form-label">Select Course:</label>
+    <select name="course" id="course-select" class="form-select" onchange="this.form.submit()">
+      <option value="">All Courses</option>
+      {% for course in courses %}
+        <option value="{{ course.id }}" {% if selected_course and course.id == selected_course.id %}selected{% endif %}>{{ course.name }}</option>
+      {% endfor %}
+    </select>
+  </form>
+  <div class="mb-3">
+    <strong>Total Drawings Submitted:</strong> {{ total_drawings }}
+  </div>
+  <div class="mb-3">
+    <strong>Grades Awarded:</strong>
+    {% if grades %}
+      <ul>
+        {% for grade in grades %}
+          <li><span class="badge bg-success">{{ grade }}</span></li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <span class="badge bg-warning text-dark">No grades awarded yet.</span>
+    {% endif %}
+  </div>
+  <div class="mb-3">
+    <strong>Feedback Received:</strong>
+    {% if feedbacks %}
+      <ul>
+        {% for fb in feedbacks %}
+          <li class="alert alert-info">{{ fb }}</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <span class="badge bg-secondary">No feedback yet.</span>
+    {% endif %}
+  </div>
+  <div class="mb-3">
+    <strong>Quiz/Game Scores:</strong>
+    {% if game_attempts %}
+      <ul>
+        {% for attempt in game_attempts %}
+          <li>{{ attempt.game }}: <span class="badge bg-primary">{{ attempt.score }}</span></li>
+        {% endfor %}
+      </ul>
+      <div><strong>Total Quiz/Game Score:</strong> <span class="badge bg-info">{{ total_game_score }}</span></div>
+    {% else %}
+      <span class="badge bg-warning text-dark">No quiz/game scores yet.</span>
+    {% endif %}
+  </div>
+  <div class="mb-3">
+    <strong>Leaderboard Total Score:</strong> <span class="badge bg-success">{{ leaderboard_score }}</span>
+  </div>
+  <div class="mb-3">
+    <strong>Awards:</strong>
+    <span class="badge bg-info">(Add award logic here if needed)</span>
+  </div>
+</div>
+{% endblock %}

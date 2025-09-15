@@ -1,0 +1,373 @@
+{% extends 'users/basic.html' %}
+{% block content %}
+{% if error_message %}
+  <div class="container py-3">
+    <div class="mb-3 text-center">
+      <strong>Today's Attempts:</strong>
+      {% if attempts_list and attempts_list|length > 0 %}
+        <ul style="list-style:none; padding-left:0;">
+        {% for attempt_time in attempts_list %}
+          <li>{{ attempt_time }}</li>
+        {% endfor %}
+        </ul>
+      {% else %}
+        <span>No attempts yet today.</span>
+      {% endif %}
+    </div>
+  </div>
+  <div class="container py-5">
+    <div class="alert alert-danger text-center" style="font-size:1.3rem; border-radius:16px; box-shadow:0 2px 12px #ff406633;">
+      <i class="fas fa-exclamation-triangle" style="font-size:2rem; color:#ff4066;"></i><br>
+      {{ error_message }}
+      {% if wait_time %}
+        <div class="mt-2" style="font-size:1.1rem; color:#23272f;">
+          You can try again in <strong>{{ wait_time }}</strong>.
+        </div>
+      {% endif %}
+    </div>
+    <div class="text-center mt-4">
+      <a href="/" class="btn btn-primary">Back to Home</a>
+    </div>
+  </div>
+{% else %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white text-center">
+          <h3 class="mb-0"><i class="fas fa-bullseye me-2"></i> Dart Throw Game</h3>
+        </div>
+        <div class="card-body text-center">
+          <div id="gameArea" style="display:block;">
+            <canvas id="dartboard" width="400" height="400" style="border-radius:50%;border:2px solid #333;box-shadow:0 2px 12px #23272f22;cursor:crosshair;"></canvas>
+            <div class="mt-3">
+              <h4 id="scoreDisplay">Score: 0</h4>
+              <h5 id="rewardDisplay"></h5>
+            </div>
+            <div id="levelTransition" style="display:none;">
+              <h3 class="text-warning">Level Up!</h3>
+              <p>Speed increased. Get ready!</p>
+            </div>
+            <button id="replayBtn" class="btn btn-primary mt-3" style="display:none;" onclick="resetGame()">Replay</button>
+          </div>
+          <div class="scoreboard-container mt-3 mb-2 d-flex justify-content-center">
+            <div class="scoreboard-box p-2" style="background:#222; border:4px solid #ffe066; border-radius:14px; box-shadow:0 2px 12px #000a; min-width:260px; max-width:320px;">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="score-label" style="font-size:1.1rem; color:#fff; font-weight:700; letter-spacing:1px;">Level</span>
+                <span id="levelDisplay" style="font-size:1.3rem; color:#ffe066; font-weight:800;">1</span>
+              </div>
+              <div class="progress mb-2" style="height:6px; background:#333; border-radius:3px;">
+                <div id="levelProgress" class="progress-bar" style="width:0%; background:#ffe066; border-radius:3px;"></div>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="score-label" style="font-size:1.1rem; color:#fff; font-weight:700;">Try</span>
+                <span id="tryDisplay" style="font-size:1.3rem; color:#00e676; font-weight:800;">0</span>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="score-label" style="font-size:1.1rem; color:#fff; font-weight:700;">Total</span>
+                <span id="totalDisplay" style="font-size:1.3rem; color:#fff; font-weight:800;">0</span>
+              </div>
+              <hr style="border-top:2px solid #ffe066; margin:6px 0;">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="score-label" style="font-size:1rem; color:#ffe066; font-weight:700;">Average Points</span>
+                <span id="avgDisplay" style="font-size:1.1rem; color:#ffe066; font-weight:800;">0</span>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="score-label" style="font-size:1rem; color:#00e676; font-weight:700;">Coins</span>
+                <span id="coinsDisplay" style="font-size:1.1rem; color:#00e676; font-weight:800;">0</span>
+              </div>
+              <div class="mt-1 text-center">
+                <span id="rewardDisplay" style="font-size:1rem; color:#ffe066; font-weight:600;"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<form id="coinForm" method="POST" action="/update_coins/" style="display:none;">
+  {% csrf_token %}
+  <input type="hidden" name="coins" id="finalCoinsInput" value="0">
+</form>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const canvas = document.getElementById('dartboard');
+  const ctx = canvas.getContext('2d');
+  const centerX = 200, centerY = 200;
+  const radius = 180;
+  const sectors = 20;
+  const sectorScores = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5];
+  let rotation = 0;
+  let animationFrame;
+  let lastDart = null;
+  let wheelStopped = false;
+  let hitSectorIdx = null;
+  // Level and tries system
+  let level = 1;
+  let tries = 0;
+  let maxLevels = 3;
+  let maxTries = 5;
+  let scores = [];
+  let gameStarted = true;
+  let totalScore = 0;
+  function drawBoard(rot) {
+    ctx.clearRect(0,0,400,400);
+    // Find index of sector with highest points
+    const maxScore = Math.max(...sectorScores);
+    const maxSectorIdx = sectorScores.indexOf(maxScore);
+    // Draw sectors
+    for(let i=0;i<sectors;i++){
+      let a1 = ((i/sectors)*2*Math.PI) + rot;
+      let a2 = (((i+1)/sectors)*2*Math.PI) + rot;
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY);
+      ctx.arc(centerX, centerY, radius, a1, a2);
+      ctx.closePath();
+      // Hit sector highlight (takes precedence)
+      if (typeof hitSectorIdx === 'number' && i === hitSectorIdx) {
+        ctx.fillStyle = '#00e676'; // Vivid green
+        ctx.globalAlpha = 1;
+        ctx.shadowColor = '#00e676';
+        ctx.shadowBlur = 30;
+      } 
+      // Max points sector highlight (only if not hit)
+      else if (i === maxSectorIdx) {
+        ctx.fillStyle = '#e040fb'; // Bright magenta
+        ctx.globalAlpha = 0.95;
+        ctx.shadowColor = '#e040fb';
+        ctx.shadowBlur = 30;
+      } else {
+        ctx.fillStyle = i%2==0 ? '#ffe066' : '#23272f';
+        ctx.globalAlpha = 0.8;
+        ctx.shadowBlur = 0;
+      }
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = '#333';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      // Draw sector number
+      let midAngle = (a1+a2)/2;
+      let tx = centerX + Math.cos(midAngle)*(radius-30);
+      let ty = centerY + Math.sin(midAngle)*(radius-30);
+      ctx.save();
+      ctx.translate(tx, ty);
+      ctx.rotate(midAngle+Math.PI/2);
+      ctx.font = 'bold 18px Montserrat';
+      ctx.fillStyle = '#ff4066';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(sectorScores[i], 0, 0);
+      ctx.restore();
+      ctx.restore();
+    }
+    // Bullseye
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 20, 0, 2*Math.PI);
+    ctx.fillStyle = '#ff3b3b';
+    ctx.fill();
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    // Draw last dart if exists
+    if (lastDart) {
+      drawDartShape(ctx, lastDart.x, lastDart.y, 0);
+    }
+  }
+  let baseSpeed = 0.03;
+  let speedIncrement = 0.005;
+  function animateBoard() {
+    if (!wheelStopped) {
+      rotation += baseSpeed + (level-1)*speedIncrement;
+      animationFrame = requestAnimationFrame(animateBoard);
+    }
+    drawBoard(rotation);
+  }
+  function cancelAnimation() {
+    if (animationFrame) {
+      cancelAnimationFrame(animationFrame);
+      animationFrame = null;
+    }
+  }
+  animateBoard();
+  function getScore(x, y, rot) {
+    const dx = x - centerX, dy = y - centerY;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    if(dist <= 20) return 50; // Bullseye
+    if(dist > radius) return 0;
+    let angle = Math.atan2(dy, dx) - rot;
+    if(angle < 0) angle += 2*Math.PI;
+    let sector = Math.floor(angle/(2*Math.PI)*sectors);
+    // Clamp sector index to valid range
+    if (sector < 0) sector = 0;
+    if (sector >= sectorScores.length) sector = sectorScores.length - 1;
+    return sectorScores[sector];
+  }
+  function drawDartShape(ctx, x, y, angle) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(angle);
+  // Dart body (smaller)
+  ctx.beginPath();
+  ctx.moveTo(-20, 0);
+  ctx.lineTo(20, 0);
+  ctx.lineWidth = 6;
+  ctx.strokeStyle = '#444';
+  ctx.stroke();
+  // Dart tip (smaller round)
+  ctx.beginPath();
+  ctx.arc(22, 0, 3, 0, 2 * Math.PI);
+  ctx.fillStyle = '#ff4066';
+  ctx.fill();
+  // Dart flights (smaller)
+  ctx.beginPath();
+  ctx.moveTo(-20, 0);
+  ctx.lineTo(-26, -8);
+  ctx.lineTo(-26, 8);
+  ctx.closePath();
+  ctx.fillStyle = '#ffe066';
+  ctx.fill();
+  ctx.restore();
+  }
+  function resetGame() {
+    level = 1;
+    tries = 0;
+    scores = [];
+    totalScore = 0;
+    wheelStopped = false;
+    lastDart = null;
+    hitSectorIdx = null;
+    rotation = 0;
+    // Reset scoreboard UI
+    document.getElementById('levelDisplay').innerText = 1;
+    document.getElementById('tryDisplay').innerText = 0;
+    document.getElementById('scoreDisplay').innerText = 0;
+    document.getElementById('totalDisplay').innerText = 0;
+    document.getElementById('coinsDisplay').innerText = 0;
+    document.getElementById('levelProgress').style.width = '0%';
+    document.getElementById('rewardDisplay').innerText = '';
+    document.getElementById('replayBtn').style.display = 'none';
+    drawBoard(rotation);
+    cancelAnimation();
+    animateBoard();
+  }
+  canvas.onclick = function(e) {
+    if (!gameStarted) return;
+    if (wheelStopped) return;
+    if (tries >= maxTries) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    // Freeze rotation for this throw
+    const frozenRotation = rotation;
+    wheelStopped = true;
+    cancelAnimation();
+    let t = 0, steps = 20;
+    let finalDart = {x: x, y: y, angle: 0};
+    let score = 0;
+    let hitSectorIdx = null;
+    // Calculate hit sector immediately using click and frozenRotation
+    const dx = x - centerX, dy = y - centerY;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    if(dist <= radius) {
+      let angle = Math.atan2(dy, dx) - frozenRotation;
+      if(angle < 0) angle += 2*Math.PI;
+      let sectorIdx = Math.floor((angle/(2*Math.PI))*sectors);
+      sectorIdx = ((sectorIdx % sectors) + sectors) % sectors;
+      hitSectorIdx = sectorIdx;
+      finalDart.x = x;
+      finalDart.y = y;
+      finalDart.angle = angle + frozenRotation;
+      score = sectorScores[hitSectorIdx];
+    } else {
+      hitSectorIdx = null;
+      finalDart.x = x;
+      finalDart.y = y;
+      finalDart.angle = 0;
+      score = 0;
+    }
+    function drawDart() {
+  drawBoard(frozenRotation, hitSectorIdx);
+  let currX = centerX + (finalDart.x-centerX)*(t/steps);
+  let currY = centerY + (finalDart.y-centerY)*(t/steps);
+  // Dart always points toward the center
+  let dartAngle = Math.atan2(centerY-currY, centerX-currX);
+  drawDartShape(ctx, currX, currY, dartAngle);
+      t++;
+      if(t <= steps) {
+        requestAnimationFrame(drawDart);
+      } else {
+        lastDart = {...finalDart};
+        drawBoard(frozenRotation, hitSectorIdx);
+        totalScore += score;
+        scores.push(score);
+        tries++;
+        // Update scoreboard UI
+        document.getElementById('levelDisplay').innerText = level;
+        document.getElementById('tryDisplay').innerText = tries;
+        document.getElementById('scoreDisplay').innerText = score;
+        document.getElementById('totalDisplay').innerText = totalScore;
+        // Progress bar for level
+        document.getElementById('levelProgress').style.width = ((level-1)/(maxLevels-1)*100) + '%';
+        // Average and coins (simple average per try)
+        let avgScore = scores.length ? (scores.reduce((a,b)=>a+b,0)/scores.length) : 0;
+        let points = Math.round(totalScore / (scores.length || 1));
+        document.getElementById('avgDisplay').innerText = avgScore.toFixed(2);
+        document.getElementById('coinsDisplay').innerText = points;
+        let reward = '';
+        if(score >= 50) reward = '🏆 Bullseye! You won 50 points!';
+        else if(score >= 20) reward = '🎉 You won 20 points!';
+        else if(score >= 10) reward = '👍 You won 10 points!';
+        else if(score > 0) reward = '👏 You won 5 points!';
+        else reward = '😢 No reward, try again!';
+        document.getElementById('rewardDisplay').innerText = reward;
+        if (tries < maxTries) {
+          setTimeout(() => {
+            wheelStopped = false;
+            lastDart = null;
+            hitSectorIdx = null;
+            drawBoard(rotation);
+            cancelAnimation();
+            animateBoard();
+          }, 1000);
+        } else {
+          if (level < maxLevels) {
+            setTimeout(() => {
+              level++;
+              tries = 0;
+              wheelStopped = false;
+              lastDart = null;
+              hitSectorIdx = null;
+              rotation = 0;
+              document.getElementById('scoreDisplay').innerText = `Level: ${level} | Try: 0 | Score: 0 | Total: ${totalScore}`;
+              document.getElementById('rewardDisplay').innerText = `Level up! Speed increased.`;
+              drawBoard(rotation);
+              cancelAnimation();
+              animateBoard();
+            }, 1200);
+          } else {
+            let avgScore = scores.reduce((a,b)=>a+b,0)/scores.length;
+            let coins = Math.round(avgScore);
+            document.getElementById('avgDisplay').innerText = avgScore.toFixed(2);
+            document.getElementById('coinsDisplay').innerText = coins;
+            document.getElementById('rewardDisplay').innerText = `🏅 You won ${coins} coins!`;
+            // Submit coins to backend via hidden form
+            document.getElementById('finalCoinsInput').value = coins;
+            document.getElementById('coinForm').submit();
+            document.getElementById('replayBtn').style.display = 'inline-block';
+            // At game end, show final average and coins
+            document.getElementById('avgDisplay').innerText = avgScore.toFixed(2);
+            document.getElementById('coinsDisplay').innerText = coins;
+          }
+        }
+      }
+    }
+    drawDart();
+  };
+});
+</script>
+{% endif %}
+{% endblock %}

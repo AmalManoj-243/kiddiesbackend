@@ -1,0 +1,110 @@
+
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    .result-hero {
+        background: linear-gradient(120deg, #ff4066 60%, #ff8c40 100%);
+        border-radius: 24px;
+        box-shadow: 0 8px 32px rgba(255,64,102,0.18);
+        padding: 48px 0 32px 0;
+        margin-bottom: 32px;
+        position: relative;
+        overflow: hidden;
+        text-align: center;
+        color: #fff;
+    }
+    .score-anim {
+        font-size: 3rem;
+        font-weight: 800;
+        color: #fff;
+        text-shadow: 0 2px 8px #23272f;
+        animation: popScore 1s;
+    }
+    @keyframes popScore {
+        0% { transform: scale(0.5); opacity: 0; }
+        60% { transform: scale(1.2); opacity: 1; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    .result-btn {
+        font-size: 1.1rem;
+        font-weight: 700;
+        padding: 12px 32px;
+        border-radius: 12px;
+        margin: 8px;
+        box-shadow: 0 2px 8px rgba(255,64,102,0.13);
+        background: linear-gradient(90deg, #ff4066 60%, #ff8c40 100%);
+        color: #fff;
+        border: none;
+        transition: background 0.3s, box-shadow 0.3s;
+    }
+    .result-btn:hover {
+        background: linear-gradient(90deg, #ff8c40 60%, #ff4066 100%);
+        box-shadow: 0 4px 16px rgba(255,64,102,0.18);
+        color: #fff;
+    }
+    .confetti {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        pointer-events: none;
+        z-index: 0;
+    }
+</style>
+<div class="container py-5">
+    <div class="result-hero mb-5 position-relative">
+        <h1 class="display-4 font-weight-bold mb-3">Quiz Results</h1>
+        <div class="score-anim">{{ score }} / {{ total }}</div>
+        <p class="lead mb-2">Your Movie Knowledge Score</p>
+                            {% if reward %}
+                                <div class="alert alert-success mt-4">Your Reward: <strong>{{ reward }}</strong></div>
+                            {% endif %}
+                        {% if score == total %}
+                            <div class="confetti" id="confetti"></div>
+                        {% endif %}
+        <div class="mt-4">
+            <a href="/users/movie-quiz/" class="result-btn">Play Again</a>
+            <a href="/" class="result-btn">Back to Home</a>
+            <a href="/users/leaderboard/" class="result-btn">Leaderboard</a>
+            <button class="result-btn" onclick="shareResult()">Share Result</button>
+        </div>
+        <div class="mt-4">
+            <form method="post" action="/users/quiz-feedback/">
+                {% csrf_token %}
+                <input type="hidden" name="score" value="{{ score }}">
+                <textarea name="feedback" class="form-control" rows="2" placeholder="Leave feedback..."></textarea>
+                <button type="submit" class="result-btn mt-2">Submit Feedback</button>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+function shareResult() {
+    const text = `I scored {{ score }} out of {{ total }} in the Movie Quiz! Try it now!`;
+    if (navigator.share) {
+        navigator.share({ title: 'Movie Quiz Result', text });
+    } else {
+        alert('Share: ' + text);
+    }
+}
+// Confetti effect for perfect score
+var score = parseInt("{{ score|default:'0' }}");
+var total = parseInt("{{ total|default:'0' }}");
+if (score === total) {
+    setTimeout(() => {
+        for (let i = 0; i < 80; i++) {
+            let conf = document.createElement('div');
+            conf.style.position = 'absolute';
+            conf.style.width = '12px';
+            conf.style.height = '12px';
+            conf.style.background = `hsl(${Math.random()*360},80%,60%)`;
+            conf.style.top = Math.random()*100+'%';
+            conf.style.left = Math.random()*100+'%';
+            conf.style.borderRadius = '50%';
+            conf.style.opacity = '0.8';
+            conf.style.zIndex = '1';
+            conf.style.animation = `fall 1.8s ease-in ${Math.random()}s forwards`;
+            document.getElementById('confetti').appendChild(conf);
+        }
+    }, 300);
+}
+</script>
+{% endblock %}
