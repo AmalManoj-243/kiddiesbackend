@@ -1,3 +1,5 @@
+def snake_game(request):
+    return render(request, 'kids/teacher/snake.html')
 from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.decorators import login_required
 
