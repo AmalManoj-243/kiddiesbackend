@@ -33,10 +33,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRETKEY', 'django-insecure-default-secret-key-change-this')
 
 # DEBUG mode (True/False)
-DEBUG = True
+DEBUG = False
 
 # Allowed hosts
 ALLOWED_HOSTS = [
+    'kiddiesbackend.onrender.com',
     'amalkiddies.onrender.com',
     'localhost',
     '127.0.0.1',
