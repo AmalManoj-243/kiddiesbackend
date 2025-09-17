@@ -33,7 +33,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRETKEY', 'django-insecure-default-secret-key-change-this')
 
 # DEBUG mode (True/False)
-DEBUG = os.getenv('DEBUG', 'False').lower() in ['true', '1', 'yes']
+DEBUG = True
 
 # Allowed hosts
 ALLOWED_HOSTS = [
