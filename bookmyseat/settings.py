@@ -40,6 +40,7 @@ ALLOWED_HOSTS = [
     'amalkiddies.onrender.com',
     'localhost',
     '127.0.0.1',
+    '192.168.1.8',
 ]
 
 # Media files configuration
@@ -94,6 +95,8 @@ INSTALLED_APPS = [
     'cloudinary_storage',
     'channels',
     'django_extensions',
+    'rest_framework',
+    'corsheaders',
 ]
 
 # Use custom user model
@@ -101,6 +104,7 @@ INSTALLED_APPS = [
 # Middleware stack
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',  # Static file serving
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -164,3 +168,16 @@ EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 TWILIO_ACCOUNT_SID = os.getenv('TWILIO_ACCOUNT_SID')
 TWILIO_AUTH_TOKEN = os.getenv('TWILIO_AUTH_TOKEN')
 TWILIO_PHONE_NUMBER = os.getenv('TWILIO_PHONE_NUMBER')
+
+# CORS configuration for Expo web (localhost:8082)
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8082",
+    "http://127.0.0.1:8082",
+    "http://192.168.1.8:8081",
+    "http://192.168.1.8:8082",
+    "http://192.168.1.8:8084",
+    "http://localhost:8081",
+    "http://localhost:8084",
+    "http://127.0.0.1:8081",
+    "http://127.0.0.1:8084",
+]

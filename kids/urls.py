@@ -53,4 +53,7 @@ urlpatterns = [
     path('entertainment/snakes-ladders/', views.entertainment_snakes_ladders, name='entertainment-snakes-ladders'),
     path('virtual_pet/', views.virtual_pet, name='kids-virtual-pet'),
     path('snake_game/', views.snake_game, name='kids-snake-game'),
+    path('api/courses/', views.course_list, name='course-list'),
+    path('api/course/<int:course_id>/', views.course_detail_api, name='course_detail_api'),
+    path('api/lesson/<int:lesson_id>/', views.lesson_detail_api, name='lesson_detail_api'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -624,7 +624,10 @@ def course_detail(request, course_id):
             userprofile, created = UserProfile.objects.get_or_create(user=request.user)
         else:
             userprofile = None
-    enrolled = userprofile and course in userprofile.courses.all() if userprofile else False
+    if userprofile:
+        enrolled = course in userprofile.courses.all()
+    else:
+        enrolled = False
     if request.method == 'POST' and not enrolled and userprofile:
         userprofile.courses.add(course)
         enrolled = True
@@ -746,3 +749,64 @@ def sight_words_quiz_game(request):
     return render(request, 'kids/lessons/sight_words_quiz_game.html')
 def virtual_pet(request):
     return render(request, 'kids/pet/virtualpet.html')
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from .models import Course
+from .serializers import CourseSerializer
+
+@api_view(['GET'])
+def course_list(request):
+    courses = Course.objects.all()
+    serializer = CourseSerializer(courses, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+def course_detail_api(request, course_id):
+    course = get_object_or_404(Course, id=course_id)
+    serializer = CourseSerializer(course)
+    return Response(serializer.data)
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from .models import Lesson
+from .serializers import LessonSerializer
+from django.shortcuts import get_object_or_404
+
+@api_view(['GET'])
+def lesson_detail_api(request, lesson_id):
+    lesson = get_object_or_404(Lesson, id=lesson_id)
+    serializer = LessonSerializer(lesson)
+    # If this is an alphabet lesson, add alphabet_images to the response
+    if lesson.lesson_type == 'alphabet':
+        alphabet_images = {
+            'A': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756897998/media/movies/i4oczrducxr2t5qbrbfu.png',
+            'B': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898010/media/movies/i1fqxpcn3bldkw8ulsio.webp',
+            'C': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898005/media/movies/x3agqhuwtfagt68hanwd.png',
+            'D': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898011/media/movies/o7hrufhngj8f9hxsajsj.jpg',
+            'E': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898011/media/movies/s9ctpql1wycxwbsj4lpq.avif',
+            'F': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898027/media/movies/zbf0yrgo0zy9rqcfyn48.webp',
+            'G': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898018/media/movies/yi4fm9p514fad7rezunq.jpg',
+            'H': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898019/media/movies/tlkkyxbmxhbu6qzu7qfj.jpg',
+            'I': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898021/media/movies/wy537j26inkld2p6b5x2.png',
+            'J': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898023/media/movies/bh3vnwskzqulfnqckxam.avif',
+            'K': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898023/media/movies/cn28mvhevguscg0vjntf.png',
+            'L': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898025/media/movies/iuo7nebclrypfzqdcrsa.webp',
+            'M': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898025/media/movies/lpgdyr3vsirvaiw14vrc.jpg',
+            'N': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898000/media/movies/mpnm1aus5ya5tfh0pq36.avif',
+            'O': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898027/media/movies/mecsar9knhpbcc3mdllu.webp',
+            'P': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898030/media/movies/xzjqurvs0wljhrtshyfk.png',
+            'Q': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898033/media/movies/ntoskuxdsc5xylvehhxd.jpg',
+            'R': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898031/media/movies/skkshefanbml3rmqnsva.png',
+            'S': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898003/media/movies/bc6pvssiund7iqo9xnpv.jpg',
+            'T': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898035/media/movies/t8wetww5upa60dxjaw0c.jpg',
+            'U': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898044/media/movies/cuwl7lb0mc2o7dg6rqql.jpg',
+            'V': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898044/media/movies/eobgwabd9sc7bqctlkfz.avif',
+            'W': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898012/media/movies/yquxjntuydpmftb3yaqc.avif',
+            'X': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898040/media/movies/hh9rp22seid9kpdhp8pd.jpg',
+            'Y': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898013/media/movies/pxxebjccqxidetww4oke.jpg',
+            'Z': 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898014/media/movies/likwz6y1fn3jj3kxzbjw.jpg',
+        }
+        data = serializer.data
+        data['alphabet_images'] = alphabet_images
+        return Response(data)
+    return Response(serializer.data)
