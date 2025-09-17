@@ -25,3 +25,4 @@ django-rest-framework
 dj-database-url==2.2.0
 Pillow==10.4.0
 django-heroku==0.3.1
+django-cors-headers
