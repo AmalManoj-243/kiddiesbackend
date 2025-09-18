@@ -96,62 +96,71 @@
     class ModeSelectScreen extends Phaser.Scene {
         constructor() { super('ModeSelectScreen'); }
         preload() {
+            // Gameplay background image
+            this.load.image('gamebg', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1758232007/green-1846861_640_vkpojb.jpg');
             this.load.audio('bgmusic', 'https://res.cloudinary.com/djc3qirsl/video/upload/v1758154080/noncopyright-music-pianos-295174_yjqmrs.mp3');
         }
         create() {
-            this.cameras.main.setBackgroundColor('#ffe0b2');
+                // Combo system: track last slice time and combo count
+                this.lastSliceTime = 0;
+                this.comboCount = 0;
+                this.comboTimeout = 700; // ms window for combos
+                this.comboPopup = null;
+            this.cameras.main.setBackgroundColor('#222c36'); // dark blue background for professional look
             // Title
             this.add.text(gameWidth/2, gameHeight/2-140, 'Fruit Ninja', {
-                fontSize: '54px', fill: '#43a047', fontFamily: 'Fredoka One', stroke: '#fff', strokeThickness: 6, shadow: { offsetX: 2, offsetY: 2, color: '#ffe0b2', blur: 8, fill: true }
+                fontSize: '56px', fill: '#fff', fontFamily: 'Fredoka One', stroke: '#43a047', strokeThickness: 8,
+                shadow: { offsetX: 0, offsetY: 0, color: '#43a047', blur: 16, fill: true }
             }).setOrigin(0.5);
             // Subtitle
             this.add.text(gameWidth/2, gameHeight/2-80, 'Select Mode', {
-                fontSize: '36px', fill: '#e53935', fontFamily: 'Fredoka One', backgroundColor: '#fff8e1', padding: { left: 18, right: 18, top: 8, bottom: 8 }, borderRadius: 16, shadow: { offsetX: 1, offsetY: 1, color: '#ffe0b2', blur: 6, fill: true }
+                fontSize: '38px', fill: '#ffe082', fontFamily: 'Fredoka One', backgroundColor: '#263248', padding: { left: 22, right: 22, top: 10, bottom: 10 }, borderRadius: 18,
+                shadow: { offsetX: 0, offsetY: 0, color: '#43a047', blur: 10, fill: true }
             }).setOrigin(0.5);
 
             // Card backgrounds
             let cardY = gameHeight/2+10;
-            let cardSpacing = 120;
-            let cardWidth = 340;
-            let cardHeight = 80;
-            let cardRadius = 28;
+            let cardSpacing = 92; // increased spacing to move Multiplayer card down
+            let cardWidth = 220;
+            let cardHeight = 60;
+            let cardRadius = 18;
             // Single Player Card
             let singleCard = this.add.graphics();
-            singleCard.fillStyle(0xffffff, 1);
+            singleCard.fillStyle(0x43a047, 1); // green
             singleCard.fillRoundedRect(gameWidth/2-cardWidth/2, cardY-cardHeight/2, cardWidth, cardHeight, cardRadius);
-            singleCard.lineStyle(4, 0x43a047, 1);
+            singleCard.lineStyle(6, 0xffffff, 1);
             singleCard.strokeRoundedRect(gameWidth/2-cardWidth/2, cardY-cardHeight/2, cardWidth, cardHeight, cardRadius);
             // Multiplayer Card
             let multiCard = this.add.graphics();
-            multiCard.fillStyle(0xfff8e1, 1);
+            multiCard.fillStyle(0xe53935, 1); // red
             multiCard.fillRoundedRect(gameWidth/2-cardWidth/2, cardY+cardSpacing-cardHeight/2, cardWidth, cardHeight, cardRadius);
-            multiCard.lineStyle(4, 0xe53935, 1);
+            multiCard.lineStyle(6, 0xffffff, 1);
             multiCard.strokeRoundedRect(gameWidth/2-cardWidth/2, cardY+cardSpacing-cardHeight/2, cardWidth, cardHeight, cardRadius);
 
             // Single Player Icon & Button
-            let singleIcon = this.add.text(gameWidth/2-cardWidth/2+40, cardY, '👤', { fontSize: '44px' }).setOrigin(0.5);
-            let singleBtn = this.add.text(gameWidth/2, cardY, 'Single Player', {
-                fontSize: '32px', fill: '#43a047', fontFamily: 'Fredoka One', fontStyle: 'bold', backgroundColor: 'rgba(67,160,71,0.07)', padding: { left: 18, right: 18, top: 8, bottom: 8 }, borderRadius: 12
+            let singleIcon = this.add.text(gameWidth/2-cardWidth/2+32, cardY, '👤', { fontSize: '28px' }).setOrigin(0.5);
+            let singleBtn = this.add.text(gameWidth/2+14, cardY, 'Single Player', {
+                fontSize: '20px', fill: '#fff', fontFamily: 'Fredoka One', fontStyle: 'bold', backgroundColor: 'rgba(67,160,71,0.18)', padding: { left: 14, right: 14, top: 6, bottom: 6 }, borderRadius: 12
             }).setOrigin(0.5).setInteractive();
 
             // Multiplayer Icon & Button
-            let multiIcon = this.add.text(gameWidth/2-cardWidth/2+40, cardY+cardSpacing, '👥', { fontSize: '44px' }).setOrigin(0.5);
-            let multiBtn = this.add.text(gameWidth/2, cardY+cardSpacing, 'Multiplayer', {
-                fontSize: '32px', fill: '#e53935', fontFamily: 'Fredoka One', fontStyle: 'bold', backgroundColor: 'rgba(229,57,53,0.07)', padding: { left: 18, right: 18, top: 8, bottom: 8 }, borderRadius: 12
+            let multiIcon = this.add.text(gameWidth/2-cardWidth/2+32, cardY+cardSpacing, '👥', { fontSize: '28px' }).setOrigin(0.5);
+            let multiBtn = this.add.text(gameWidth/2+14, cardY+cardSpacing, 'Multiplayer', {
+                fontSize: '20px', fill: '#fff', fontFamily: 'Fredoka One', fontStyle: 'bold', backgroundColor: 'rgba(229,57,53,0.18)', padding: { left: 14, right: 14, top: 6, bottom: 6 }, borderRadius: 12
             }).setOrigin(0.5).setInteractive();
 
             // Hover/touch effects
-            singleBtn.on('pointerover', () => singleBtn.setStyle({ backgroundColor: '#43a047', fill: '#fff' }));
-            singleBtn.on('pointerout', () => singleBtn.setStyle({ backgroundColor: 'rgba(67,160,71,0.07)', fill: '#43a047' }));
+            singleBtn.on('pointerover', () => singleBtn.setStyle({ backgroundColor: '#388e3c', fill: '#ffe082' }));
+            singleBtn.on('pointerout', () => singleBtn.setStyle({ backgroundColor: 'rgba(67,160,71,0.18)', fill: '#fff' }));
             singleBtn.on('pointerdown', () => {
-                singleBtn.setStyle({ backgroundColor: '#388e3c', fill: '#fff' });
+                singleBtn.setStyle({ backgroundColor: '#43a047', fill: '#ffe082' });
                 this.bgmusic.stop();
                 this.scene.start('LoadScreen', { mode: 'single' });
             });
-            multiBtn.on('pointerover', () => multiBtn.setStyle({ backgroundColor: '#e53935', fill: '#fff' }));
-            multiBtn.on('pointerout', () => multiBtn.setStyle({ backgroundColor: 'rgba(229,57,53,0.07)', fill: '#e53935' }));
+            multiBtn.on('pointerover', () => multiBtn.setStyle({ backgroundColor: '#b71c1c', fill: '#ffe082' }));
+            multiBtn.on('pointerout', () => multiBtn.setStyle({ backgroundColor: 'rgba(229,57,53,0.18)', fill: '#fff' }));
             multiBtn.on('pointerdown', () => {
-                multiBtn.setStyle({ backgroundColor: '#b71c1c', fill: '#fff' });
+                multiBtn.setStyle({ backgroundColor: '#e53935', fill: '#ffe082' });
                 this.bgmusic.stop();
                 this.scene.start('LoadScreen', { mode: 'multi' });
             });
@@ -171,15 +180,28 @@
             this.add.text(gameWidth/2, gameHeight/2-80, 'Fruit Ninja', { fontSize: '44px', fill: '#43a047', fontFamily: 'Fredoka One' }).setOrigin(0.5);
             let modeText = data && data.mode === 'multi' ? 'Multiplayer' : 'Single Player';
             this.add.text(gameWidth/2, gameHeight/2-40, modeText, { fontSize: '28px', fill: '#e53935', fontFamily: 'Fredoka One' }).setOrigin(0.5);
-            let newGameBtn = this.add.text(gameWidth/2, gameHeight/2, 'New Game', { fontSize: '32px', fill: '#fff', backgroundColor:'#43a047', padding:{left:24,right:24,top:12,bottom:12}, borderRadius:16, fontFamily: 'Fredoka One' }).setOrigin(0.5).setInteractive();
-            let settingsBtn = this.add.text(gameWidth/2, gameHeight/2+70, 'Settings', { fontSize: '28px', fill: '#43a047', backgroundColor:'#fff8e1', padding:{left:20,right:20,top:10,bottom:10}, borderRadius:12, fontFamily: 'Fredoka One' }).setOrigin(0.5).setInteractive();
-            newGameBtn.on('pointerdown', () => {
-                this.scene.start('FruitNinjaScene');
-            });
-            settingsBtn.on('pointerdown', () => {
-                // You can add settings logic here
-                this.add.text(gameWidth/2, gameHeight/2+130, 'Settings coming soon!', { fontSize: '22px', fill: '#e53935', fontFamily: 'Fredoka One' }).setOrigin(0.5);
-            });
+                // New Game button
+                const newGameBtn = this.add.text(gameWidth/2, gameHeight/2 - 40, 'New Game', {
+                    fontSize: '28px', fill: '#fff', backgroundColor:'#43a047', padding:{left:24,right:24,top:12,bottom:12}, borderRadius:16, fontFamily: 'Fredoka One', fontStyle: 'bold'
+                }).setOrigin(0.5).setDepth(10).setInteractive();
+                newGameBtn.on('pointerdown', () => {
+                    this.scene.start('FruitNinjaScene', { mode: data.mode });
+                });
+                // Settings button
+                const settingsBtn = this.add.text(gameWidth/2, gameHeight/2 + 30, 'Settings', {
+                    fontSize: '22px', fill: '#43a047', backgroundColor:'#fff', padding:{left:18,right:18,top:8,bottom:8}, borderRadius:12, fontFamily: 'Fredoka One'
+                }).setOrigin(0.5).setDepth(10).setInteractive();
+                settingsBtn.on('pointerdown', () => {
+                    // Show settings modal (implement as needed)
+                    alert('Settings screen coming soon!');
+                });
+                // Back button
+                const backBtn = this.add.text(gameWidth/2, gameHeight/2 + 80, 'Back', {
+                    fontSize: '18px', fill: '#e53935', backgroundColor:'#fff', padding:{left:16,right:16,top:7,bottom:7}, borderRadius:10, fontFamily: 'Fredoka One'
+                }).setOrigin(0.5).setDepth(10).setInteractive();
+                backBtn.on('pointerdown', () => {
+                    this.scene.start('ModeSelectScreen');
+                });
         }
     }
 
@@ -187,182 +209,296 @@
         constructor() { super('FruitNinjaScene'); }
         preload() {
             this.load.image('tomato', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756351019/media/lessons/colors/apple_d3cva5.png');
+            // Bomb power-up image
+            this.load.image('bomb', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1758225397/bomb-2025548_640_lxzk53.webp');
             this.load.image('cauliflower', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898045/media/movies/tq3hsv7o44uxaluibd5w.png');
             this.load.image('carrot', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898005/media/movies/u7aewcl59arygvpdbgms.png');
             this.load.image('cabbage', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898003/media/movies/uj8zqz0qesasztebu5bk.png');
             this.load.image('apple', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756897997/media/movies/uno1akwgos6rkbtrlqx6.webp');
             this.load.image('banana', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756897909/media/movies/enfk0xfgmnqbq0ikioq2.png');
             this.load.image('orange', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898028/media/movies/eruzjgwp2ld4x85jgb5f.png'); // Use orange.png for orange
-            this.load.image('watermelon', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898045/media/movies/tq3hsv7o44uxaluibd5w.png');
+            this.load.image('watermelon', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1758232302/green-3152250_640_vyle3p.webp');
             this.load.image('strawberry', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898039/media/movies/oxsaqz8ym7fuixixbwof.png');
             this.load.image('grapes', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898018/media/movies/kfmehafohwbeswcldlun.png');
             this.load.image('radishh', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898036/media/movies/q4m2qktdn36nrdoibfgt.png');
             this.load.image('pumpkin', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898032/media/movies/v1jiixyvdsdqkxrgsopy.png');
+            // Power-up fruit image (+10 juice)
+            this.load.image('goldenapple', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1758231499/juice-25189_640_rejiqp.webp');
             this.load.audio('slice', 'https://res.cloudinary.com/djc3qirsl/video/upload/v1758153594/knife-slice-41231_qdwkue.mp3');
             this.load.audio('countdown', 'https://res.cloudinary.com/djc3qirsl/video/upload/v1758154694/robotic-countdown-43935_mzufpk.mp3');
         }
         create() {
-            // Points for each fruit type
-            this.fruitPoints = {
-                apple: 2,
-                banana: 1,
-                orange: 3,
-                watermelon: 5,
-                strawberry: 4,
-                grapes: 2,
-                radishh: 6,
-                pumpkin: 4,
-                cabbage: 3,
-                carrot: 2,
-                cauliflower: 3,
-                tomato: 2
-            };
-            this.fruitTypes = ['apple', 'banana', 'orange', 'watermelon', 'strawberry', 'grapes', 'radishh', 'pumpkin', 'cabbage', 'carrot', 'cauliflower', 'tomato'];
-            this.fruitSizes = {
-                apple: 62,
-                banana: 100,
-                orange: 96,
-                watermelon: 125,
-                strawberry: 115,
-                grapes: 104,
-                radishh: 150,
-                pumpkin: 100,
-                cabbage: 120,
-                carrot: 150,
-                cauliflower: 95,
-                tomato: 110
-            };
-            // Multiplayer: two players
-            this.score1 = 0;
-            this.score2 = 0;
-            this.missed1 = 0;
-            this.missed2 = 0;
-            this.gameOver = false;
-            this.cameras.main.setBackgroundColor('rgba(0,0,0,0)');
-            this.fruits = [];
-
-            // Hide UI until countdown finishes
-            // Add vertical divider for split-screen effect (landscape)
-            this.centerDivider = this.add.graphics();
-            this.centerDivider.lineStyle(4, 0xcccccc, 0.7);
-            this.centerDivider.beginPath();
-            this.centerDivider.moveTo(gameWidth/2, 0);
-            this.centerDivider.lineTo(gameWidth/2, gameHeight);
-            this.centerDivider.strokePath();
-            this.centerDivider.setVisible(false);
-            // Left: P1 Score (top left), P1 Missed (bottom left)
-            this.scoreText1 = this.add.text(16, 8, 'P1 Score: 0', {
-                fontSize: '20px', fill: '#43a047', fontFamily: 'Fredoka One', backgroundColor:'#fff8e1',
-                padding:{left:8,right:8,top:2,bottom:2}, borderRadius:8
-            }).setScrollFactor(0).setVisible(false);
-            this.missedText1 = this.add.text(16, gameHeight-36, 'P1 Missed: 0', {
-                fontSize: '18px', fill: '#e53935', fontFamily: 'Fredoka One', backgroundColor:'#fff8e1',
-                padding:{left:8,right:8,top:2,bottom:2}, borderRadius:8
-            }).setScrollFactor(0).setVisible(false);
-            // Right: P2 Score (top right), P2 Missed (bottom right)
-            this.scoreText2 = this.add.text(gameWidth-16, 8, 'P2 Score: 0', {
-                fontSize: '20px', fill: '#1565c0', fontFamily: 'Fredoka One', backgroundColor:'#fff8e1',
-                padding:{left:8,right:8,top:2,bottom:2}, borderRadius:8
-            }).setOrigin(1,0).setScrollFactor(0).setVisible(false);
-            this.missedText2 = this.add.text(gameWidth-16, gameHeight-36, 'P2 Missed: 0', {
-                fontSize: '18px', fill: '#e53935', fontFamily: 'Fredoka One', backgroundColor:'#fff8e1',
-                padding:{left:8,right:8,top:2,bottom:2}, borderRadius:8
-            }).setOrigin(1,1).setScrollFactor(0).setVisible(false);
-            // Timer in center top
-            this.timerText = this.add.text(gameWidth/2, 8, '', {
-                fontSize: '22px', fill: '#ff9800', fontFamily: 'Fredoka One', backgroundColor:'#fff8e1',
-                padding:{left:12,right:12,top:2,bottom:2}, borderRadius:8
-            }).setOrigin(0.5, 0).setVisible(false);
-
-            // Professional countdown animation with synced sound
-            const countdownNumbers = ['3', '2', '1', 'Go!'];
-            let countdownIndex = 0;
-            let countdownSound = this.sound.add('countdown');
-            countdownSound.play();
-            const showCountdown = () => {
-                let text = countdownNumbers[countdownIndex];
-                let color = text === 'Go!' ? '#43a047' : '#e53935';
-                let fontSize = text === 'Go!' ? '80px' : '72px';
-                let countdownText = this.add.text(gameWidth/2, gameHeight/2, text, {
-                    fontSize,
-                    fill: color,
-                    fontFamily: 'Fredoka One',
-                    backgroundColor: text === 'Go!' ? '#fff8e1' : 'rgba(0,0,0,0.1)',
-                    padding: { left: 32, right: 32, top: 16, bottom: 16 },
-                    borderRadius: 24,
-                    stroke: '#333',
-                    strokeThickness: 6
-                }).setOrigin(0.5);
-                this.tweens.add({
-                    targets: countdownText,
-                    scale: { from: 0.7, to: 1.2 },
-                    alpha: { from: 1, to: 0 },
-                    duration: 900,
-                    ease: 'Cubic.easeOut',
-                    onComplete: () => {
-                        countdownText.destroy();
-                        countdownIndex++;
-                        if (countdownIndex < countdownNumbers.length) {
-                            setTimeout(showCountdown, 100);
-                        } else {
-                            // Reveal UI and start game logic
-                            this.scoreText1.setVisible(true);
-                            this.missedText1.setVisible(true);
-                            this.scoreText2.setVisible(true);
-                            this.missedText2.setVisible(true);
-                            this.timerText.setVisible(true);
-                            this.centerDivider.setVisible(true);
-                            // Drop more fruits at a time for multiplayer challenge
-                            this.fruitTimer = this.time.addEvent({ delay: 900, callback: () => {
-                                // Drop 2-4 fruits per tick
-                                let numFruits = Phaser.Math.Between(2, 4);
-                                for (let i = 0; i < numFruits; i++) {
-                                    this.launchFruit();
+                // Points for each fruit type
+                this.fruitPoints = {
+                    apple: 2,
+                    banana: 1,
+                    orange: 3,
+                    watermelon: 5,
+                    strawberry: 4,
+                    grapes: 2,
+                    radishh: 6,
+                    pumpkin: 4,
+                    cabbage: 3,
+                    carrot: 2,
+                    cauliflower: 3,
+                    tomato: 2,
+                    goldenapple: 10, // Power-up fruit
+                    bomb: -5 // Bomb deducts points
+                };
+                this.fruitTypes = ['apple', 'banana', 'orange', 'watermelon', 'strawberry', 'grapes', 'radishh', 'pumpkin', 'cabbage', 'carrot', 'cauliflower', 'tomato', 'goldenapple', 'bomb'];
+                this.fruitSizes = {
+                    apple: 62,
+                    banana: 100,
+                    orange: 96,
+                    watermelon: 80,
+                    strawberry: 115,
+                    grapes: 104,
+                    radishh: 150,
+                    pumpkin: 100,
+                    cabbage: 120,
+                    carrot: 150,
+                    cauliflower: 95,
+                    tomato: 110,
+                    goldenapple: 70,
+                    bomb: 80
+                };
+            // Power-up fruit image (Golden Apple)
+            this.load.image('goldenapple', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1695111111/golden-apple.png');
+                this.gameOver = false;
+                // Add gameplay background image and send to back
+                const bg = this.add.image(gameWidth/2, gameHeight/2, 'gamebg').setOrigin(0.5).setDisplaySize(gameWidth, gameHeight);
+                bg.setDepth(-10);
+                this.cameras.main.setBackgroundColor('rgba(0,0,0,0)');
+                this.fruits = [];
+                // Detect mode: single or multi
+                this.mode = (this.scene.settings.data && this.scene.settings.data.mode) || 'single';
+                if (this.mode === 'multi') {
+                    // Multiplayer: two players
+                    this.score1 = 0;
+                    this.score2 = 0;
+                    this.missed1 = 0;
+                    this.missed2 = 0;
+                    // Hide UI until countdown finishes
+                    // Add vertical divider for split-screen effect (landscape)
+                    this.centerDivider = this.add.graphics();
+                    this.centerDivider.lineStyle(4, 0xcccccc, 0.7);
+                    this.centerDivider.beginPath();
+                    this.centerDivider.moveTo(gameWidth/2, 0);
+                    this.centerDivider.lineTo(gameWidth/2, gameHeight);
+                    this.centerDivider.strokePath();
+                    this.centerDivider.setVisible(false);
+                    // Left: P1 Score (top left), P1 Missed (bottom left)
+                    this.scoreText1 = this.add.text(16, 8, 'P1 Score: 0', {
+                        fontSize: '20px', fill: '#43a047', fontFamily: 'Fredoka One', backgroundColor:'#fff8e1',
+                        padding:{left:8,right:8,top:2,bottom:2}, borderRadius:8
+                    }).setScrollFactor(0).setVisible(false);
+                    this.missedText1 = this.add.text(16, gameHeight-36, 'P1 Missed: 0', {
+                        fontSize: '18px', fill: '#e53935', fontFamily: 'Fredoka One', backgroundColor:'#fff8e1',
+                        padding:{left:8,right:8,top:2,bottom:2}, borderRadius:8
+                    }).setScrollFactor(0).setVisible(false);
+                    // Right: P2 Score (top right), P2 Missed (bottom right)
+                    this.scoreText2 = this.add.text(gameWidth-16, 8, 'P2 Score: 0', {
+                        fontSize: '20px', fill: '#1565c0', fontFamily: 'Fredoka One', backgroundColor:'#fff8e1',
+                        padding:{left:8,right:8,top:2,bottom:2}, borderRadius:8
+                    }).setOrigin(1,0).setScrollFactor(0).setVisible(false);
+                    this.missedText2 = this.add.text(gameWidth-16, gameHeight-36, 'P2 Missed: 0', {
+                        fontSize: '18px', fill: '#e53935', fontFamily: 'Fredoka One', backgroundColor:'#fff8e1',
+                        padding:{left:8,right:8,top:2,bottom:2}, borderRadius:8
+                    }).setOrigin(1,1).setScrollFactor(0).setVisible(false);
+                    // Timer in center top
+                    this.timerText = this.add.text(gameWidth/2, 8, '', {
+                        fontSize: '22px', fill: '#ff9800', fontFamily: 'Fredoka One', backgroundColor:'#fff8e1',
+                        padding:{left:12,right:12,top:2,bottom:2}, borderRadius:8
+                    }).setOrigin(0.5, 0).setVisible(false);
+                    // Professional countdown animation with synced sound
+                    const countdownNumbers = ['3', '2', '1', 'Go!'];
+                    let countdownIndex = 0;
+                    let countdownSound = this.sound.add('countdown');
+                    countdownSound.play();
+                    const showCountdown = () => {
+                        let text = countdownNumbers[countdownIndex];
+                        let color = text === 'Go!' ? '#43a047' : '#e53935';
+                        let fontSize = text === 'Go!' ? '80px' : '72px';
+                        let countdownText = this.add.text(gameWidth/2, gameHeight/2, text, {
+                            fontSize,
+                            fill: color,
+                            fontFamily: 'Fredoka One',
+                            backgroundColor: text === 'Go!' ? '#fff8e1' : 'rgba(0,0,0,0.1)',
+                            padding: { left: 32, right: 32, top: 16, bottom: 16 },
+                            borderRadius: 24,
+                            stroke: '#333',
+                            strokeThickness: 6
+                        }).setOrigin(0.5);
+                        this.tweens.add({
+                            targets: countdownText,
+                            scale: { from: 0.7, to: 1.2 },
+                            alpha: { from: 1, to: 0 },
+                            duration: 900,
+                            ease: 'Cubic.easeOut',
+                            onComplete: () => {
+                                countdownText.destroy();
+                                countdownIndex++;
+                                if (countdownIndex < countdownNumbers.length) {
+                                    setTimeout(showCountdown, 100);
+                                } else {
+                                    // Reveal UI and start game logic
+                                    this.scoreText1.setVisible(true);
+                                    this.missedText1.setVisible(true);
+                                    this.scoreText2.setVisible(true);
+                                    this.missedText2.setVisible(true);
+                                    this.timerText.setVisible(true);
+                                    this.centerDivider.setVisible(true);
+                                    // Drop more fruits at a time for multiplayer challenge
+                                    this.fruitTimer = this.time.addEvent({ delay: 900, callback: () => {
+                                        // Drop 2-4 fruits per tick
+                                        let numFruits = Phaser.Math.Between(2, 4);
+                                        for (let i = 0; i < numFruits; i++) {
+                                            this.launchFruit();
+                                        }
+                                    }, callbackScope: this, loop: true });
+                                    // Enable slicing for both drag (pointermove) and tap/touch (pointerdown)
+                                    this.input.on('pointermove', this.sliceFruitsMultiplayer, this);
+                                    this.input.on('pointerdown', this.sliceFruitsMultiplayer, this);
+                                    this.timeoutDuration = 120; // seconds
+                                    this.timeLeft = this.timeoutDuration;
+                                    this.timerText.setText('Time: ' + this.timeLeft);
+                                    this.timeoutEvent = this.time.addEvent({ delay: 1000, callback: () => {
+                                        if (this.gameOver) return;
+                                        this.timeLeft--;
+                                        this.timerText.setText('Time: ' + this.timeLeft);
+                                        if (this.timeLeft <= 0) {
+                                            this.endGame(true);
+                                        }
+                                    }, callbackScope: this, loop: true });
                                 }
-                            }, callbackScope: this, loop: true });
-                            // Enable slicing for both drag (pointermove) and tap/touch (pointerdown)
-                            this.input.on('pointermove', this.sliceFruitsMultiplayer, this);
-                            this.input.on('pointerdown', this.sliceFruitsMultiplayer, this);
-                            this.timeoutDuration = 60; // seconds
-                            this.timeLeft = this.timeoutDuration;
-                            this.timerText.setText('Time: ' + this.timeLeft);
-                            this.timeoutEvent = this.time.addEvent({ delay: 1000, callback: () => {
-                                if (this.gameOver) return;
-                                this.timeLeft--;
-                                this.timerText.setText('Time: ' + this.timeLeft);
-                                if (this.timeLeft <= 0) {
-                                    this.endGame(true);
+                            }
+                        });
+                    };
+                    showCountdown();
+                } else {
+                    // Single player mode
+                    this.score = 0;
+                    this.missed = 0;
+                    // Score (top left) - minimal flat UI
+                    this.scoreText = this.add.text(16, 8, 'Score: 0', {
+                        fontSize: '24px', fill: '#fff', fontFamily: 'Fredoka One', backgroundColor:'rgba(67,160,71,0.10)',
+                        padding:{left:10,right:10,top:4,bottom:4},
+                        shadow: { offsetX: 0, offsetY: 1, color: '#fff', blur: 2, fill: true }
+                    }).setScrollFactor(0).setVisible(false);
+                    // Missed (top right) - minimal flat UI
+                    this.missedText = this.add.text(gameWidth-16, 8, 'Missed: 0', {
+                        fontSize: '22px', fill: '#e53935', fontFamily: 'Fredoka One', backgroundColor:'rgba(229,57,53,0.10)',
+                        padding:{left:10,right:10,top:4,bottom:4},
+                        shadow: { offsetX: 0, offsetY: 1, color: '#fff', blur: 2, fill: true }
+                    }).setOrigin(1,0).setScrollFactor(0).setVisible(false);
+                    // Timer in center top
+                    this.timerText = this.add.text(gameWidth/2, 8, '', {
+                        fontSize: '24px', fill: '#ff9800', fontFamily: 'Fredoka One', backgroundColor:'#fff8e1',
+                        padding:{left:14,right:14,top:4,bottom:4}, borderRadius:10
+                    }).setOrigin(0.5, 0).setVisible(false);
+                    // Professional countdown animation with synced sound
+                    const countdownNumbers = ['3', '2', '1', 'Go!'];
+                    let countdownIndex = 0;
+                    let countdownSound = this.sound.add('countdown');
+                    countdownSound.play();
+                    const showCountdown = () => {
+                        let text = countdownNumbers[countdownIndex];
+                        let color = text === 'Go!' ? '#43a047' : '#e53935';
+                        let fontSize = text === 'Go!' ? '80px' : '72px';
+                        let countdownText = this.add.text(gameWidth/2, gameHeight/2, text, {
+                            fontSize,
+                            fill: color,
+                            fontFamily: 'Fredoka One',
+                            backgroundColor: text === 'Go!' ? '#fff8e1' : 'rgba(0,0,0,0.1)',
+                            padding: { left: 32, right: 32, top: 16, bottom: 16 },
+                            borderRadius: 24,
+                            stroke: '#333',
+                            strokeThickness: 6
+                        }).setOrigin(0.5);
+                        this.tweens.add({
+                            targets: countdownText,
+                            scale: { from: 0.7, to: 1.2 },
+                            alpha: { from: 1, to: 0 },
+                            duration: 900,
+                            ease: 'Cubic.easeOut',
+                            onComplete: () => {
+                                countdownText.destroy();
+                                countdownIndex++;
+                                if (countdownIndex < countdownNumbers.length) {
+                                    setTimeout(showCountdown, 100);
+                                } else {
+                                    // Reveal UI and start game logic
+                                    this.scoreText.setVisible(true);
+                                    this.missedText.setVisible(true);
+                                    this.timerText.setVisible(true);
+                                    // Drop one fruit per tick
+                                    // Drop 2-3 fruits per tick for more action
+                                    this.fruitTimer = this.time.addEvent({ delay: 900, callback: () => {
+                                        let fruitsToLaunch = Phaser.Math.Between(2, 3);
+                                        for (let i = 0; i < fruitsToLaunch; i++) {
+                                            this.launchFruit();
+                                        }
+                                    }, callbackScope: this, loop: true });
+                                    // Enable slicing for both drag (pointermove) and tap/touch (pointerdown)
+                                    this.input.on('pointermove', this.sliceFruitsSingle, this);
+                                    this.input.on('pointerdown', this.sliceFruitsSingle, this);
+                                    this.timeoutDuration = 120; // seconds
+                                    this.timeLeft = this.timeoutDuration;
+                                    this.timerText.setText('Time: ' + this.timeLeft);
+                                    this.timeoutEvent = this.time.addEvent({ delay: 1000, callback: () => {
+                                        if (this.gameOver) return;
+                                        this.timeLeft--;
+                                        this.timerText.setText('Time: ' + this.timeLeft);
+                                        if (this.timeLeft <= 0) {
+                                            this.endGame(true);
+                                        }
+                                    }, callbackScope: this, loop: true });
                                 }
-                            }, callbackScope: this, loop: true });
-                        }
-                    }
-                });
-            };
-            showCountdown();
+                            }
+                        });
+                    };
+                    showCountdown();
+                }
         }
         launchFruit() {
             if (this.gameOver) return;
             let fruitType = Phaser.Utils.Array.GetRandom(this.fruitTypes);
             let size = this.fruitSizes[fruitType] || 44;
-            // Multiplayer fairness: spawn from top or bottom randomly
-            let spawnFromTop = Phaser.Math.Between(0, 1) === 0;
             let x = Phaser.Math.Between(60, gameWidth-60);
-            let y = spawnFromTop ? -40 : gameHeight + 40;
-            let fruit = this.add.image(x, y, fruitType).setOrigin(0.5).setDisplaySize(size, size);
-            this.physics.add.existing(fruit);
-            // Launch direction: if from top, go down; if from bottom, go up
-            let angle;
-            let speed = Phaser.Math.Between(420, 620);
-            if (spawnFromTop) {
-                // Downward angle
-                angle = Phaser.Math.FloatBetween(Math.PI/3, 2*Math.PI/3);
-                fruit.body.setGravityY(-500); // gravity pulls up, so fruit falls down
+            let fruit, y, angle, speed;
+            if (this.mode === 'multi') {
+                // Multiplayer: spawn from top or bottom randomly
+                let spawnFromTop = Phaser.Math.Between(0, 1) === 0;
+                y = spawnFromTop ? -40 : gameHeight + 40;
+                fruit = this.add.image(x, y, fruitType).setOrigin(0.5).setDisplaySize(size, size);
+                this.physics.add.existing(fruit);
+                speed = Phaser.Math.Between(420, 620);
+                if (spawnFromTop) {
+                    angle = Phaser.Math.FloatBetween(Math.PI/3, 2*Math.PI/3);
+                    fruit.body.setGravityY(-500);
+                } else {
+                    angle = Phaser.Math.FloatBetween(-Math.PI/3, -2*Math.PI/3);
+                    fruit.body.setGravityY(500);
+                }
+                fruit.body.setVelocity(Math.cos(angle)*speed, Math.sin(angle)*speed);
             } else {
-                // Upward angle
-                angle = Phaser.Math.FloatBetween(-Math.PI/3, -2*Math.PI/3);
-                fruit.body.setGravityY(500); // gravity pulls down, so fruit goes up
+                // Single player: randomly spawn from top or bottom
+                let spawnFromTop = Phaser.Math.Between(0, 1) === 0;
+                y = spawnFromTop ? -40 : gameHeight + 40;
+                fruit = this.add.image(x, y, fruitType).setOrigin(0.5).setDisplaySize(size, size);
+                this.physics.add.existing(fruit);
+                speed = Phaser.Math.Between(420, 620);
+                if (spawnFromTop) {
+                    // Downward angle
+                    angle = Phaser.Math.FloatBetween(Math.PI/3, 2*Math.PI/3);
+                    fruit.body.setGravityY(-500);
+                } else {
+                    // Upward angle
+                    angle = Phaser.Math.FloatBetween(-Math.PI/3, -2*Math.PI/3);
+                    fruit.body.setGravityY(500);
+                }
+                fruit.body.setVelocity(Math.cos(angle)*speed, Math.sin(angle)*speed);
             }
-            fruit.body.setVelocity(Math.cos(angle)*speed, Math.sin(angle)*speed);
             fruit.body.setCollideWorldBounds(false);
             fruit.sliced = false;
             fruit.fruitType = fruitType;
@@ -383,10 +519,10 @@
                     let points = this.fruitPoints[fruit.fruitType] || 1;
                     this[scoreKey] += points;
                     this[scoreTextKey].setText((isP1 ? 'P1' : 'P2') + ' Score: ' + this[scoreKey] + ' (+' + points + ')');
-
                     // Play slice sound
                     this.sound.play('slice');
-
+                        // Fruit splash animation
+                        this.showFruitSplash(fruit.x, fruit.y, fruit.fruitType);
                     // Popup showing points earned, with player indicator
                     const popup = this.add.text(fruit.x, fruit.y - 30, `${isP1 ? 'P1' : 'P2'} +${points}`, {
                         font: 'bold 32px Arial',
@@ -402,7 +538,6 @@
                         duration: 800,
                         onComplete: () => popup.destroy()
                     });
-
                     // Cutting effect: slash line
                     let slash = this.add.graphics();
                     slash.lineStyle(6, isP1 ? 0x43a047 : 0x1565c0, 0.8);
@@ -422,35 +557,329 @@
                 }
             }
         }
-        update() {
+        sliceFruitsSingle(pointer) {
             if (this.gameOver) return;
+            let now = this.time.now;
+            let comboWindow = this.comboTimeout || 700; // ms
+            if (!this.comboCount) this.comboCount = 0;
+            if (!this.lastSliceTime) this.lastSliceTime = 0;
+            let slicedThisTick = false;
+            let lastSlicedPointer = null;
             for (let i = this.fruits.length - 1; i >= 0; i--) {
                 let fruit = this.fruits[i];
-                if (fruit.y > gameHeight+40 && !fruit.sliced) {
-                    fruit.destroy();
-                    this.fruits.splice(i, 1);
-                    // Missed: assign to player based on fruit x position (left/right)
-                    if (fruit.x < gameWidth/2) {
-                        this.missed1 += 1;
-                        this.missedText1.setText('P1 Missed: ' + this.missed1);
+                if (!fruit.sliced && Phaser.Math.Distance.Between(pointer.x, pointer.y, fruit.x, fruit.y) < fruit.fruitSize/2) {
+                    fruit.sliced = true;
+                    let points = this.fruitPoints[fruit.fruitType] || 1;
+                    this.score += points;
+                    let scoreChangeText = points > 0 ? `+${points}` : `${points}`;
+                    this.scoreText.setText('Score: ' + this.score + ` (${scoreChangeText})`);
+                    // Play slice sound
+                    this.sound.play('slice');
+                        // Fruit splash animation
+                        this.showFruitSplash(fruit.x, fruit.y, fruit.fruitType);
+                    // Combo logic
+                    if (now - this.lastSliceTime < comboWindow) {
+                        this.comboCount++;
                     } else {
-                        this.missed2 += 1;
-                        this.missedText2.setText('P2 Missed: ' + this.missed2);
+                        // If combo streak ended, award bonus if 3+
+                        if (this.comboCount >= 3) {
+                            let comboBonus = this.comboCount * 2;
+                            this.score += comboBonus;
+                            this.scoreText.setText('Score: ' + this.score + ` (+${comboBonus} combo!)`);
+                            // Show combo popup at last sliced fruit
+                            if (this.comboPopup) this.comboPopup.destroy();
+                            this.comboPopup = this.add.text(pointer.x, pointer.y - 60, `Combo x${this.comboCount}! +${comboBonus}`, {
+                                font: 'bold 30px Arial',
+                                fill: '#00e676',
+                                stroke: '#333',
+                                strokeThickness: 4,
+                                backgroundColor: 'rgba(0,230,118,0.7)'
+                            }).setOrigin(0.5);
+                            this.tweens.add({
+                                targets: this.comboPopup,
+                                y: this.comboPopup.y - 40,
+                                alpha: 0,
+                                duration: 900,
+                                onComplete: () => { if (this.comboPopup) this.comboPopup.destroy(); this.comboPopup = null; }
+                            });
+                        }
+                        this.comboCount = 1;
                     }
-                    // No game over on missed fruits
+                    this.lastSliceTime = now;
+                    slicedThisTick = true;
+                    lastSlicedPointer = { x: pointer.x, y: pointer.y };
+                    // Power-up effect for golden apple
+                    if (fruit.fruitType === 'goldenapple') {
+                        // Show a special popup and effect
+                        const popup = this.add.text(fruit.x, fruit.y - 30, `+${points} pts`, {
+                            font: 'bold 32px Arial',
+                            fill: '#ffd600',
+                            stroke: '#333',
+                            strokeThickness: 4,
+                            backgroundColor: 'rgba(255,215,0,0.7)'
+                        }).setOrigin(0.5);
+                        this.tweens.add({
+                            targets: popup,
+                            scale: { from: 1, to: 1.4 },
+                            y: popup.y - 60,
+                            alpha: 0,
+                            duration: 1200,
+                            onComplete: () => popup.destroy()
+                        });
+                    } else if (fruit.fruitType === 'bomb') {
+                        // Bomb effect: show negative popup and screen shake
+                        const popup = this.add.text(fruit.x, fruit.y - 30, `Bomb! ${points}`, {
+                            font: 'bold 32px Arial',
+                            fill: '#e53935',
+                            stroke: '#333',
+                            strokeThickness: 4,
+                            backgroundColor: 'rgba(229,57,53,0.7)'
+                        }).setOrigin(0.5);
+                        this.tweens.add({
+                            targets: popup,
+                            scale: { from: 1, to: 1.3 },
+                            y: popup.y - 60,
+                            alpha: 0,
+                            duration: 1200,
+                            onComplete: () => popup.destroy()
+                        });
+                        // Screen shake effect
+                        this.cameras.main.shake(350, 0.012);
+                    } else {
+                        // Normal popup
+                        const popup = this.add.text(fruit.x, fruit.y - 30, scoreChangeText, {
+                            font: 'bold 32px Arial',
+                            fill: '#43a047',
+                            stroke: '#333',
+                            strokeThickness: 4,
+                            backgroundColor: 'rgba(0,0,0,0.4)'
+                        }).setOrigin(0.5);
+                        this.tweens.add({
+                            targets: popup,
+                            y: popup.y - 40,
+                            alpha: 0,
+                            duration: 800,
+                            onComplete: () => popup.destroy()
+                        });
+                    }
+                    // Cutting effect: slash line
+                    let slash = this.add.graphics();
+                    slash.lineStyle(6, 0x43a047, 0.8);
+                    slash.beginPath();
+                    slash.moveTo(pointer.x-30, pointer.y-30);
+                    slash.lineTo(pointer.x+30, pointer.y+30);
+                    slash.strokePath();
+                    this.tweens.add({ targets: slash, alpha: 0, duration: 350, onComplete: () => slash.destroy() });
+                    // Split fruit halves
+                    let halfSize = Math.round(fruit.fruitSize/2);
+                    let half1 = this.add.image(fruit.x-10, fruit.y, fruit.fruitType).setOrigin(0.5).setDisplaySize(halfSize, fruit.fruitSize).setAngle(-20);
+                    let half2 = this.add.image(fruit.x+10, fruit.y, fruit.fruitType).setOrigin(0.5).setDisplaySize(halfSize, fruit.fruitSize).setAngle(20);
+                    this.tweens.add({ targets: half1, x: half1.x-40, y: half1.y+40, alpha: 0, angle: -60, duration: 500, onComplete: () => half1.destroy() });
+                    this.tweens.add({ targets: half2, x: half2.x+40, y: half2.y+40, alpha: 0, angle: 60, duration: 500, onComplete: () => half2.destroy() });
+                    this.tweens.add({ targets: fruit, alpha: 0, duration: 200, onComplete: () => fruit.destroy() });
+                    this.fruits.splice(i, 1);
                 }
             }
+            // If no fruit was sliced this tick, check if combo streak ended
+            if (!slicedThisTick && this.comboCount >= 3 && now - this.lastSliceTime > comboWindow) {
+                let comboBonus = this.comboCount * 2;
+                this.score += comboBonus;
+                this.scoreText.setText('Score: ' + this.score + ` (+${comboBonus} combo!)`);
+                // Show combo popup at last sliced location
+                if (this.comboPopup) this.comboPopup.destroy();
+                let px = lastSlicedPointer ? lastSlicedPointer.x : gameWidth/2;
+                let py = lastSlicedPointer ? lastSlicedPointer.y - 60 : gameHeight/2 - 60;
+                this.comboPopup = this.add.text(px, py, `Combo x${this.comboCount}! +${comboBonus}`, {
+                    font: 'bold 30px Arial',
+                    fill: '#00e676',
+                    stroke: '#333',
+                    strokeThickness: 4,
+                    backgroundColor: 'rgba(0,230,118,0.7)'
+                }).setOrigin(0.5);
+                this.tweens.add({
+                    targets: this.comboPopup,
+                    y: py - 40,
+                    alpha: 0,
+                    duration: 900,
+                    onComplete: () => { if (this.comboPopup) this.comboPopup.destroy(); this.comboPopup = null; }
+                });
+                this.comboCount = 0;
+            }
         }
+        update() {
+            if (this.gameOver) return;
+            if (this.mode === 'multi') {
+                for (let i = this.fruits.length - 1; i >= 0; i--) {
+                    let fruit = this.fruits[i];
+                    if ((fruit.y > gameHeight+40 || fruit.y < -40) && !fruit.sliced) {
+                        fruit.destroy();
+                        this.fruits.splice(i, 1);
+                        // Missed: assign to player based on fruit x position (left/right)
+                        if (fruit.x < gameWidth/2) {
+                            this.missed1 += 1;
+                            this.missedText1.setText('P1 Missed: ' + this.missed1);
+                        } else {
+                            this.missed2 += 1;
+                            this.missedText2.setText('P2 Missed: ' + this.missed2);
+                        }
+                        // No game over on missed fruits
+                    }
+                }
+            } else {
+                    for (let i = this.fruits.length - 1; i >= 0; i--) {
+                        let fruit = this.fruits[i];
+                        // Missed if fruit goes out of top or bottom
+                        if ((fruit.y > gameHeight+40 || fruit.y < -40) && !fruit.sliced) {
+                            fruit.destroy();
+                            this.fruits.splice(i, 1);
+                            this.missed += 1;
+                            this.missedText.setText('Missed: ' + this.missed);
+                            // Reduce score by 2 for each missed fruit
+                            this.score = Math.max(0, this.score - 2);
+                            this.scoreText.setText('Score: ' + this.score);
+                            // Do not end game when missed reaches 5
+                        }
+                    }
+            }
+        }
+            // Animated fruit splash effect
+            showFruitSplash(x, y, fruitType) {
+                // Splash color by fruit type
+                const splashColors = {
+                    apple: 0xff1744,
+                    banana: 0xffeb3b,
+                    orange: 0xff9800,
+                    watermelon: 0x43a047,
+                    strawberry: 0xd50000,
+                    grapes: 0x7c4dff,
+                    radishh: 0xe57373,
+                    pumpkin: 0xffb300,
+                    cabbage: 0x8bc34a,
+                    carrot: 0xffa726,
+                    cauliflower: 0xf5f5f5,
+                    tomato: 0xe53935,
+                    goldenapple: 0xffd600,
+                    bomb: 0x212121
+                };
+                let color = splashColors[fruitType] || 0xffffff;
+                let splash = this.add.graphics();
+                splash.x = x;
+                splash.y = y;
+                splash.setDepth(9);
+                // Watermelon gets a bigger, more vibrant splash
+                if (fruitType === 'watermelon') {
+                    for (let i = 0; i < 14; i++) {
+                        let angle = Phaser.Math.FloatBetween(0, Math.PI * 2);
+                        let radius = Phaser.Math.Between(28, 54);
+                        let dx = Math.cos(angle) * radius;
+                        let dy = Math.sin(angle) * radius;
+                        splash.fillStyle(0x43a047, 0.7);
+                        splash.fillCircle(dx, dy, Phaser.Math.Between(14, 22));
+                    }
+                    // Add some red seeds
+                    for (let i = 0; i < 8; i++) {
+                        let angle = Phaser.Math.FloatBetween(0, Math.PI * 2);
+                        let radius = Phaser.Math.Between(18, 38);
+                        let dx = Math.cos(angle) * radius;
+                        let dy = Math.sin(angle) * radius;
+                        splash.fillStyle(0xd50000, 0.8);
+                        splash.fillCircle(dx, dy, Phaser.Math.Between(4, 7));
+                    }
+                    splash.x = x;
+                    splash.y = y;
+                    this.tweens.add({
+                        targets: splash,
+                        alpha: 0,
+                        scale: { from: 1, to: 1.7 },
+                        duration: 850,
+                        onComplete: () => splash.destroy()
+                    });
+                } else {
+                    // Default splash for other fruits
+                    for (let i = 0; i < 8; i++) {
+                        let angle = Phaser.Math.FloatBetween(0, Math.PI * 2);
+                        let radius = Phaser.Math.Between(18, 32);
+                        let dx = Math.cos(angle) * radius;
+                        let dy = Math.sin(angle) * radius;
+                        splash.fillStyle(color, 0.55);
+                        splash.fillCircle(dx, dy, Phaser.Math.Between(8, 16));
+                    }
+                    splash.x = x;
+                    splash.y = y;
+                    this.tweens.add({
+                        targets: splash,
+                        alpha: 0,
+                        scale: { from: 1, to: 1.5 },
+                        duration: 650,
+                        onComplete: () => splash.destroy()
+                    });
+                }
+            }
+
         endGame(timeout=false) {
             this.gameOver = true;
             this.fruitTimer.remove(false);
             if (this.timeoutEvent) this.timeoutEvent.remove(false);
-            let msg = timeout
-                ? `Time Up!\nP1 Score: ${this.score1}\nP2 Score: ${this.score2}`
-                : `Game Over!\nP1 Score: ${this.score1}\nP2 Score: ${this.score2}`;
-            this.add.text(gameWidth/2, gameHeight/2, msg, {
-                fontSize: Math.round(36*gameWidth/600), fill: '#e53935', fontFamily: 'Fredoka One', align: 'center', backgroundColor:'#fff8e1', padding:{left:16,right:16,top:8,bottom:8}, borderRadius:16
-            }).setOrigin(0.5);
+            // Dim background overlay with fade-in
+            const overlay = this.add.rectangle(gameWidth/2, gameHeight/2, gameWidth, gameHeight, 0x212121, 0.55).setDepth(99);
+            overlay.setAlpha(0);
+            this.tweens.add({ targets: overlay, alpha: 0.55, duration: 400, ease: 'Quad.Out' });
+            // Performance message
+            let perfMsg = '';
+            if (this.mode === 'multi') {
+                if (this.score1 > this.score2) perfMsg = 'Player 1 Wins!';
+                else if (this.score2 > this.score1) perfMsg = 'Player 2 Wins!';
+                else perfMsg = "It's a Tie!";
+            } else {
+                if (this.score >= 40) perfMsg = 'Amazing!';
+                else if (this.score >= 25) perfMsg = 'Great job!';
+                else if (this.score >= 10) perfMsg = 'Good effort!';
+                else perfMsg = 'Try again!';
+            }
+            // End screen panel with new background color and fade-in
+            const panelWidth = Math.min(420, gameWidth*0.8);
+            const panelHeight = 320;
+            // New color: soft blue (#e3f2fd)
+            const panel = this.add.rectangle(gameWidth/2, gameHeight/2, panelWidth, panelHeight, 0xe3f2fd, 0.98)
+                .setStrokeStyle(4, 0x43a047)
+                .setDepth(100)
+                .setOrigin(0.5);
+            panel.setAlpha(0);
+            panel.setScale(0.7);
+            this.tweens.add({ targets: panel, alpha: 1, scale: 1, duration: 400, ease: 'Back.Out' });
+            // Title
+            this.add.text(gameWidth/2, gameHeight/2 - 90, timeout ? 'Time Up!' : 'Game Over!', {
+                fontSize: '38px', fill: '#e53935', fontFamily: 'Fredoka One', fontStyle: 'bold', align: 'center', backgroundColor: 'rgba(0,0,0,0)',
+                stroke: '#fff', strokeThickness: 3
+            }).setOrigin(0.5).setDepth(101);
+            // Performance message
+            this.add.text(gameWidth/2, gameHeight/2 - 50, perfMsg, {
+                fontSize: '28px', fill: '#43a047', fontFamily: 'Fredoka One', fontStyle: 'bold', align: 'center', backgroundColor: 'rgba(0,0,0,0)'
+            }).setOrigin(0.5).setDepth(101);
+            // Score details
+            let scoreMsg;
+            if (this.mode === 'multi') {
+                scoreMsg = `P1 Score: ${this.score1}\nP2 Score: ${this.score2}`;
+            } else {
+                scoreMsg = `Score: ${this.score}\nMissed: ${this.missed}`;
+            }
+            this.add.text(gameWidth/2, gameHeight/2 + 2, scoreMsg, {
+                fontSize: '26px', fill: '#e53935', fontFamily: 'Fredoka One', align: 'center', backgroundColor: 'rgba(0,0,0,0)'
+            }).setOrigin(0.5).setDepth(101);
+            // Play Again button (smaller)
+            const playAgainBtn = this.add.text(gameWidth/2, gameHeight/2 + 70, 'Play Again', {
+                fontSize: '20px', fill: '#fff', backgroundColor:'#43a047', padding:{left:18,right:18,top:8,bottom:8}, borderRadius:12, fontFamily: 'Fredoka One', fontStyle: 'bold'
+            }).setOrigin(0.5).setDepth(101).setInteractive();
+            playAgainBtn.on('pointerdown', () => {
+                this.scene.restart({ mode: this.mode });
+            });
+            // Back button (smaller)
+            const backBtn = this.add.text(gameWidth/2, gameHeight/2 + 110, 'Back', {
+                fontSize: '16px', fill: '#e53935', backgroundColor:'#fff', padding:{left:14,right:14,top:6,bottom:6}, borderRadius:8, fontFamily: 'Fredoka One'
+            }).setOrigin(0.5).setDepth(101).setInteractive();
+            backBtn.on('pointerdown', () => {
+                this.scene.start('LoadScreen', { mode: this.mode === 'multi' ? 'Multiplayer' : 'Single Player' });
+            });
         }
     }
     window.game = new Phaser.Game({
