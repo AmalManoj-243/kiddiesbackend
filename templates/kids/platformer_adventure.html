@@ -109,15 +109,6 @@
                 fontSize: '36px', fill: '#e53935', fontFamily: 'Fredoka One', backgroundColor: '#fff8e1', padding: { left: 18, right: 18, top: 8, bottom: 8 }, borderRadius: 16, shadow: { offsetX: 1, offsetY: 1, color: '#ffe0b2', blur: 6, fill: true }
             }).setOrigin(0.5);
 
-            // Home button (top right)
-            const homeBtn = this.add.text(gameWidth-32, 24, 'Home', {
-                fontSize: '22px', fill: '#fff', backgroundColor: '#e53935', padding: { left: 18, right: 18, top: 8, bottom: 8 }, borderRadius: 12, fontFamily: 'Fredoka One', shadow: { offsetX: 1, offsetY: 1, color: '#e53935', blur: 6, fill: true }
-            }).setOrigin(1,0).setInteractive();
-            homeBtn.setDepth(10);
-            homeBtn.on('pointerdown', () => {
-                window.location.href = '/';
-            });
-
             // Card backgrounds
             let cardY = gameHeight/2+10;
             let cardSpacing = 120;
@@ -253,53 +244,40 @@
             // Hide UI until countdown finishes
             // Add vertical divider for split-screen effect (landscape)
             this.centerDivider = this.add.graphics();
-            this.centerDivider.lineStyle(6, 0xcccccc, 0.8);
+            this.centerDivider.lineStyle(4, 0xcccccc, 0.7);
             this.centerDivider.beginPath();
             this.centerDivider.moveTo(gameWidth/2, 0);
             this.centerDivider.lineTo(gameWidth/2, gameHeight);
             this.centerDivider.strokePath();
             this.centerDivider.setVisible(false);
-            // Player labels at top
-            this.p1Label = this.add.text(gameWidth/4, 4, 'PLAYER 1', {
-                fontSize: '18px', fill: '#43a047', fontFamily: 'Fredoka One', backgroundColor:'#fff8e1',
-                padding:{left:10,right:10,top:2,bottom:2}, borderRadius:8
-            }).setOrigin(0.5,0).setScrollFactor(0).setVisible(false);
-            this.p2Label = this.add.text(gameWidth*3/4, 4, 'PLAYER 2', {
-                fontSize: '18px', fill: '#1565c0', fontFamily: 'Fredoka One', backgroundColor:'#fff8e1',
-                padding:{left:10,right:10,top:2,bottom:2}, borderRadius:8
-            }).setOrigin(0.5,0).setScrollFactor(0).setVisible(false);
             // Left: P1 Score (top left), P1 Missed (bottom left)
-            this.scoreText1 = this.add.text(16, 32, 'Score: 0', {
-                fontSize: '22px', fill: '#43a047', fontFamily: 'Fredoka One', backgroundColor:'#fff8e1',
-                padding:{left:10,right:10,top:2,bottom:2}, borderRadius:8
+            this.scoreText1 = this.add.text(16, 8, 'P1 Score: 0', {
+                fontSize: '20px', fill: '#43a047', fontFamily: 'Fredoka One', backgroundColor:'#fff8e1',
+                padding:{left:8,right:8,top:2,bottom:2}, borderRadius:8
             }).setScrollFactor(0).setVisible(false);
-            this.missedText1 = this.add.text(16, gameHeight-48, 'Missed: 0', {
-                fontSize: '20px', fill: '#e53935', fontFamily: 'Fredoka One', backgroundColor:'#fff8e1',
-                padding:{left:10,right:10,top:2,bottom:2}, borderRadius:8
+            this.missedText1 = this.add.text(16, gameHeight-36, 'P1 Missed: 0', {
+                fontSize: '18px', fill: '#e53935', fontFamily: 'Fredoka One', backgroundColor:'#fff8e1',
+                padding:{left:8,right:8,top:2,bottom:2}, borderRadius:8
             }).setScrollFactor(0).setVisible(false);
             // Right: P2 Score (top right), P2 Missed (bottom right)
-            this.scoreText2 = this.add.text(gameWidth-16, 32, 'Score: 0', {
-                fontSize: '22px', fill: '#1565c0', fontFamily: 'Fredoka One', backgroundColor:'#fff8e1',
-                padding:{left:10,right:10,top:2,bottom:2}, borderRadius:8
+            this.scoreText2 = this.add.text(gameWidth-16, 8, 'P2 Score: 0', {
+                fontSize: '20px', fill: '#1565c0', fontFamily: 'Fredoka One', backgroundColor:'#fff8e1',
+                padding:{left:8,right:8,top:2,bottom:2}, borderRadius:8
             }).setOrigin(1,0).setScrollFactor(0).setVisible(false);
-            this.missedText2 = this.add.text(gameWidth-16, gameHeight-48, 'Missed: 0', {
-                fontSize: '20px', fill: '#e53935', fontFamily: 'Fredoka One', backgroundColor:'#fff8e1',
-                padding:{left:10,right:10,top:2,bottom:2}, borderRadius:8
+            this.missedText2 = this.add.text(gameWidth-16, gameHeight-36, 'P2 Missed: 0', {
+                fontSize: '18px', fill: '#e53935', fontFamily: 'Fredoka One', backgroundColor:'#fff8e1',
+                padding:{left:8,right:8,top:2,bottom:2}, borderRadius:8
             }).setOrigin(1,1).setScrollFactor(0).setVisible(false);
             // Timer in center top
             this.timerText = this.add.text(gameWidth/2, 8, '', {
-                fontSize: '24px', fill: '#ff9800', fontFamily: 'Fredoka One', backgroundColor:'#fff8e1',
-                padding:{left:14,right:14,top:2,bottom:2}, borderRadius:8
+                fontSize: '22px', fill: '#ff9800', fontFamily: 'Fredoka One', backgroundColor:'#fff8e1',
+                padding:{left:12,right:12,top:2,bottom:2}, borderRadius:8
             }).setOrigin(0.5, 0).setVisible(false);
 
-            // Home button (top right)
-            const homeBtn = this.add.text(gameWidth-32, 24, 'Home', {
-                fontSize: '22px', fill: '#fff', backgroundColor: '#e53935', padding: { left: 18, right: 18, top: 8, bottom: 8 }, borderRadius: 12, fontFamily: 'Fredoka One', shadow: { offsetX: 1, offsetY: 1, color: '#e53935', blur: 6, fill: true }
-            }).setOrigin(1,0).setInteractive();
-            homeBtn.setDepth(10);
-            homeBtn.on('pointerdown', () => {
-                window.location.href = '/kids/home/';
-            });
+            // Professional countdown animation with synced sound
+            const countdownNumbers = ['3', '2', '1', 'Go!'];
+            let countdownIndex = 0;
+            let countdownSound = this.sound.add('countdown');
             countdownSound.play();
             const showCountdown = () => {
                 let text = countdownNumbers[countdownIndex];
@@ -467,52 +445,33 @@
             this.gameOver = true;
             this.fruitTimer.remove(false);
             if (this.timeoutEvent) this.timeoutEvent.remove(false);
-            // Hide all gameplay elements
-            this.children.each(child => {
-                if (child !== this.cameras.main) {
-                    child.setVisible(false);
-                }
-            });
-            // End game overlay
-            const overlay = this.add.graphics();
-            overlay.fillStyle(0x212121, 0.92);
-            overlay.fillRect(0, 0, gameWidth, gameHeight);
-            overlay.setDepth(100);
-            // Card
-            const card = this.add.graphics();
-            card.fillStyle(0xffffff, 1);
-            card.fillRoundedRect(gameWidth/2-240, gameHeight/2-180, 480, 360, 40);
-            card.setDepth(101);
-            // Title
-            const title = this.add.text(gameWidth/2, gameHeight/2-120, timeout ? 'Time Up!' : 'Game Over!', {
-                fontSize: '54px', fill: '#e53935', fontFamily: 'Fredoka One', fontWeight: 'bold', align: 'center', backgroundColor:'#fff8e1', padding:{left:24,right:24,top:12,bottom:12}, borderRadius:24, shadow: { offsetX: 2, offsetY: 2, color: '#ffe0b2', blur: 8, fill: true }
+            // End game details
+            let msg = timeout
+                ? `Time Up!\nP1 Score: ${this.score1}\nP2 Score: ${this.score2}`
+                : `Game Over!\nP1 Score: ${this.score1}\nP2 Score: ${this.score2}`;
+            const endBg = this.add.graphics();
+            endBg.fillStyle(0xffffff, 0.95);
+            endBg.fillRoundedRect(gameWidth/2-220, gameHeight/2-140, 440, 320, 32);
+            endBg.setDepth(10);
+            const endText = this.add.text(gameWidth/2, gameHeight/2-60, msg, {
+                fontSize: Math.round(36*gameWidth/600), fill: '#e53935', fontFamily: 'Fredoka One', align: 'center', backgroundColor:'#fff8e1', padding:{left:16,right:16,top:8,bottom:8}, borderRadius:16
             }).setOrigin(0.5);
-            title.setDepth(102);
-            // Scores
-            const scoreText = this.add.text(gameWidth/2, gameHeight/2-40, `P1 Score: ${this.score1}\nP2 Score: ${this.score2}`, {
-                fontSize: '32px', fill: '#43a047', fontFamily: 'Fredoka One', align: 'center', backgroundColor:'#fff8e1', padding:{left:18,right:18,top:8,bottom:8}, borderRadius:16
-            }).setOrigin(0.5);
-            scoreText.setDepth(102);
-            // Missed
-            const missedText = this.add.text(gameWidth/2, gameHeight/2+30, `P1 Missed: ${this.missed1}\nP2 Missed: ${this.missed2}`, {
-                fontSize: '24px', fill: '#e53935', fontFamily: 'Fredoka One', align: 'center', backgroundColor:'#fff8e1', padding:{left:12,right:12,top:6,bottom:6}, borderRadius:12
-            }).setOrigin(0.5);
-            missedText.setDepth(102);
+            endText.setDepth(11);
             // Restart button
-            const restartBtn = this.add.text(gameWidth/2, gameHeight/2+90, 'Restart', {
-                fontSize: '28px', fill: '#fff', backgroundColor: '#43a047', padding: { left: 32, right: 32, top: 12, bottom: 12 }, borderRadius: 16, fontFamily: 'Fredoka One', shadow: { offsetX: 1, offsetY: 1, color: '#43a047', blur: 6, fill: true }
+            const restartBtn = this.add.text(gameWidth/2, gameHeight/2+40, 'Restart', {
+                fontSize: '28px', fill: '#fff', backgroundColor: '#43a047', padding: { left: 32, right: 32, top: 12, bottom: 12 }, borderRadius: 16, fontFamily: 'Fredoka One'
             }).setOrigin(0.5).setInteractive();
-            restartBtn.setDepth(103);
+            restartBtn.setDepth(11);
             restartBtn.on('pointerdown', () => {
                 this.scene.restart();
             });
-            // Back button (returns to mode select screen)
-            const backBtn = this.add.text(gameWidth/2, gameHeight/2+150, 'Back', {
-                fontSize: '28px', fill: '#fff', backgroundColor: '#e53935', padding: { left: 32, right: 32, top: 12, bottom: 12 }, borderRadius: 16, fontFamily: 'Fredoka One', shadow: { offsetX: 1, offsetY: 1, color: '#e53935', blur: 6, fill: true }
+            // Home button
+            const homeBtn = this.add.text(gameWidth/2, gameHeight/2+100, 'Home', {
+                fontSize: '28px', fill: '#fff', backgroundColor: '#e53935', padding: { left: 32, right: 32, top: 12, bottom: 12 }, borderRadius: 16, fontFamily: 'Fredoka One'
             }).setOrigin(0.5).setInteractive();
-            backBtn.setDepth(103);
-            backBtn.on('pointerdown', () => {
-                this.scene.start('ModeSelectScreen');
+            homeBtn.setDepth(11);
+            homeBtn.on('pointerdown', () => {
+                window.location.href = '/kids/home/';
             });
         }
     }
