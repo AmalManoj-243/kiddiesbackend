@@ -445,34 +445,12 @@
             this.gameOver = true;
             this.fruitTimer.remove(false);
             if (this.timeoutEvent) this.timeoutEvent.remove(false);
-            // End game details
             let msg = timeout
                 ? `Time Up!\nP1 Score: ${this.score1}\nP2 Score: ${this.score2}`
                 : `Game Over!\nP1 Score: ${this.score1}\nP2 Score: ${this.score2}`;
-            const endBg = this.add.graphics();
-            endBg.fillStyle(0xffffff, 0.95);
-            endBg.fillRoundedRect(gameWidth/2-220, gameHeight/2-140, 440, 320, 32);
-            endBg.setDepth(10);
-            const endText = this.add.text(gameWidth/2, gameHeight/2-60, msg, {
+            this.add.text(gameWidth/2, gameHeight/2, msg, {
                 fontSize: Math.round(36*gameWidth/600), fill: '#e53935', fontFamily: 'Fredoka One', align: 'center', backgroundColor:'#fff8e1', padding:{left:16,right:16,top:8,bottom:8}, borderRadius:16
             }).setOrigin(0.5);
-            endText.setDepth(11);
-            // Restart button
-            const restartBtn = this.add.text(gameWidth/2, gameHeight/2+40, 'Restart', {
-                fontSize: '28px', fill: '#fff', backgroundColor: '#43a047', padding: { left: 32, right: 32, top: 12, bottom: 12 }, borderRadius: 16, fontFamily: 'Fredoka One'
-            }).setOrigin(0.5).setInteractive();
-            restartBtn.setDepth(11);
-            restartBtn.on('pointerdown', () => {
-                this.scene.restart();
-            });
-            // Home button
-            const homeBtn = this.add.text(gameWidth/2, gameHeight/2+100, 'Home', {
-                fontSize: '28px', fill: '#fff', backgroundColor: '#e53935', padding: { left: 32, right: 32, top: 12, bottom: 12 }, borderRadius: 16, fontFamily: 'Fredoka One'
-            }).setOrigin(0.5).setInteractive();
-            homeBtn.setDepth(11);
-            homeBtn.on('pointerdown', () => {
-                window.location.href = '/kids/home/';
-            });
         }
     }
     window.game = new Phaser.Game({
