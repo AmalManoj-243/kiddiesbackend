@@ -620,6 +620,7 @@ document.head.appendChild(tiltStyle);
             isNight = !isNight;
             if (isNight) {
                 document.body.style.background = 'linear-gradient(135deg, #181e36 0%, #232946 100%)';
+                document.body.offsetHeight; // Force repaint for WebView
                 starBg.style.display = 'block';
                 starBg.innerHTML = '';
                 // Add stars
@@ -638,6 +639,7 @@ document.head.appendChild(tiltStyle);
                 nightBtn.textContent = '☀️';
             } else {
                 document.body.style.background = 'linear-gradient(135deg, #f9d423 0%, #ff4e50 100%)';
+                document.body.offsetHeight; // Force repaint for WebView
                 starBg.style.display = 'none';
                 nightBtn.textContent = '🌙';
             }

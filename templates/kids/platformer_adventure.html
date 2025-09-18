@@ -25,8 +25,65 @@
     </div>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.js"></script>
     <script>
-    let gameWidth = window.innerWidth;
-    let gameHeight = window.innerHeight;
+
+    function getLandscapeDimensions() {
+        let w = window.innerWidth;
+        let h = window.innerHeight;
+        if (h > w) {
+            // Swap to force landscape
+            [w, h] = [h, w];
+        }
+        return { width: w, height: h };
+    }
+    let { width: gameWidth, height: gameHeight } = getLandscapeDimensions();
+
+    // Overlay for portrait mode
+    function showRotateOverlay() {
+        let overlay = document.getElementById('rotate-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'rotate-overlay';
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100vw';
+            overlay.style.height = '100vh';
+            overlay.style.background = 'rgba(255,235,59,0.95)';
+            overlay.style.zIndex = '9999';
+            overlay.style.display = 'flex';
+            overlay.style.flexDirection = 'column';
+            overlay.style.justifyContent = 'center';
+            overlay.style.alignItems = 'center';
+            overlay.innerHTML = '<div style="font-size:2.2rem;color:#e53935;font-family:Fredoka One, cursive;background:#fff8e1;padding:32px 48px;border-radius:32px;box-shadow:0 4px 24px #e5393533;">Please rotate your device to landscape mode to play Fruit Ninja!</div>';
+            document.body.appendChild(overlay);
+        }
+        overlay.style.display = 'flex';
+    }
+    function hideRotateOverlay() {
+        let overlay = document.getElementById('rotate-overlay');
+        if (overlay) overlay.style.display = 'none';
+    }
+
+    // Responsive resize for full screen and landscape enforcement
+    window.addEventListener('resize', () => {
+        let dims = getLandscapeDimensions();
+        gameWidth = dims.width;
+        gameHeight = dims.height;
+        if (window.game && window.game.scale) {
+            window.game.scale.resize(gameWidth, gameHeight);
+        }
+        // Show overlay if portrait
+        if (window.innerHeight > window.innerWidth) {
+            showRotateOverlay();
+        } else {
+            hideRotateOverlay();
+        }
+    });
+
+    // Initial overlay check
+    if (window.innerHeight > window.innerWidth) {
+        showRotateOverlay();
+    }
 
     // Responsive resize for full screen
     window.addEventListener('resize', () => {
@@ -36,21 +93,113 @@
             window.game.scale.resize(gameWidth, gameHeight);
         }
     });
+    class ModeSelectScreen extends Phaser.Scene {
+        constructor() { super('ModeSelectScreen'); }
+        preload() {
+            this.load.audio('bgmusic', 'https://res.cloudinary.com/djc3qirsl/video/upload/v1758154080/noncopyright-music-pianos-295174_yjqmrs.mp3');
+        }
+        create() {
+            this.cameras.main.setBackgroundColor('#ffe0b2');
+            // Title
+            this.add.text(gameWidth/2, gameHeight/2-140, 'Fruit Ninja', {
+                fontSize: '54px', fill: '#43a047', fontFamily: 'Fredoka One', stroke: '#fff', strokeThickness: 6, shadow: { offsetX: 2, offsetY: 2, color: '#ffe0b2', blur: 8, fill: true }
+            }).setOrigin(0.5);
+            // Subtitle
+            this.add.text(gameWidth/2, gameHeight/2-80, 'Select Mode', {
+                fontSize: '36px', fill: '#e53935', fontFamily: 'Fredoka One', backgroundColor: '#fff8e1', padding: { left: 18, right: 18, top: 8, bottom: 8 }, borderRadius: 16, shadow: { offsetX: 1, offsetY: 1, color: '#ffe0b2', blur: 6, fill: true }
+            }).setOrigin(0.5);
+
+            // Card backgrounds
+            let cardY = gameHeight/2+10;
+            let cardSpacing = 120;
+            let cardWidth = 340;
+            let cardHeight = 80;
+            let cardRadius = 28;
+            // Single Player Card
+            let singleCard = this.add.graphics();
+            singleCard.fillStyle(0xffffff, 1);
+            singleCard.fillRoundedRect(gameWidth/2-cardWidth/2, cardY-cardHeight/2, cardWidth, cardHeight, cardRadius);
+            singleCard.lineStyle(4, 0x43a047, 1);
+            singleCard.strokeRoundedRect(gameWidth/2-cardWidth/2, cardY-cardHeight/2, cardWidth, cardHeight, cardRadius);
+            // Multiplayer Card
+            let multiCard = this.add.graphics();
+            multiCard.fillStyle(0xfff8e1, 1);
+            multiCard.fillRoundedRect(gameWidth/2-cardWidth/2, cardY+cardSpacing-cardHeight/2, cardWidth, cardHeight, cardRadius);
+            multiCard.lineStyle(4, 0xe53935, 1);
+            multiCard.strokeRoundedRect(gameWidth/2-cardWidth/2, cardY+cardSpacing-cardHeight/2, cardWidth, cardHeight, cardRadius);
+
+            // Single Player Icon & Button
+            let singleIcon = this.add.text(gameWidth/2-cardWidth/2+40, cardY, '👤', { fontSize: '44px' }).setOrigin(0.5);
+            let singleBtn = this.add.text(gameWidth/2, cardY, 'Single Player', {
+                fontSize: '32px', fill: '#43a047', fontFamily: 'Fredoka One', fontStyle: 'bold', backgroundColor: 'rgba(67,160,71,0.07)', padding: { left: 18, right: 18, top: 8, bottom: 8 }, borderRadius: 12
+            }).setOrigin(0.5).setInteractive();
+
+            // Multiplayer Icon & Button
+            let multiIcon = this.add.text(gameWidth/2-cardWidth/2+40, cardY+cardSpacing, '👥', { fontSize: '44px' }).setOrigin(0.5);
+            let multiBtn = this.add.text(gameWidth/2, cardY+cardSpacing, 'Multiplayer', {
+                fontSize: '32px', fill: '#e53935', fontFamily: 'Fredoka One', fontStyle: 'bold', backgroundColor: 'rgba(229,57,53,0.07)', padding: { left: 18, right: 18, top: 8, bottom: 8 }, borderRadius: 12
+            }).setOrigin(0.5).setInteractive();
+
+            // Hover/touch effects
+            singleBtn.on('pointerover', () => singleBtn.setStyle({ backgroundColor: '#43a047', fill: '#fff' }));
+            singleBtn.on('pointerout', () => singleBtn.setStyle({ backgroundColor: 'rgba(67,160,71,0.07)', fill: '#43a047' }));
+            singleBtn.on('pointerdown', () => {
+                singleBtn.setStyle({ backgroundColor: '#388e3c', fill: '#fff' });
+                this.bgmusic.stop();
+                this.scene.start('LoadScreen', { mode: 'single' });
+            });
+            multiBtn.on('pointerover', () => multiBtn.setStyle({ backgroundColor: '#e53935', fill: '#fff' }));
+            multiBtn.on('pointerout', () => multiBtn.setStyle({ backgroundColor: 'rgba(229,57,53,0.07)', fill: '#e53935' }));
+            multiBtn.on('pointerdown', () => {
+                multiBtn.setStyle({ backgroundColor: '#b71c1c', fill: '#fff' });
+                this.bgmusic.stop();
+                this.scene.start('LoadScreen', { mode: 'multi' });
+            });
+
+            this.bgmusic = this.sound.add('bgmusic', { loop: true, volume: 0.45 });
+            this.bgmusic.play();
+        }
+    }
+
+    class LoadScreen extends Phaser.Scene {
+        constructor() { super('LoadScreen'); }
+        preload() {
+            // No need to reload bgmusic
+        }
+        create(data) {
+            this.cameras.main.setBackgroundColor('#ffe0b2');
+            this.add.text(gameWidth/2, gameHeight/2-80, 'Fruit Ninja', { fontSize: '44px', fill: '#43a047', fontFamily: 'Fredoka One' }).setOrigin(0.5);
+            let modeText = data && data.mode === 'multi' ? 'Multiplayer' : 'Single Player';
+            this.add.text(gameWidth/2, gameHeight/2-40, modeText, { fontSize: '28px', fill: '#e53935', fontFamily: 'Fredoka One' }).setOrigin(0.5);
+            let newGameBtn = this.add.text(gameWidth/2, gameHeight/2, 'New Game', { fontSize: '32px', fill: '#fff', backgroundColor:'#43a047', padding:{left:24,right:24,top:12,bottom:12}, borderRadius:16, fontFamily: 'Fredoka One' }).setOrigin(0.5).setInteractive();
+            let settingsBtn = this.add.text(gameWidth/2, gameHeight/2+70, 'Settings', { fontSize: '28px', fill: '#43a047', backgroundColor:'#fff8e1', padding:{left:20,right:20,top:10,bottom:10}, borderRadius:12, fontFamily: 'Fredoka One' }).setOrigin(0.5).setInteractive();
+            newGameBtn.on('pointerdown', () => {
+                this.scene.start('FruitNinjaScene');
+            });
+            settingsBtn.on('pointerdown', () => {
+                // You can add settings logic here
+                this.add.text(gameWidth/2, gameHeight/2+130, 'Settings coming soon!', { fontSize: '22px', fill: '#e53935', fontFamily: 'Fredoka One' }).setOrigin(0.5);
+            });
+        }
+    }
+
     class FruitNinjaScene extends Phaser.Scene {
         constructor() { super('FruitNinjaScene'); }
         preload() {
-            this.load.image('tomato', '/media/movies/tomato.png');
-            this.load.image('cauliflower', '/media/movies/cauliflower.png');
-            this.load.image('carrot', '/media/movies/carrot.png');
-            this.load.image('cabbage', '/media/movies/cabbage.png');
-            this.load.image('apple', '/media/movies/apple-439397_640.webp');
-            this.load.image('banana', '/media/movies/banana.png');
-            this.load.image('orange', '/media/movies/lemon.png'); // Use lemon.png for orange
-            this.load.image('watermelon', '/media/movies/watermelon.png');
-            this.load.image('strawberry', '/media/movies/strawberry.png');
-            this.load.image('grapes', '/media/movies/grapes.png');
-            this.load.image('radishh', '/media/movies/radish.png');
-            this.load.image('pumpkin', '/media/movies/pumpkin.png');
+            this.load.image('tomato', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756351019/media/lessons/colors/apple_d3cva5.png');
+            this.load.image('cauliflower', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898045/media/movies/tq3hsv7o44uxaluibd5w.png');
+            this.load.image('carrot', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898005/media/movies/u7aewcl59arygvpdbgms.png');
+            this.load.image('cabbage', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898003/media/movies/uj8zqz0qesasztebu5bk.png');
+            this.load.image('apple', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756897997/media/movies/uno1akwgos6rkbtrlqx6.webp');
+            this.load.image('banana', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756897909/media/movies/enfk0xfgmnqbq0ikioq2.png');
+            this.load.image('orange', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898028/media/movies/eruzjgwp2ld4x85jgb5f.png'); // Use orange.png for orange
+            this.load.image('watermelon', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898045/media/movies/tq3hsv7o44uxaluibd5w.png');
+            this.load.image('strawberry', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898039/media/movies/oxsaqz8ym7fuixixbwof.png');
+            this.load.image('grapes', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898018/media/movies/kfmehafohwbeswcldlun.png');
+            this.load.image('radishh', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898036/media/movies/q4m2qktdn36nrdoibfgt.png');
+            this.load.image('pumpkin', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898032/media/movies/v1jiixyvdsdqkxrgsopy.png');
+            this.load.audio('slice', 'https://res.cloudinary.com/djc3qirsl/video/upload/v1758153594/knife-slice-41231_qdwkue.mp3');
+            this.load.audio('countdown', 'https://res.cloudinary.com/djc3qirsl/video/upload/v1758154694/robotic-countdown-43935_mzufpk.mp3');
         }
         create() {
             // Points for each fruit type
@@ -83,60 +232,165 @@
                 cauliflower: 95,
                 tomato: 110
             };
-            this.score = 0;
-            this.missed = 0;
+            // Multiplayer: two players
+            this.score1 = 0;
+            this.score2 = 0;
+            this.missed1 = 0;
+            this.missed2 = 0;
             this.gameOver = false;
-            this.scoreText = this.add.text(16, 8, 'Score: 0', { fontSize: '20px', fill: '#43a047', fontFamily: 'Fredoka One', backgroundColor:'#fff8e1', padding:{left:8,right:8,top:2,bottom:2}, borderRadius:8 }).setScrollFactor(0);
-            this.missedText = this.add.text(gameWidth-120, 8, 'Missed: 0', { fontSize: '20px', fill: '#e53935', fontFamily: 'Fredoka One', backgroundColor:'#fff8e1', padding:{left:8,right:8,top:2,bottom:2}, borderRadius:8 }).setScrollFactor(0);
             this.cameras.main.setBackgroundColor('rgba(0,0,0,0)');
             this.fruits = [];
-            this.fruitTimer = this.time.addEvent({ delay: 900, callback: this.launchFruit, callbackScope: this, loop: true });
-            this.input.on('pointermove', this.sliceFruits, this);
-            // Timeout-based game over (e.g., 60 seconds)
-            this.timeoutDuration = 60; // seconds
-            this.timeLeft = this.timeoutDuration;
-            this.timerText = this.add.text(gameWidth/2, 8, 'Time: ' + this.timeLeft, { fontSize: '20px', fill: '#ff9800', fontFamily: 'Fredoka One', backgroundColor:'#fff8e1', padding:{left:8,right:8,top:2,bottom:2}, borderRadius:8 }).setOrigin(0.5, 0);
-            this.timeoutEvent = this.time.addEvent({ delay: 1000, callback: () => {
-                if (this.gameOver) return;
-                this.timeLeft--;
-                this.timerText.setText('Time: ' + this.timeLeft);
-                if (this.timeLeft <= 0) {
-                    this.endGame(true);
-                }
-            }, callbackScope: this, loop: true });
+
+            // Hide UI until countdown finishes
+            // Add vertical divider for split-screen effect (landscape)
+            this.centerDivider = this.add.graphics();
+            this.centerDivider.lineStyle(4, 0xcccccc, 0.7);
+            this.centerDivider.beginPath();
+            this.centerDivider.moveTo(gameWidth/2, 0);
+            this.centerDivider.lineTo(gameWidth/2, gameHeight);
+            this.centerDivider.strokePath();
+            this.centerDivider.setVisible(false);
+            // Left: P1 Score (top left), P1 Missed (bottom left)
+            this.scoreText1 = this.add.text(16, 8, 'P1 Score: 0', {
+                fontSize: '20px', fill: '#43a047', fontFamily: 'Fredoka One', backgroundColor:'#fff8e1',
+                padding:{left:8,right:8,top:2,bottom:2}, borderRadius:8
+            }).setScrollFactor(0).setVisible(false);
+            this.missedText1 = this.add.text(16, gameHeight-36, 'P1 Missed: 0', {
+                fontSize: '18px', fill: '#e53935', fontFamily: 'Fredoka One', backgroundColor:'#fff8e1',
+                padding:{left:8,right:8,top:2,bottom:2}, borderRadius:8
+            }).setScrollFactor(0).setVisible(false);
+            // Right: P2 Score (top right), P2 Missed (bottom right)
+            this.scoreText2 = this.add.text(gameWidth-16, 8, 'P2 Score: 0', {
+                fontSize: '20px', fill: '#1565c0', fontFamily: 'Fredoka One', backgroundColor:'#fff8e1',
+                padding:{left:8,right:8,top:2,bottom:2}, borderRadius:8
+            }).setOrigin(1,0).setScrollFactor(0).setVisible(false);
+            this.missedText2 = this.add.text(gameWidth-16, gameHeight-36, 'P2 Missed: 0', {
+                fontSize: '18px', fill: '#e53935', fontFamily: 'Fredoka One', backgroundColor:'#fff8e1',
+                padding:{left:8,right:8,top:2,bottom:2}, borderRadius:8
+            }).setOrigin(1,1).setScrollFactor(0).setVisible(false);
+            // Timer in center top
+            this.timerText = this.add.text(gameWidth/2, 8, '', {
+                fontSize: '22px', fill: '#ff9800', fontFamily: 'Fredoka One', backgroundColor:'#fff8e1',
+                padding:{left:12,right:12,top:2,bottom:2}, borderRadius:8
+            }).setOrigin(0.5, 0).setVisible(false);
+
+            // Professional countdown animation with synced sound
+            const countdownNumbers = ['3', '2', '1', 'Go!'];
+            let countdownIndex = 0;
+            let countdownSound = this.sound.add('countdown');
+            countdownSound.play();
+            const showCountdown = () => {
+                let text = countdownNumbers[countdownIndex];
+                let color = text === 'Go!' ? '#43a047' : '#e53935';
+                let fontSize = text === 'Go!' ? '80px' : '72px';
+                let countdownText = this.add.text(gameWidth/2, gameHeight/2, text, {
+                    fontSize,
+                    fill: color,
+                    fontFamily: 'Fredoka One',
+                    backgroundColor: text === 'Go!' ? '#fff8e1' : 'rgba(0,0,0,0.1)',
+                    padding: { left: 32, right: 32, top: 16, bottom: 16 },
+                    borderRadius: 24,
+                    stroke: '#333',
+                    strokeThickness: 6
+                }).setOrigin(0.5);
+                this.tweens.add({
+                    targets: countdownText,
+                    scale: { from: 0.7, to: 1.2 },
+                    alpha: { from: 1, to: 0 },
+                    duration: 900,
+                    ease: 'Cubic.easeOut',
+                    onComplete: () => {
+                        countdownText.destroy();
+                        countdownIndex++;
+                        if (countdownIndex < countdownNumbers.length) {
+                            setTimeout(showCountdown, 100);
+                        } else {
+                            // Reveal UI and start game logic
+                            this.scoreText1.setVisible(true);
+                            this.missedText1.setVisible(true);
+                            this.scoreText2.setVisible(true);
+                            this.missedText2.setVisible(true);
+                            this.timerText.setVisible(true);
+                            this.centerDivider.setVisible(true);
+                            // Drop more fruits at a time for multiplayer challenge
+                            this.fruitTimer = this.time.addEvent({ delay: 900, callback: () => {
+                                // Drop 2-4 fruits per tick
+                                let numFruits = Phaser.Math.Between(2, 4);
+                                for (let i = 0; i < numFruits; i++) {
+                                    this.launchFruit();
+                                }
+                            }, callbackScope: this, loop: true });
+                            // Enable slicing for both drag (pointermove) and tap/touch (pointerdown)
+                            this.input.on('pointermove', this.sliceFruitsMultiplayer, this);
+                            this.input.on('pointerdown', this.sliceFruitsMultiplayer, this);
+                            this.timeoutDuration = 60; // seconds
+                            this.timeLeft = this.timeoutDuration;
+                            this.timerText.setText('Time: ' + this.timeLeft);
+                            this.timeoutEvent = this.time.addEvent({ delay: 1000, callback: () => {
+                                if (this.gameOver) return;
+                                this.timeLeft--;
+                                this.timerText.setText('Time: ' + this.timeLeft);
+                                if (this.timeLeft <= 0) {
+                                    this.endGame(true);
+                                }
+                            }, callbackScope: this, loop: true });
+                        }
+                    }
+                });
+            };
+            showCountdown();
         }
         launchFruit() {
             if (this.gameOver) return;
             let fruitType = Phaser.Utils.Array.GetRandom(this.fruitTypes);
-            let x = Phaser.Math.Between(60, gameWidth-60);
-            let y = gameHeight + 40;
             let size = this.fruitSizes[fruitType] || 44;
+            // Multiplayer fairness: spawn from top or bottom randomly
+            let spawnFromTop = Phaser.Math.Between(0, 1) === 0;
+            let x = Phaser.Math.Between(60, gameWidth-60);
+            let y = spawnFromTop ? -40 : gameHeight + 40;
             let fruit = this.add.image(x, y, fruitType).setOrigin(0.5).setDisplaySize(size, size);
             this.physics.add.existing(fruit);
-            let angle = Phaser.Math.FloatBetween(-Math.PI/3, -2*Math.PI/3);
+            // Launch direction: if from top, go down; if from bottom, go up
+            let angle;
             let speed = Phaser.Math.Between(420, 620);
+            if (spawnFromTop) {
+                // Downward angle
+                angle = Phaser.Math.FloatBetween(Math.PI/3, 2*Math.PI/3);
+                fruit.body.setGravityY(-500); // gravity pulls up, so fruit falls down
+            } else {
+                // Upward angle
+                angle = Phaser.Math.FloatBetween(-Math.PI/3, -2*Math.PI/3);
+                fruit.body.setGravityY(500); // gravity pulls down, so fruit goes up
+            }
             fruit.body.setVelocity(Math.cos(angle)*speed, Math.sin(angle)*speed);
-            fruit.body.setGravityY(500);
             fruit.body.setCollideWorldBounds(false);
             fruit.sliced = false;
             fruit.fruitType = fruitType;
             fruit.fruitSize = size;
             this.fruits.push(fruit);
         }
-        sliceFruits(pointer) {
+        sliceFruitsMultiplayer(pointer) {
             if (this.gameOver) return;
+            // Determine which player: left half = P1, right half = P2
+            let isP1 = pointer.x < gameWidth/2;
+            let scoreKey = isP1 ? 'score1' : 'score2';
+            let scoreTextKey = isP1 ? 'scoreText1' : 'scoreText2';
             for (let i = this.fruits.length - 1; i >= 0; i--) {
                 let fruit = this.fruits[i];
-                if (!fruit.sliced && Phaser.Math.Distance.Between(pointer.x, pointer.y, fruit.x, fruit.y) < fruit.fruitSize/2) {
+                // Only allow slicing if fruit is in player's half
+                if (!fruit.sliced && Phaser.Math.Distance.Between(pointer.x, pointer.y, fruit.x, fruit.y) < fruit.fruitSize/2 && ((isP1 && fruit.x < gameWidth/2) || (!isP1 && fruit.x >= gameWidth/2))) {
                     fruit.sliced = true;
                     let points = this.fruitPoints[fruit.fruitType] || 1;
-                    this.score += points;
-                    this.scoreText.setText('Score: ' + this.score + ' (+' + points + ')');
+                    this[scoreKey] += points;
+                    this[scoreTextKey].setText((isP1 ? 'P1' : 'P2') + ' Score: ' + this[scoreKey] + ' (+' + points + ')');
 
-                    // Popup showing points earned
-                    const popup = this.add.text(fruit.x, fruit.y - 30, `+${points}`, {
+                    // Play slice sound
+                    this.sound.play('slice');
+
+                    // Popup showing points earned, with player indicator
+                    const popup = this.add.text(fruit.x, fruit.y - 30, `${isP1 ? 'P1' : 'P2'} +${points}`, {
                         font: 'bold 32px Arial',
-                        fill: '#ffeb3b',
+                        fill: isP1 ? '#43a047' : '#1565c0',
                         stroke: '#333',
                         strokeThickness: 4,
                         backgroundColor: 'rgba(0,0,0,0.4)'
@@ -151,7 +405,7 @@
 
                     // Cutting effect: slash line
                     let slash = this.add.graphics();
-                    slash.lineStyle(6, 0xff1744, 0.8);
+                    slash.lineStyle(6, isP1 ? 0x43a047 : 0x1565c0, 0.8);
                     slash.beginPath();
                     slash.moveTo(pointer.x-30, pointer.y-30);
                     slash.lineTo(pointer.x+30, pointer.y+30);
@@ -175,8 +429,14 @@
                 if (fruit.y > gameHeight+40 && !fruit.sliced) {
                     fruit.destroy();
                     this.fruits.splice(i, 1);
-                    this.missed += 1;
-                    this.missedText.setText('Missed: ' + this.missed);
+                    // Missed: assign to player based on fruit x position (left/right)
+                    if (fruit.x < gameWidth/2) {
+                        this.missed1 += 1;
+                        this.missedText1.setText('P1 Missed: ' + this.missed1);
+                    } else {
+                        this.missed2 += 1;
+                        this.missedText2.setText('P2 Missed: ' + this.missed2);
+                    }
                     // No game over on missed fruits
                 }
             }
@@ -185,7 +445,9 @@
             this.gameOver = true;
             this.fruitTimer.remove(false);
             if (this.timeoutEvent) this.timeoutEvent.remove(false);
-            let msg = timeout ? 'Time Up!\nScore: ' + this.score : 'Game Over!\nScore: ' + this.score;
+            let msg = timeout
+                ? `Time Up!\nP1 Score: ${this.score1}\nP2 Score: ${this.score2}`
+                : `Game Over!\nP1 Score: ${this.score1}\nP2 Score: ${this.score2}`;
             this.add.text(gameWidth/2, gameHeight/2, msg, {
                 fontSize: Math.round(36*gameWidth/600), fill: '#e53935', fontFamily: 'Fredoka One', align: 'center', backgroundColor:'#fff8e1', padding:{left:16,right:16,top:8,bottom:8}, borderRadius:16
             }).setOrigin(0.5);
@@ -197,7 +459,7 @@
         height: gameHeight,
         parent: 'game-container',
         physics: { default: 'arcade', arcade: { gravity: { y: 0 }, debug: false } },
-        scene: FruitNinjaScene
+        scene: [ModeSelectScreen, LoadScreen, FruitNinjaScene]
     });
     </script>
 </body>

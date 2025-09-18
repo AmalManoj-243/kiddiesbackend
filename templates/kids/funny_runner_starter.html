@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Funny Runner Starter</title>
+  <style>
+    body { margin: 0; background: #aeefff; }
+    #game-container { width: 100vw; height: 100vh; }
+  </style>
+</head>
+<body>
+  <div id="game-container"></div>
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.js"></script>
+  <script>
+    const config = {
+      type: Phaser.AUTO,
+      width: window.innerWidth,
+      height: window.innerHeight,
+      parent: 'game-container',
+      physics: {
+        default: 'arcade',
+        arcade: { gravity: { y: 1000 }, debug: false }
+      },
+      scene: {
+        preload,
+        create,
+        update
+      }
+    };
+    let player, cursors, ground, obstacles, score = 0, scoreText, gameOver = false;
+    function preload() {
+  this.load.image('player', 'https://opengameart.org/sites/default/files/character_hero_walk.png');
+  this.load.image('ground', 'https://opengameart.org/sites/default/files/platformPack_tile001.png');
+  this.load.image('obstacle', 'https://opengameart.org/sites/default/files/platformPack_tile011.png');
+    }
+    function create() {
+  // Draw solid color ground
+  const groundHeight = 48;
+  const groundY = config.height - groundHeight/2;
+  ground = this.add.rectangle(config.width/2, groundY, config.width, groundHeight, 0x8fd19e);
+  this.physics.add.existing(ground, true); // true = static
+  // Place runner so its feet are on the ground
+  player = this.physics.add.sprite(100, groundY-32, 'player').setScale(0.6);
+  player.setCollideWorldBounds(true);
+  this.physics.add.collider(player, ground);
+      cursors = this.input.keyboard.createCursorKeys();
+      obstacles = this.physics.add.group();
+      scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '24px', fill: '#333' });
+      this.time.addEvent({ delay: 1200, callback: () => {
+        if (!gameOver) {
+          // Create obstacle as a sprite using image
+          const obs = this.physics.add.sprite(config.width, groundY-20, 'obstacle');
+          obs.setDisplaySize(40, 40);
+          obs.body.setVelocityX(-300); // Move left only
+          obs.body.allowGravity = false; // No gravity
+          obstacles.add(obs);
+        }
+      }, loop: true });
+      this.physics.add.collider(player, obstacles, hitObstacle, null, this);
+    }
+    function update() {
+      if (gameOver) return;
+      if ((cursors.space.isDown || cursors.up.isDown) && player.body.touching.down) {
+        player.setVelocityY(-500);
+      }
+      obstacles.getChildren().forEach(obs => {
+        // Force obstacle to stay at ground level
+        obs.y = ground.y;
+        if (obs.x < -50) {
+          obs.destroy();
+          score++;
+          scoreText.setText('Score: ' + score);
+        }
+      });
+    }
+    function hitObstacle() {
+      gameOver = true;
+      player.setTint(0xff3333);
+      scoreText.setText('Game Over! Score: ' + score);
+    }
+    new Phaser.Game(config);
+  </script>
+</body>
+</html>

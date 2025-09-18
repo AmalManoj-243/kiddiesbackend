@@ -11,119 +11,131 @@
 		.centered { text-align: center; }
 	</style>
 </head>
-<body>
-	<div class="container mt-4">
-		<h2 class="centered mb-3" style="font-family: 'Fredoka One', cursive; color: #ff9800;">Super Runner</h2>
-		<div id="game-container"></div>
-		<div class="centered mt-3">
-			<a href="/kids/home/" class="btn btn-outline-primary">Back to Kids Home</a>
-		</div>
-	</div>
-	<script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.js"></script>
-	<script>
-	// Responsive game size
-	function getGameSize() {
-		let w = Math.min(window.innerWidth, 540);
-		let h = Math.max(340, Math.min(window.innerHeight * 0.7, 600));
-		return { width: w, height: h };
-	}
-	let gameSize = getGameSize();
-	const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-	// New assets
-	const assets = {
-		bg: 'https://opengameart.org/sites/default/files/background_48.png', // cartoon city
-		runner: 'https://opengameart.org/sites/default/files/character_hero_walk.png', // cartoon hero
-		coin: 'https://opengameart.org/sites/default/files/star_gold.png', // star coin
-	};
-	let score = 0;
-	let gameStarted = false;
-	let gameOver = false;
-	class SuperRunnerScene extends Phaser.Scene {
-		constructor() { super('SuperRunnerScene'); }
-		preload() {
-		this.load.image('bg', assets.bg);
-		this.load.image('runner', assets.runner);
-		this.load.image('coin', assets.coin);
-		// Load sample obstacle image
-		this.load.image('obstacleImg', '/media/movies/635217f73e372771013edb4c-the-avengers-poster-marvel-movie-canvas1.jpg');
-		}
-		create() {
-			this.bg = this.add.tileSprite(0, 0, gameSize.width, gameSize.height, 'bg').setOrigin(0);
-			this.groundY = gameSize.height - 100;
-			this.ground = this.add.rectangle(0, this.groundY, gameSize.width, 100, 0x8fd19e).setOrigin(0);
-			this.runner = this.physics.add.sprite(100, this.groundY-50, 'runner').setScale(0.6);
-			this.runner.setCollideWorldBounds(true);
-			this.runner.body.setSize(60, 80);
-			this.obstacles = [];
-			this.coins = this.physics.add.group();
-			this.scoreText = this.add.text(20, 20, 'Score: 0', { fontSize: '24px', fill: '#ff9800', fontFamily: 'Fredoka One' });
-			this.cursors = this.input.keyboard.createCursorKeys();
-			if (isMobile) {
-				this.jumpBtn = this.add.text(gameSize.width-120, gameSize.height-70, 'Jump', {
-					fontSize: '28px', fill: '#fff', backgroundColor:'#ff9800', padding:{x:18,y:10}, borderRadius:12
-				}).setInteractive().setDepth(2);
-				this.jumpBtn.on('pointerdown', () => this.jump());
-				let swipeStartY = null;
-				this.input.on('pointerdown', pointer => { swipeStartY = pointer.y; });
-				this.input.on('pointerup', pointer => {
-					if (swipeStartY !== null && swipeStartY - pointer.y > 50) this.jump();
-					swipeStartY = null;
-				});
-			}
-			this.startText = this.add.text(gameSize.width/2, gameSize.height/2-40, 'Tap/Press to Start', {
-				fontSize: '36px', fill: '#ff9800', fontFamily: 'Fredoka One'
-			}).setOrigin(0.5).setDepth(2);
-			this.input.on('pointerdown', () => this.startGame());
-			this.input.keyboard.on('keydown', () => this.startGame());
-			this.physics.add.overlap(this.runner, this.coins, this.collectCoin, null, this);
-			window.addEventListener('resize', () => {
-				let size = getGameSize();
-				this.scale.resize(size.width, size.height);
+let score = 0;
+let gameStarted = false;
+let gameOver = false;
+class SuperRunnerScene extends Phaser.Scene {
+	constructor() { super('SuperRunnerScene'); }
+	create() {
+		// Set plain solid color background
+		this.cameras.main.setBackgroundColor('#aeefff');
+		// Register start event handlers BEFORE creating UI
+		this.input.on('pointerdown', this.startGame, this);
+		this.input.keyboard.on('keydown', this.startGame, this);
+		// Remove ground rectangle, use physics world bottom
+		const runnerBodyHeight = 80; // physics body height
+		const runnerScale = 0.6;
+		const runnerY = gameSize.height - (runnerBodyHeight * runnerScale) / 2;
+		this.runner = this.physics.add.sprite(100, runnerY, 'runner').setScale(runnerScale);
+		this.runner.setCollideWorldBounds(true);
+		this.runner.body.setSize(60, 80);
+		this.obstacles = [];
+		this.coins = this.physics.add.group();
+		this.scoreText = this.add.text(20, 20, 'Score: 0', { fontSize: '24px', fill: '#ff9800', fontFamily: 'Fredoka One' });
+		this.cursors = this.input.keyboard.createCursorKeys();
+		if (isMobile) {
+			this.jumpBtn = this.add.text(gameSize.width-120, gameSize.height-70, 'Jump', {
+				fontSize: '28px', fill: '#fff', backgroundColor:'#ff9800', padding:{x:18,y:10}, borderRadius:12
+			}).setInteractive().setDepth(2);
+			this.jumpBtn.on('pointerdown', () => this.jump());
+			let swipeStartY = null;
+			this.input.on('pointerdown', pointer => { swipeStartY = pointer.y; });
+			this.input.on('pointerup', pointer => {
+				if (swipeStartY !== null && swipeStartY - pointer.y > 50) this.jump();
+				swipeStartY = null;
 			});
 		}
-		startGame() {
-			if (gameStarted) return;
-			gameStarted = true;
-			this.startText.setVisible(false);
-			this.spawnTimer = this.time.addEvent({ delay: 1000, callback: this.spawnObstacle, callbackScope: this, loop: true });
-			this.coinTimer = this.time.addEvent({ delay: 1500, callback: this.spawnCoin, callbackScope: this, loop: true });
-		}
-		jump() {
-			if (!gameStarted || gameOver) return;
-			if (this.runner.body.touching.down) this.runner.setVelocityY(-500);
-		}
-		spawnObstacle() {
-			if (gameOver) return;
-		// Always use sample image for obstacle
-		let obs = this.add.image(gameSize.width + 40, this.groundY - 40, 'obstacleImg').setScale(0.15);
+		this.startText = this.add.text(gameSize.width/2, gameSize.height/2-40, 'Tap/Press to Start', {
+			fontSize: '36px', fill: '#ff9800', fontFamily: 'Fredoka One'
+		}).setOrigin(0.5).setDepth(2);
+		this.physics.add.overlap(this.runner, this.coins, this.collectCoin, null, this);
+		window.addEventListener('resize', () => {
+			let size = getGameSize();
+			this.scale.resize(size.width, size.height);
+		});
+	}
+	startGame() {
+		if (gameStarted) return;
+		gameStarted = true;
+		this.startText.setVisible(false);
+		// Remove start event listeners after starting
+		this.input.off('pointerdown', this.startGame, this);
+		this.input.keyboard.off('keydown', this.startGame, this);
+		this.spawnTimer = this.time.addEvent({ delay: 1000, callback: this.spawnObstacle, callbackScope: this, loop: true });
+		this.coinTimer = this.time.addEvent({ delay: 1500, callback: this.spawnCoin, callbackScope: this, loop: true });
+	}
+	jump() {
+		if (!gameStarted || gameOver) return;
+		if (this.runner.body.onFloor()) this.runner.setVelocityY(-500);
+	}
+	spawnObstacle() {
+		if (gameOver) return;
+		// Place obstacle just above bottom
+		let obsY = gameSize.height - (80 * 0.6) - 30; // runner height + offset
+		let obs = this.add.image(gameSize.width + 40, obsY, 'obstacleImg').setScale(0.15);
 		obs.shapeType = 'image';
 		obs.speed = 260;
 		this.obstacles.push(obs);
+	}
+	spawnCoin() {
+		if (gameOver) return;
+		const coinY = gameSize.height - (80 * 0.6) - 60;
+		const coin = this.coins.create(gameSize.width+40, coinY, 'coin').setScale(0.5);
+		coin.setVelocityX(-260);
+		coin.body.allowGravity = false;
+	}
+	hitObstacle(runner, obs) {
+		if (gameOver) return;
+		gameOver = true;
+		runner.setTint(0xff3333);
+		this.add.text(gameSize.width/2, gameSize.height/2, 'Game Over!\nScore: '+score, {
+			fontSize: '32px', fill: '#ff3333', fontFamily: 'Fredoka One', align: 'center'
+		}).setOrigin(0.5).setDepth(3);
+		this.time.delayedCall(2200, () => location.reload(), [], this);
+	}
+	collectCoin(runner, coin) {
+		coin.destroy();
+		score += 10;
+		this.scoreText.setText('Score: ' + score);
+	}
+	update() {
+		if (!gameStarted || gameOver) return;
+		if ((this.cursors.space.isDown || this.cursors.up.isDown) && this.runner.body.onFloor()) {
+			this.jump();
 		}
-		spawnCoin() {
-			if (gameOver) return;
-			const coin = this.coins.create(gameSize.width+40, this.groundY-80, 'coin').setScale(0.5);
-			coin.setVelocityX(-260);
-			coin.body.allowGravity = false;
+		// Move obstacles manually
+		for (let i = this.obstacles.length - 1; i >= 0; i--) {
+			let obs = this.obstacles[i];
+			obs.x -= obs.speed * this.game.loop.delta / 1000;
+			// Collision detection (simple bounding box)
+			let runnerBounds = this.runner.getBounds();
+			let obsBounds = obs.getBounds();
+			if (Phaser.Geom.Intersects.RectangleToRectangle(runnerBounds, obsBounds)) {
+				this.hitObstacle(this.runner, obs);
+			}
+			if (obs.x < -40) {
+				obs.destroy();
+				this.obstacles.splice(i, 1);
+				score++;
+				this.scoreText.setText('Score: ' + score);
+			}
 		}
-		hitObstacle(runner, obs) {
-			if (gameOver) return;
-			gameOver = true;
-			runner.setTint(0xff3333);
-			this.add.text(gameSize.width/2, gameSize.height/2, 'Game Over!\nScore: '+score, {
+		this.coins.getChildren().forEach(coin => { if (coin.x < -40) coin.destroy(); });
+	}
+}
 				fontSize: '32px', fill: '#ff3333', fontFamily: 'Fredoka One', align: 'center'
 			}).setOrigin(0.5).setDepth(3);
 			this.time.delayedCall(2200, () => location.reload(), [], this);
 		}
-		collectCoin(runner, coin) {
+	collectCoin(runner, coin) {
 			coin.destroy();
 			score += 10;
 			this.scoreText.setText('Score: ' + score);
 		}
-		update() {
+	update() {
 			if (!gameStarted || gameOver) return;
 			this.bg.tilePositionX += 3;
-			if ((this.cursors.space.isDown || this.cursors.up.isDown) && this.runner.body.touching.down) {
+			if ((this.cursors.space.isDown || this.cursors.up.isDown) && this.runner.body.onFloor()) {
 				this.jump();
 			}
 			// Move obstacles manually
