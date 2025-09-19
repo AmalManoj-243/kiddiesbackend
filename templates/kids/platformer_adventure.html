@@ -353,7 +353,7 @@
             this.load.audio('countdown', 'https://res.cloudinary.com/djc3qirsl/video/upload/v1758154694/robotic-countdown-43935_mzufpk.mp3');
         }
         create() {
-                // Points for each fruit type
+        // Points for each fruit type
                 this.fruitPoints = {
                     apple: 2,
                     banana: 1,
@@ -516,6 +516,79 @@
                         padding:{left:10,right:10,top:4,bottom:4},
                         shadow: { offsetX: 0, offsetY: 1, color: '#fff', blur: 2, fill: true }
                     }).setOrigin(1,0).setScrollFactor(0).setVisible(false);
+
+                    // Pause button near Missed
+                    const pauseBtn = this.add.text(gameWidth-160, 8, '⏸', {
+                        fontSize: '18px', fill: '#212121', fontFamily: 'Fredoka One', backgroundColor:'#fff',
+                        padding:{left:4,right:4,top:2,bottom:2}, borderRadius:5,
+                        stroke: '#e53935', strokeThickness: 1
+                    }).setOrigin(1,0).setScrollFactor(0).setDepth(20).setInteractive();
+
+                    pauseBtn.on('pointerdown', () => {
+                        this.paused = true;
+                        if (this.fruitTimer && typeof this.fruitTimer.paused !== 'undefined') {
+                            this.fruitTimer.paused = true;
+                        }
+                        if (this.timeoutEvent && typeof this.timeoutEvent.paused !== 'undefined') {
+                            this.timeoutEvent.paused = true;
+                        }
+                        // Show pause modal overlay
+                        const overlay = this.add.rectangle(gameWidth/2, gameHeight/2, gameWidth, gameHeight, 0x212121, 0.45).setDepth(99);
+                        overlay.setAlpha(0.7);
+                        // Modal panel
+                        const panel = this.add.rectangle(gameWidth/2, gameHeight/2, 340, 260, 0xffffff, 0.98)
+                            .setStrokeStyle(4, 0x43a047)
+                            .setDepth(100)
+                            .setOrigin(0.5);
+                        // Title
+                        const title = this.add.text(gameWidth/2, gameHeight/2 - 70, 'Paused', {
+                            fontSize: '32px', fill: '#e53935', fontFamily: 'Fredoka One', fontStyle: 'bold', align: 'center',
+                            stroke: '#fff', strokeThickness: 3
+                        }).setOrigin(0.5).setDepth(101);
+                        // Resume button
+                        const resumeBtn = this.add.text(gameWidth/2, gameHeight/2 - 10, 'Resume', {
+                            fontSize: '22px', fill: '#fff', backgroundColor:'#43a047', padding:{left:18,right:18,top:8,bottom:8}, borderRadius:12, fontFamily: 'Fredoka One', fontStyle: 'bold'
+                        }).setOrigin(0.5).setDepth(101).setInteractive();
+                        // Back button
+                        const backBtn = this.add.text(gameWidth/2, gameHeight/2 + 38, 'Back', {
+                            fontSize: '20px', fill: '#e53935', backgroundColor:'#fff', padding:{left:14,right:14,top:6,bottom:6}, borderRadius:8, fontFamily: 'Fredoka One'
+                        }).setOrigin(0.5).setDepth(101).setInteractive();
+                        // Exit button
+                        const exitBtn = this.add.text(gameWidth/2, gameHeight/2 + 78, 'Exit', {
+                            fontSize: '20px', fill: '#fff', backgroundColor:'#e53935', padding:{left:14,right:14,top:6,bottom:6}, borderRadius:8, fontFamily: 'Fredoka One', fontStyle: 'bold'
+                        }).setOrigin(0.5).setDepth(101).setInteractive();
+
+                        // Helper to destroy modal
+                        const destroyModal = () => {
+                            overlay.destroy(); panel.destroy(); title.destroy(); resumeBtn.destroy(); backBtn.destroy(); exitBtn.destroy();
+                        };
+
+                        resumeBtn.on('pointerdown', () => {
+                            destroyModal();
+                            this.paused = false;
+                            if (this.fruitTimer && typeof this.fruitTimer.paused !== 'undefined') {
+                                this.fruitTimer.paused = false;
+                            }
+                            if (this.timeoutEvent && typeof this.timeoutEvent.paused !== 'undefined') {
+                                this.timeoutEvent.paused = false;
+                            }
+                        });
+                        backBtn.on('pointerdown', () => {
+                            destroyModal();
+                            this.scene.stop();
+                            this.scene.start('LoadScreen', { mode: this.mode });
+                        });
+                        exitBtn.on('pointerdown', () => {
+                            destroyModal();
+                            this.scene.stop();
+                            this.scene.start('ModeSelectScreen');
+                            if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+                                window.ReactNativeWebView.postMessage(JSON.stringify({ action: 'navigate', screen: 'HomeScreen' }));
+                            } else {
+                                window.location.href = '/';
+                            }
+                        });
+                    });
                     // Timer in center top
                     this.timerText = this.add.text(gameWidth/2, 8, '', {
                         fontSize: '24px', fill: '#ff9800', fontFamily: 'Fredoka One', backgroundColor:'#fff8e1',
@@ -586,7 +659,7 @@
                 }
         }
         launchFruit() {
-            if (this.gameOver) return;
+            if (this.gameOver || this.paused) return;
             let fruitType = Phaser.Utils.Array.GetRandom(this.fruitTypes);
             let size = this.fruitSizes[fruitType] || 44;
             let x = Phaser.Math.Between(60, gameWidth-60);
@@ -631,7 +704,7 @@
             this.fruits.push(fruit);
         }
         sliceFruitsMultiplayer(pointer) {
-            if (this.gameOver) return;
+            if (this.gameOver || this.paused) return;
             // Determine which player: left half = P1, right half = P2
             let isP1 = pointer.x < gameWidth/2;
             let scoreKey = isP1 ? 'score1' : 'score2';
@@ -683,7 +756,7 @@
             }
         }
         sliceFruitsSingle(pointer) {
-            if (this.gameOver) return;
+            if (this.gameOver || this.paused) return;
             let now = this.time.now;
             let comboWindow = this.comboTimeout || 700; // ms
             if (!this.comboCount) this.comboCount = 0;
@@ -832,7 +905,7 @@
             }
         }
         update() {
-            if (this.gameOver) return;
+            if (this.gameOver || this.paused) return;
             if (this.mode === 'multi') {
                 for (let i = this.fruits.length - 1; i >= 0; i--) {
                     let fruit = this.fruits[i];
@@ -851,20 +924,20 @@
                     }
                 }
             } else {
-                    for (let i = this.fruits.length - 1; i >= 0; i--) {
-                        let fruit = this.fruits[i];
-                        // Missed if fruit goes out of top or bottom
-                        if ((fruit.y > gameHeight+40 || fruit.y < -40) && !fruit.sliced) {
-                            fruit.destroy();
-                            this.fruits.splice(i, 1);
-                            this.missed += 1;
-                            this.missedText.setText('Missed: ' + this.missed);
-                            // Reduce score by 2 for each missed fruit
-                            this.score = Math.max(0, this.score - 2);
-                            this.scoreText.setText('Score: ' + this.score);
-                            // Do not end game when missed reaches 5
-                        }
+                for (let i = this.fruits.length - 1; i >= 0; i--) {
+                    let fruit = this.fruits[i];
+                    // Missed if fruit goes out of top or bottom
+                    if ((fruit.y > gameHeight+40 || fruit.y < -40) && !fruit.sliced) {
+                        fruit.destroy();
+                        this.fruits.splice(i, 1);
+                        this.missed += 1;
+                        this.missedText.setText('Missed: ' + this.missed);
+                        // Reduce score by 2 for each missed fruit
+                        this.score = Math.max(0, this.score - 2);
+                        this.scoreText.setText('Score: ' + this.score);
+                        // Do not end game when missed reaches 5
                     }
+                }
             }
         }
             // Animated fruit splash effect
