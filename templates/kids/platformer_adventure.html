@@ -108,6 +108,20 @@
                 this.comboPopup = null;
             this.cameras.main.setBackgroundColor('#222c36'); // dark blue background for professional look
             // Title
+                // Exit button below Multiplayer button
+                const exitBtn = this.add.text(gameWidth/2, gameHeight/2 + 120, 'Exit', {
+                    fontSize: '22px', fill: '#fff', backgroundColor:'#e53935', padding:{left:22,right:22,top:10,bottom:10}, borderRadius:14, fontFamily: 'Fredoka One', fontStyle: 'bold'
+                }).setOrigin(0.5).setDepth(10).setInteractive();
+                exitBtn.on('pointerover', () => exitBtn.setStyle({ backgroundColor: '#b71c1c', fill: '#ffe082' }));
+                exitBtn.on('pointerout', () => exitBtn.setStyle({ backgroundColor: '#e53935', fill: '#fff' }));
+                exitBtn.on('pointerdown', () => {
+                    if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+                        window.ReactNativeWebView.postMessage(JSON.stringify({ action: 'navigate', screen: 'HomeScreen' }));
+                    } else {
+                        // Fallback: show message or do nothing
+                        alert('Exit to HomeScreen');
+                    }
+                });
             this.add.text(gameWidth/2, gameHeight/2-140, 'Fruit Ninja', {
                 fontSize: '56px', fill: '#fff', fontFamily: 'Fredoka One', stroke: '#43a047', strokeThickness: 8,
                 shadow: { offsetX: 0, offsetY: 0, color: '#43a047', blur: 16, fill: true }
