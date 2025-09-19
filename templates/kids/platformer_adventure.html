@@ -331,28 +331,68 @@
     }
 
     class FruitNinjaScene extends Phaser.Scene {
-        constructor() { super('FruitNinjaScene'); }
+        constructor() {
+            super('FruitNinjaScene');
+            // Shieldfruit drop control
+            this.shieldDropTimes = [];
+            this.shieldDropCount = 0;
+            this.shieldDropMax = 3;
+            this.shieldDropWindow = 120; // seconds
+            this.gameStartTime = null;
+        }
         preload() {
-            this.load.image('tomato', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756351019/media/lessons/colors/apple_d3cva5.png');
-            // Bomb power-up image
-            this.load.image('bomb', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1758225397/bomb-2025548_640_lxzk53.webp');
-            this.load.image('cauliflower', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898045/media/movies/tq3hsv7o44uxaluibd5w.png');
-            this.load.image('carrot', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898005/media/movies/u7aewcl59arygvpdbgms.png');
-            this.load.image('cabbage', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898003/media/movies/uj8zqz0qesasztebu5bk.png');
-            this.load.image('apple', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756897997/media/movies/uno1akwgos6rkbtrlqx6.webp');
-            this.load.image('banana', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756897909/media/movies/enfk0xfgmnqbq0ikioq2.png');
-            this.load.image('orange', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898028/media/movies/eruzjgwp2ld4x85jgb5f.png'); // Use orange.png for orange
-            this.load.image('watermelon', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1758232302/green-3152250_640_vyle3p.webp');
-            this.load.image('strawberry', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898039/media/movies/oxsaqz8ym7fuixixbwof.png');
-            this.load.image('grapes', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898018/media/movies/kfmehafohwbeswcldlun.png');
-            this.load.image('radishh', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898036/media/movies/q4m2qktdn36nrdoibfgt.png');
-            this.load.image('pumpkin', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898032/media/movies/v1jiixyvdsdqkxrgsopy.png');
-            // Power-up fruit image (+10 juice)
-            this.load.image('goldenapple', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1758231499/juice-25189_640_rejiqp.webp');
-            this.load.audio('slice', 'https://res.cloudinary.com/djc3qirsl/video/upload/v1758153594/knife-slice-41231_qdwkue.mp3');
-            this.load.audio('countdown', 'https://res.cloudinary.com/djc3qirsl/video/upload/v1758154694/robotic-countdown-43935_mzufpk.mp3');
+                        this.load.image('tomato', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756351019/media/lessons/colors/apple_d3cva5.png');
+                        // Time increase fruit image (coconut)
+                        this.load.image('clockfruit', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1758321108/coconut-7876154_640_fuxoha.webp');
+                        // Bomb power-up image
+                        this.load.image('bomb', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1758225397/bomb-2025548_640_lxzk53.webp');
+                        this.load.image('cauliflower', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898045/media/movies/tq3hsv7o44uxaluibd5w.png');
+                        this.load.image('carrot', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898005/media/movies/u7aewcl59arygvpdbgms.png');
+                        this.load.image('cabbage', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898003/media/movies/uj8zqz0qesasztebu5bk.png');
+                        this.load.image('apple', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756897997/media/movies/uno1akwgos6rkbtrlqx6.webp');
+                        this.load.image('banana', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756897909/media/movies/enfk0xfgmnqbq0ikioq2.png');
+                        this.load.image('orange', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898028/media/movies/eruzjgwp2ld4x85jgb5f.png'); // Use orange.png for orange
+                        this.load.image('watermelon', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1758232302/green-3152250_640_vyle3p.webp');
+                        this.load.image('strawberry', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898039/media/movies/oxsaqz8ym7fuixixbwof.png');
+                        this.load.image('grapes', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898018/media/movies/kfmehafohwbeswcldlun.png');
+                        this.load.image('radishh', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898036/media/movies/q4m2qktdn36nrdoibfgt.png');
+                        this.load.image('pumpkin', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1756898032/media/movies/v1jiixyvdsdqkxrgsopy.png');
+                        // Power-up fruit image (+10 juice)
+                        this.load.image('goldenapple', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1758231499/juice-25189_640_rejiqp.webp');
+                        // Shieldfruit image
+                        this.load.image('shieldfruit', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1758313370/defend-296585_640_fdgc8g.webp');
+                        this.load.audio('slice', 'https://res.cloudinary.com/djc3qirsl/video/upload/v1758153594/knife-slice-41231_qdwkue.mp3');
+                        this.load.audio('countdown', 'https://res.cloudinary.com/djc3qirsl/video/upload/v1758154694/robotic-countdown-43935_mzufpk.mp3');
+                        // Bomb appearance sound
+                        this.load.audio('bombappear', 'https://res.cloudinary.com/djc3qirsl/video/upload/v1758313656/spinning_firework_2-106970_fnkiwd.mp3');
+                        // Sword sound for bomb slice
+                        this.load.audio('bombsword', 'https://res.cloudinary.com/djc3qirsl/video/upload/v1758316463/rpg-sword-attack-combo-6-388919_ewbenk.mp3');
         }
         create() {
+              // Limit clockfruit drops to 5 per game
+              this.clockfruitDropCount = 0;
+              this.clockfruitDropMax = 5;
+              // Custom clockfruit drop times
+              this.clockfruitDropTimes = [];
+              this.clockfruitDropTimes.push(Phaser.Math.Between(5, 30)); // 1st drop before 30s
+              this.clockfruitDropTimes.push(Phaser.Math.Between(31, 60)); // 2nd drop before 60s
+              this.clockfruitDropTimes.push(Phaser.Math.Between(61, 90)); // 3rd drop before 90s
+              this.clockfruitDropTimes.push(Phaser.Math.Between(91, 120)); // 4th drop before 120s
+              this.clockfruitDropTimes.push(Phaser.Math.Between(121, 150)); // 5th drop before 150s
+            // Always reset shieldfruit drop logic on scene start/restart
+            this.shieldDropCount = 0;
+            this.shieldDropMax = 3;
+            this.shieldDropWindow = 120;
+            this.gameStartTime = this.time.now;
+            this.shieldDropTimes = [];
+            // Custom shieldfruit drop times
+            this.shieldDropTimes = [];
+            // First drop: random before 40s
+            this.shieldDropTimes.push(Phaser.Math.Between(5, 40));
+            // Second drop: random before 90s
+            this.shieldDropTimes.push(Phaser.Math.Between(41, 90));
+            // Third drop: random between 91s and 120s
+            this.shieldDropTimes.push(Phaser.Math.Between(91, 120));
         // Points for each fruit type
                 this.fruitPoints = {
                     apple: 2,
@@ -368,9 +408,11 @@
                     cauliflower: 3,
                     tomato: 2,
                     goldenapple: 10, // Power-up fruit
-                    bomb: -5 // Bomb deducts points
+                    bomb: -5, // Bomb deducts points
+                    shieldfruit: 0, // Shield fruit, no points
+                    clockfruit: 0 // Time increase fruit, no points
                 };
-                this.fruitTypes = ['apple', 'banana', 'orange', 'watermelon', 'strawberry', 'grapes', 'radishh', 'pumpkin', 'cabbage', 'carrot', 'cauliflower', 'tomato', 'goldenapple', 'bomb'];
+                this.fruitTypes = ['apple', 'banana', 'orange', 'watermelon', 'strawberry', 'grapes', 'radishh', 'pumpkin', 'cabbage', 'carrot', 'cauliflower', 'tomato', 'goldenapple', 'bomb', 'shieldfruit', 'clockfruit'];
                 this.fruitSizes = {
                     apple: 62,
                     banana: 100,
@@ -385,10 +427,16 @@
                     cauliflower: 95,
                     tomato: 110,
                     goldenapple: 70,
-                    bomb: 80
+                    bomb: 80,
+                    shieldfruit: 70,
+                    clockfruit: 70
                 };
-            // Power-up fruit image (Golden Apple)
-            this.load.image('goldenapple', 'https://res.cloudinary.com/djc3qirsl/image/upload/v1695111111/golden-apple.png');
+                this.timeIncreaseAmount = 10; // seconds added when clockfruit is sliced
+                // Shield state
+                this.shieldActive = false;
+                this.shieldTimer = null;
+                this.shieldTimeLeft = 0;
+                this.shieldMeter = null;
                 this.gameOver = false;
                 // Add gameplay background image and send to back
                 const bg = this.add.image(gameWidth/2, gameHeight/2, 'gamebg').setOrigin(0.5).setDisplaySize(gameWidth, gameHeight);
@@ -397,6 +445,27 @@
                 this.fruits = [];
                 // Detect mode: single or multi
                 this.mode = (this.scene.settings.data && this.scene.settings.data.mode) || 'single';
+                // Track bomb sound instance
+                this.bombSoundInstance = null;
+            // Sword trail setup
+            this.swordTrail = this.add.graphics();
+            this.swordTrail.setDepth(200);
+            this.swordTrailPoints = [];
+            this.swordTrailMax = 12;
+            // Listen for pointer move events
+            this.input.on('pointermove', pointer => {
+                if (pointer.isDown && !this.gameOver && !this.paused) {
+                    this.swordTrailPoints.push({ x: pointer.x, y: pointer.y });
+                    if (this.swordTrailPoints.length > this.swordTrailMax) {
+                        this.swordTrailPoints.shift();
+                    }
+                }
+            });
+            // Listen for pointer up to clear trail
+            this.input.on('pointerup', pointer => {
+                this.swordTrailPoints = [];
+                this.swordTrail.clear();
+            });
                 if (this.mode === 'multi') {
                     // Multiplayer: two players
                     this.score1 = 0;
@@ -660,12 +729,46 @@
         }
         launchFruit() {
             if (this.gameOver || this.paused) return;
-            let fruitType = Phaser.Utils.Array.GetRandom(this.fruitTypes);
+            // Time since game started (in seconds)
+            let elapsed = (this.time.now - this.gameStartTime) / 1000;
+            let dropShield = false;
+            // Only drop shieldfruit if drop count < max and time matches
+            if (this.shieldDropCount < this.shieldDropMax && this.shieldDropTimes.length > 0) {
+                if (elapsed >= this.shieldDropTimes[0]) {
+                    dropShield = true;
+                    this.shieldDropTimes.shift();
+                    this.shieldDropCount++;
+                }
+            }
+            let fruitType;
+            if (dropShield) {
+                fruitType = 'shieldfruit';
+            } else {
+                // Exclude shieldfruit from normal random selection
+                let normalFruits = this.fruitTypes.filter(f => f !== 'shieldfruit');
+                // Clockfruit custom timing logic
+                if (this.clockfruitDropCount < this.clockfruitDropMax && this.clockfruitDropTimes.length > 0) {
+                    if (elapsed >= this.clockfruitDropTimes[0]) {
+                        fruitType = 'clockfruit';
+                        this.clockfruitDropTimes.shift();
+                        this.clockfruitDropCount++;
+                    } else {
+                        fruitType = Phaser.Utils.Array.GetRandom(normalFruits.filter(f => f !== 'clockfruit'));
+                    }
+                } else {
+                    fruitType = Phaser.Utils.Array.GetRandom(normalFruits.filter(f => f !== 'clockfruit'));
+                }
+            }
+            // Play bomb sound when bomb appears (per bomb instance)
+            let bombSoundInstance = null;
+            if (fruitType === 'bomb') {
+                bombSoundInstance = this.sound.add('bombappear');
+                bombSoundInstance.play({ loop: true });
+            }
             let size = this.fruitSizes[fruitType] || 44;
             let x = Phaser.Math.Between(60, gameWidth-60);
             let fruit, y, angle, speed;
             if (this.mode === 'multi') {
-                // Multiplayer: spawn from top or bottom randomly
                 let spawnFromTop = Phaser.Math.Between(0, 1) === 0;
                 y = spawnFromTop ? -40 : gameHeight + 40;
                 fruit = this.add.image(x, y, fruitType).setOrigin(0.5).setDisplaySize(size, size);
@@ -680,18 +783,15 @@
                 }
                 fruit.body.setVelocity(Math.cos(angle)*speed, Math.sin(angle)*speed);
             } else {
-                // Single player: randomly spawn from top or bottom
                 let spawnFromTop = Phaser.Math.Between(0, 1) === 0;
                 y = spawnFromTop ? -40 : gameHeight + 40;
                 fruit = this.add.image(x, y, fruitType).setOrigin(0.5).setDisplaySize(size, size);
                 this.physics.add.existing(fruit);
                 speed = Phaser.Math.Between(420, 620);
                 if (spawnFromTop) {
-                    // Downward angle
                     angle = Phaser.Math.FloatBetween(Math.PI/3, 2*Math.PI/3);
                     fruit.body.setGravityY(-500);
                 } else {
-                    // Upward angle
                     angle = Phaser.Math.FloatBetween(-Math.PI/3, -2*Math.PI/3);
                     fruit.body.setGravityY(500);
                 }
@@ -701,6 +801,10 @@
             fruit.sliced = false;
             fruit.fruitType = fruitType;
             fruit.fruitSize = size;
+            // Attach bomb sound instance if bomb
+            if (fruitType === 'bomb') {
+                fruit.bombSoundInstance = bombSoundInstance;
+            }
             this.fruits.push(fruit);
         }
         sliceFruitsMultiplayer(pointer) {
@@ -768,23 +872,153 @@
                 if (!fruit.sliced && Phaser.Math.Distance.Between(pointer.x, pointer.y, fruit.x, fruit.y) < fruit.fruitSize/2) {
                     fruit.sliced = true;
                     let points = this.fruitPoints[fruit.fruitType] || 1;
+                    // Shieldfruit logic
+                    if (fruit.fruitType === 'shieldfruit') {
+                        this.activateShield();
+                        // Show shield popup
+                        const popup = this.add.text(fruit.x, fruit.y - 30, `Shield Activated!`, {
+                            font: 'bold 32px Arial',
+                            fill: '#2196f3',
+                            stroke: '#333',
+                            strokeThickness: 4,
+                            backgroundColor: 'rgba(33,150,243,0.7)'
+                        }).setOrigin(0.5);
+                        this.tweens.add({
+                            targets: popup,
+                            scale: { from: 1, to: 1.3 },
+                            y: popup.y - 60,
+                            alpha: 0,
+                            duration: 1200,
+                            onComplete: () => popup.destroy()
+                        });
+                        // Play slice sound
+                        this.sound.play('slice');
+                        this.showFruitSplash(fruit.x, fruit.y, fruit.fruitType);
+                        // Cutting effect: slash line
+                        let slash = this.add.graphics();
+                        slash.lineStyle(6, 0x2196f3, 0.8);
+                        slash.beginPath();
+                        slash.moveTo(pointer.x-30, pointer.y-30);
+                        slash.lineTo(pointer.x+30, pointer.y+30);
+                        slash.strokePath();
+                        this.tweens.add({ targets: slash, alpha: 0, duration: 350, onComplete: () => slash.destroy() });
+                        // Split fruit halves
+                        let halfSize = Math.round(fruit.fruitSize/2);
+                        let half1 = this.add.image(fruit.x-10, fruit.y, fruit.fruitType).setOrigin(0.5).setDisplaySize(halfSize, fruit.fruitSize).setAngle(-20);
+                        let half2 = this.add.image(fruit.x+10, fruit.y, fruit.fruitType).setOrigin(0.5).setDisplaySize(halfSize, fruit.fruitSize).setAngle(20);
+                        this.tweens.add({ targets: half1, x: half1.x-40, y: half1.y+40, alpha: 0, angle: -60, duration: 500, onComplete: () => half1.destroy() });
+                        this.tweens.add({ targets: half2, x: half2.x+40, y: half2.y+40, alpha: 0, angle: 60, duration: 500, onComplete: () => half2.destroy() });
+                        this.tweens.add({ targets: fruit, alpha: 0, duration: 200, onComplete: () => fruit.destroy() });
+                        this.fruits.splice(i, 1);
+                        continue;
+                    }
+                    // Clockfruit logic
+                    if (fruit.fruitType === 'clockfruit') {
+                        // Increase timer by timeIncreaseAmount
+                        if (this.timeoutEvent && typeof this.timeoutEvent.delay === 'number') {
+                            this.timeLeft += this.timeIncreaseAmount;
+                            this.timerText.setText('Time: ' + this.timeLeft);
+                        }
+                        // Show time increase popup
+                        const popup = this.add.text(fruit.x, fruit.y - 30, `+${this.timeIncreaseAmount}s!`, {
+                            font: 'bold 32px Arial',
+                            fill: '#00bcd4',
+                            stroke: '#333',
+                            strokeThickness: 4,
+                            backgroundColor: 'rgba(0,188,212,0.7)'
+                        }).setOrigin(0.5);
+                        this.tweens.add({
+                            targets: popup,
+                            scale: { from: 1, to: 1.3 },
+                            y: popup.y - 60,
+                            alpha: 0,
+                            duration: 1200,
+                            onComplete: () => popup.destroy()
+                        });
+                        // Play slice sound
+                        this.sound.play('slice');
+                        this.showFruitSplash(fruit.x, fruit.y, fruit.fruitType);
+                        // Cutting effect: slash line
+                        let slash = this.add.graphics();
+                        slash.lineStyle(6, 0x00bcd4, 0.8);
+                        slash.beginPath();
+                        slash.moveTo(pointer.x-30, pointer.y-30);
+                        slash.lineTo(pointer.x+30, pointer.y+30);
+                        slash.strokePath();
+                        this.tweens.add({ targets: slash, alpha: 0, duration: 350, onComplete: () => slash.destroy() });
+                        // Split fruit halves
+                        let halfSize = Math.round(fruit.fruitSize/2);
+                        let half1 = this.add.image(fruit.x-10, fruit.y, fruit.fruitType).setOrigin(0.5).setDisplaySize(halfSize, fruit.fruitSize).setAngle(-20);
+                        let half2 = this.add.image(fruit.x+10, fruit.y, fruit.fruitType).setOrigin(0.5).setDisplaySize(halfSize, fruit.fruitSize).setAngle(20);
+                        this.tweens.add({ targets: half1, x: half1.x-40, y: half1.y+40, alpha: 0, angle: -60, duration: 500, onComplete: () => half1.destroy() });
+                        this.tweens.add({ targets: half2, x: half2.x+40, y: half2.y+40, alpha: 0, angle: 60, duration: 500, onComplete: () => half2.destroy() });
+                        this.tweens.add({ targets: fruit, alpha: 0, duration: 200, onComplete: () => fruit.destroy() });
+                        this.fruits.splice(i, 1);
+                        continue;
+                    }
+                    // Bomb logic
+                    if (fruit.fruitType === 'bomb') {
+                        // Stop bomb sound if present
+                        if (fruit.bombSoundInstance && fruit.bombSoundInstance.isPlaying) {
+                            fruit.bombSoundInstance.stop();
+                            fruit.bombSoundInstance.destroy();
+                        }
+                        if (this.shieldActive) {
+                            // Ignore bomb effect if shield is active
+                            const popup = this.add.text(fruit.x, fruit.y - 30, `Shield Blocked Bomb!`, {
+                                font: 'bold 32px Arial',
+                                fill: '#2196f3',
+                                stroke: '#333',
+                                strokeThickness: 4,
+                                backgroundColor: 'rgba(33,150,243,0.7)'
+                            }).setOrigin(0.5);
+                            this.tweens.add({
+                                targets: popup,
+                                scale: { from: 1, to: 1.3 },
+                                y: popup.y - 60,
+                                alpha: 0,
+                                duration: 1200,
+                                onComplete: () => popup.destroy()
+                            });
+                            this.sound.play('slice');
+                            this.showFruitSplash(fruit.x, fruit.y, fruit.fruitType);
+                            // Cutting effect: slash line
+                            let slash = this.add.graphics();
+                            slash.lineStyle(6, 0x2196f3, 0.8);
+                            slash.beginPath();
+                            slash.moveTo(pointer.x-30, pointer.y-30);
+                            slash.lineTo(pointer.x+30, pointer.y+30);
+                            slash.strokePath();
+                            this.tweens.add({ targets: slash, alpha: 0, duration: 350, onComplete: () => slash.destroy() });
+                            // Split fruit halves
+                            let halfSize = Math.round(fruit.fruitSize/2);
+                            let half1 = this.add.image(fruit.x-10, fruit.y, fruit.fruitType).setOrigin(0.5).setDisplaySize(halfSize, fruit.fruitSize).setAngle(-20);
+                            let half2 = this.add.image(fruit.x+10, fruit.y, fruit.fruitType).setOrigin(0.5).setDisplaySize(halfSize, fruit.fruitSize).setAngle(20);
+                            this.tweens.add({ targets: half1, x: half1.x-40, y: half1.y+40, alpha: 0, angle: -60, duration: 500, onComplete: () => half1.destroy() });
+                            this.tweens.add({ targets: half2, x: half2.x+40, y: half2.y+40, alpha: 0, angle: 60, duration: 500, onComplete: () => half2.destroy() });
+                            this.tweens.add({ targets: fruit, alpha: 0, duration: 200, onComplete: () => fruit.destroy() });
+                            this.fruits.splice(i, 1);
+                            continue;
+                        } else {
+                            // Play sword sound for bomb slice
+                            this.sound.play('bombsword');
+                        }
+                    }
+                    // Normal fruit and goldenapple logic
                     this.score += points;
                     let scoreChangeText = points > 0 ? `+${points}` : `${points}`;
                     this.scoreText.setText('Score: ' + this.score + ` (${scoreChangeText})`);
                     // Play slice sound
                     this.sound.play('slice');
-                        // Fruit splash animation
-                        this.showFruitSplash(fruit.x, fruit.y, fruit.fruitType);
+                    this.showFruitSplash(fruit.x, fruit.y, fruit.fruitType);
                     // Combo logic
                     if (now - this.lastSliceTime < comboWindow) {
                         this.comboCount++;
                     } else {
-                        // If combo streak ended, award bonus if 3+
                         if (this.comboCount >= 3) {
                             let comboBonus = this.comboCount * 2;
                             this.score += comboBonus;
                             this.scoreText.setText('Score: ' + this.score + ` (+${comboBonus} combo!)`);
-                            // Show combo popup at last sliced fruit
                             if (this.comboPopup) this.comboPopup.destroy();
                             this.comboPopup = this.add.text(pointer.x, pointer.y - 60, `Combo x${this.comboCount}! +${comboBonus}`, {
                                 font: 'bold 30px Arial',
@@ -808,7 +1042,6 @@
                     lastSlicedPointer = { x: pointer.x, y: pointer.y };
                     // Power-up effect for golden apple
                     if (fruit.fruitType === 'goldenapple') {
-                        // Show a special popup and effect
                         const popup = this.add.text(fruit.x, fruit.y - 30, `+${points} pts`, {
                             font: 'bold 32px Arial',
                             fill: '#ffd600',
@@ -825,7 +1058,6 @@
                             onComplete: () => popup.destroy()
                         });
                     } else if (fruit.fruitType === 'bomb') {
-                        // Bomb effect: show negative popup and screen shake
                         const popup = this.add.text(fruit.x, fruit.y - 30, `Bomb! ${points}`, {
                             font: 'bold 32px Arial',
                             fill: '#e53935',
@@ -841,10 +1073,8 @@
                             duration: 1200,
                             onComplete: () => popup.destroy()
                         });
-                        // Screen shake effect
                         this.cameras.main.shake(350, 0.012);
                     } else {
-                        // Normal popup
                         const popup = this.add.text(fruit.x, fruit.y - 30, scoreChangeText, {
                             font: 'bold 32px Arial',
                             fill: '#43a047',
@@ -860,7 +1090,6 @@
                             onComplete: () => popup.destroy()
                         });
                     }
-                    // Cutting effect: slash line
                     let slash = this.add.graphics();
                     slash.lineStyle(6, 0x43a047, 0.8);
                     slash.beginPath();
@@ -868,7 +1097,6 @@
                     slash.lineTo(pointer.x+30, pointer.y+30);
                     slash.strokePath();
                     this.tweens.add({ targets: slash, alpha: 0, duration: 350, onComplete: () => slash.destroy() });
-                    // Split fruit halves
                     let halfSize = Math.round(fruit.fruitSize/2);
                     let half1 = this.add.image(fruit.x-10, fruit.y, fruit.fruitType).setOrigin(0.5).setDisplaySize(halfSize, fruit.fruitSize).setAngle(-20);
                     let half2 = this.add.image(fruit.x+10, fruit.y, fruit.fruitType).setOrigin(0.5).setDisplaySize(halfSize, fruit.fruitSize).setAngle(20);
@@ -883,7 +1111,6 @@
                 let comboBonus = this.comboCount * 2;
                 this.score += comboBonus;
                 this.scoreText.setText('Score: ' + this.score + ` (+${comboBonus} combo!)`);
-                // Show combo popup at last sliced location
                 if (this.comboPopup) this.comboPopup.destroy();
                 let px = lastSlicedPointer ? lastSlicedPointer.x : gameWidth/2;
                 let py = lastSlicedPointer ? lastSlicedPointer.y - 60 : gameHeight/2 - 60;
@@ -906,19 +1133,37 @@
         }
         update() {
             if (this.gameOver || this.paused) return;
+            // Shield timer update
+            if (this.shieldActive) {
+                this.shieldTimeLeft -= this.game.loop.delta / 1000;
+                if (this.shieldTimeLeft <= 0) {
+                    this.deactivateShield();
+                } else {
+                    this.updateShieldMeter();
+                }
+            }
             if (this.mode === 'multi') {
                 for (let i = this.fruits.length - 1; i >= 0; i--) {
                     let fruit = this.fruits[i];
                     if ((fruit.y > gameHeight+40 || fruit.y < -40) && !fruit.sliced) {
                         fruit.destroy();
                         this.fruits.splice(i, 1);
+                        // Stop bomb sound when bomb leaves screen
+                        if (fruit.fruitType === 'bomb' && fruit.bombSoundInstance && fruit.bombSoundInstance.isPlaying) {
+                            fruit.bombSoundInstance.stop();
+                            fruit.bombSoundInstance.destroy();
+                        }
                         // Missed: assign to player based on fruit x position (left/right)
                         if (fruit.x < gameWidth/2) {
-                            this.missed1 += 1;
-                            this.missedText1.setText('P1 Missed: ' + this.missed1);
+                            if (!this.shieldActive) {
+                                this.missed1 += 1;
+                                this.missedText1.setText('P1 Missed: ' + this.missed1);
+                            }
                         } else {
-                            this.missed2 += 1;
-                            this.missedText2.setText('P2 Missed: ' + this.missed2);
+                            if (!this.shieldActive) {
+                                this.missed2 += 1;
+                                this.missedText2.setText('P2 Missed: ' + this.missed2);
+                            }
                         }
                         // No game over on missed fruits
                     }
@@ -930,15 +1175,97 @@
                     if ((fruit.y > gameHeight+40 || fruit.y < -40) && !fruit.sliced) {
                         fruit.destroy();
                         this.fruits.splice(i, 1);
-                        this.missed += 1;
-                        this.missedText.setText('Missed: ' + this.missed);
-                        // Reduce score by 2 for each missed fruit
-                        this.score = Math.max(0, this.score - 2);
-                        this.scoreText.setText('Score: ' + this.score);
+                        // Stop bomb sound when bomb leaves screen
+                        if (fruit.fruitType === 'bomb' && fruit.bombSoundInstance && fruit.bombSoundInstance.isPlaying) {
+                            fruit.bombSoundInstance.stop();
+                            fruit.bombSoundInstance.destroy();
+                        }
+                        if (!this.shieldActive) {
+                            this.missed += 1;
+                            this.missedText.setText('Missed: ' + this.missed);
+                            // Reduce score by 2 for each missed fruit
+                            this.score = Math.max(0, this.score - 2);
+                            this.scoreText.setText('Score: ' + this.score);
+                        }
                         // Do not end game when missed reaches 5
                     }
                 }
             }
+                // Sword trail rendering
+                    this.swordTrail.clear();
+                    if (this.swordTrailPoints.length > 1) {
+                        // Draw trail with fading and thinner tail
+                        for (let i = 1; i < this.swordTrailPoints.length; i++) {
+                            let p1 = this.swordTrailPoints[i - 1];
+                            let p2 = this.swordTrailPoints[i];
+                            // Fade and color gradient: head is bright, tail is faded
+                            let t = i / this.swordTrailPoints.length;
+                            let alpha = 0.8 * t;
+                            let width = 12 - 8 * (1 - t); // Head thick, tail thin
+                            // Color: head is green, tail is yellow
+                            let color = Phaser.Display.Color.Interpolate.ColorWithColor(
+                                { r: 67, g: 160, b: 71 }, // #43a047
+                                { r: 255, g: 235, b: 59 }, // #ffeb3b
+                                this.swordTrailPoints.length,
+                                i
+                            );
+                            let hexColor = Phaser.Display.Color.GetColor(color.r, color.g, color.b);
+                            this.swordTrail.lineStyle(width, hexColor, alpha);
+                            this.swordTrail.beginPath();
+                            this.swordTrail.moveTo(p1.x, p1.y);
+                            this.swordTrail.lineTo(p2.x, p2.y);
+                            this.swordTrail.strokePath();
+                        }
+                    }
+        }
+        activateShield() {
+            this.shieldActive = true;
+            this.shieldTimeLeft = 15;
+            // Show shield meter
+            if (this.shieldMeter) this.shieldMeter.destroy();
+            this.shieldMeter = this.add.graphics();
+            this.shieldMeter.setDepth(50);
+            this.updateShieldMeter();
+        }
+
+        deactivateShield() {
+            this.shieldActive = false;
+            this.shieldTimeLeft = 0;
+            if (this.shieldMeter) {
+                this.shieldMeter.destroy();
+                this.shieldMeter = null;
+            }
+        }
+
+        updateShieldMeter() {
+            if (!this.shieldMeter) return;
+            this.shieldMeter.clear();
+            // Draw meter bar at top center
+            let meterWidth = 220;
+            let meterHeight = 22;
+            let x = gameWidth/2 - meterWidth/2;
+            let y = 38;
+            // Background
+            this.shieldMeter.fillStyle(0xeeeeee, 0.85);
+            this.shieldMeter.fillRoundedRect(x, y, meterWidth, meterHeight, 12);
+            // Border
+            this.shieldMeter.lineStyle(3, 0x2196f3, 1);
+            this.shieldMeter.strokeRoundedRect(x, y, meterWidth, meterHeight, 12);
+            // Fill
+            let pct = Math.max(0, Math.min(1, this.shieldTimeLeft/15));
+            this.shieldMeter.fillStyle(0x2196f3, 0.85);
+            this.shieldMeter.fillRoundedRect(x+3, y+3, (meterWidth-6)*pct, meterHeight-6, 8);
+            // Shield icon
+            this.shieldMeter.lineStyle(0);
+            this.shieldMeter.fillStyle(0x2196f3, 1);
+            this.shieldMeter.fillCircle(x-18, y+meterHeight/2, 12);
+            // Timer text
+            let timeText = Math.ceil(this.shieldTimeLeft) + 's';
+            // Remove previous timer text if exists
+            if (this.shieldMeter.timerText) this.shieldMeter.timerText.destroy();
+            this.shieldMeter.timerText = this.add.text(x+meterWidth+18, y+meterHeight/2, timeText, {
+                fontSize: '18px', fill: '#2196f3', fontFamily: 'Fredoka One', fontStyle: 'bold', backgroundColor: 'rgba(255,255,255,0.7)'
+            }).setOrigin(0.5);
         }
             // Animated fruit splash effect
             showFruitSplash(x, y, fruitType) {
@@ -1069,6 +1396,15 @@
                 fontSize: '20px', fill: '#fff', backgroundColor:'#43a047', padding:{left:18,right:18,top:8,bottom:8}, borderRadius:12, fontFamily: 'Fredoka One', fontStyle: 'bold'
             }).setOrigin(0.5).setDepth(101).setInteractive();
             playAgainBtn.on('pointerdown', () => {
+                // Stop all bomb sounds before restarting
+                if (this.fruits && this.fruits.length) {
+                    for (let fruit of this.fruits) {
+                        if (fruit.fruitType === 'bomb' && fruit.bombSoundInstance && fruit.bombSoundInstance.isPlaying) {
+                            fruit.bombSoundInstance.stop();
+                            fruit.bombSoundInstance.destroy();
+                        }
+                    }
+                }
                 this.scene.restart({ mode: this.mode });
             });
             // Back button (smaller)
