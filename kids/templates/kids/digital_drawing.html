@@ -1,24 +1,117 @@
-{% extends "kids/base.html" %}
-{% block content %}
-<style>
-  html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: #181818; }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Digital Drawing</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <style>
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: #fff;
+    box-sizing: border-box;
+    border: 8px solid #00b8ff;
+    border-radius: 40px;
+    box-shadow: 0 4px 32px #00b8ff22;
+  }
   #drawingCanvas { position: absolute; top: 80px; left: 0; width: 100vw; height: calc(100vh - 80px); background: #fff; display: block; cursor: crosshair; z-index: 1; }
-  .drawing-toolbar { position: fixed; top: 0; left: 0; width: 100vw; height: auto; background: #f8f9fa; border-bottom: 2px solid #00b8ff; box-shadow: 0 2px 8px #00b8ff22; display: flex; flex-direction: column; flex-wrap: nowrap; align-items: flex-start; z-index: 2; padding: 0 18px; }
-  .toolbar-row { display: flex; flex-direction: row; gap: 18px; align-items: center; width: 100%; margin-bottom: 4px; }
+  .drawing-toolbar {
+    position: sticky;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    min-height: 80px;
+    background: #f8f9fa;
+    border-bottom: 2px solid #00b8ff;
+    box-shadow: 0 4px 16px #00b8ff33;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    z-index: 100;
+    padding: 8px 8px 8px 8px;
+  border-radius: 32px;
+  }
+  .toolbar-row {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 4px;
+    justify-content: flex-start;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: #00b8ff #e0e0e0;
+  }
   .toolbar-section { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; min-width: 120px; }
   .toolbar-actions { display: flex; flex-direction: row; gap: 6px; align-items: center; margin-top: 0; margin-bottom: 0; }
   .drawing-toolbar label, .drawing-toolbar select, .drawing-toolbar button, .drawing-toolbar .tool-btn, .drawing-toolbar .kids-btn { margin: 0 2px; font-size: 1rem; }
-  .tool-btn { background:#fff;color:#00b8ff;border:1px solid #00b8ff;padding:4px 8px;border-radius:6px; min-width: 32px; min-height: 32px; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
-  .tool-btn.active { background:#00b8ff;color:#fff; }
-  .kids-btn { background:#fff;color:#00b8ff;border:1px solid #00b8ff;padding:4px 8px;border-radius:6px; min-width: 32px; min-height: 32px; font-weight: 600; font-size: 1rem; }
+  .drawing-toolbar label, .drawing-toolbar select, .drawing-toolbar button, .drawing-toolbar .tool-btn, .drawing-toolbar .kids-btn { margin: 0 6px; font-size: 2.2rem; }
+  .tool-btn {
+    background: #fff;
+    color: #00b8ff;
+    border: 2px solid #00b8ff;
+    padding: 16px 24px;
+    border-radius: 18px;
+    min-width: 72px;
+    min-height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    box-shadow: 0 2px 8px #00b8ff22;
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    margin-bottom: 2px;
+  }
+  .tool-btn.active {
+    background: #00b8ff;
+    color: #fff;
+    box-shadow: 0 4px 16px #00b8ff44;
+  }
+  .kids-btn {
+    background: #fff;
+    color: #00b8ff;
+    border: 2px solid #00b8ff;
+    padding: 16px 24px;
+    border-radius: 18px;
+    min-width: 72px;
+    min-height: 72px;
+    font-weight: 700;
+    font-size: 2rem;
+    box-shadow: 0 2px 8px #00b8ff22;
+    margin-bottom: 2px;
+  }
   .kids-btn.save { background:#00b8ff;color:#fff; }
-  .drawing-toolbar select, .drawing-toolbar input[type="color"], .drawing-toolbar input[type="range"] { height: 28px; font-size: 1rem; }
-  .drawing-toolbar label { font-weight: 500; }
+  .drawing-toolbar select, .drawing-toolbar input[type="color"], .drawing-toolbar input[type="range"] { height: 48px; font-size: 1.4rem; }
+  .drawing-toolbar label { font-weight: 700; }
   .drawing-toolbar::-webkit-scrollbar { height: 8px; background: #e0e0e0; }
   .drawing-toolbar::-webkit-scrollbar-thumb { background: #00b8ff; border-radius: 4px; }
   @media (max-width: 1200px) { .toolbar-row { gap: 6px; } .tool-btn, .kids-btn { min-width: 28px; font-size: 0.95rem; padding: 3px 6px; } }
   @media (max-width: 767px) { .drawing-toolbar { font-size: 0.85rem; padding: 0 2px; } .toolbar-row { gap: 3px; } .tool-btn, .kids-btn { min-width: 24px; font-size: 0.8rem; padding: 2px 2px; } }
-</style>
+  @media (orientation: landscape) and (max-width: 900px) {
+    .drawing-toolbar {
+      min-height: 40px;
+      height: 40px;
+      padding-top: 2px;
+      padding-bottom: 2px;
+    }
+    .tool-btn, .kids-btn {
+      min-width: 40px;
+      min-height: 40px;
+      padding: 4px 8px;
+      font-size: 1rem;
+    }
+    .drawing-toolbar label, .drawing-toolbar select, .drawing-toolbar button, .drawing-toolbar .tool-btn, .drawing-toolbar .kids-btn {
+      font-size: 1rem;
+    }
+  }
+  </style>
+</head>
+<body>
 <div class="drawing-toolbar">
   <div class="toolbar-row">
     <label>Brush Size:
@@ -46,6 +139,10 @@
         <option value="crosshatch">Crosshatch</option>
       </select>
     </label>
+    <label style="font-size:1.2rem; margin-left:16px;">
+      Load Image:
+      <input type="file" id="imageLoader" accept="image/*" style="font-size:1.2rem; padding:4px;">
+    </label>
   </div>
   <div class="toolbar-row">
     <button onclick="setTool('brush')" id="brushBtn" class="tool-btn active" title="Sketch"><i class="fas fa-pencil-alt"></i></button>
@@ -65,7 +162,7 @@
   <div class="toolbar-row">
   </div>
 </div>
-<div id="levelSampleImg" style="position:fixed;top:130px;left:23px;z-index:9998;display:none;"></div>
+<div id="levelSampleImg" style="position:fixed;top:240px;left:23px;z-index:9998;display:none;"></div>
 <canvas id="drawingCanvas" width="1920" height="1080"></canvas>
 
 <div id="modeSelect" class="kids-modal">
@@ -565,7 +662,7 @@
     {text:'Draw a sun', icon:'☀️', img:'media/movies/f5VK0h2bprRhR6iRrixcuEfRxSUF4l14F66vQYrsJGmKZ5nTA1.jpg'},
     {text:'Draw a fish', icon:'🐟', img:'media/movies/IQsBhg9t747dLhjXfsChIGZy4XfugER8BF0Gw5MDhIcnY5nTA1.jpg'},
     {text:'Draw a star', icon:'⭐', img:'media/movies/download.jpeg'},
-  {text:'Draw an apple', icon:'🍎', img:'/media/movies/apple-439397_640.webp'}
+  {text:'Draw an apple', icon:'🍎', img:'https://res.cloudinary.com/djc3qirsl/image/upload/v1756897997/media/movies/uno1akwgos6rkbtrlqx6.webp'}
   ];
   let currentLevel = 0;
   function startSelfDrawing() {
@@ -606,7 +703,7 @@
   function showLevelImage() {
     const imgDiv = document.getElementById('levelSampleImg');
     if (!imgDiv) return;
-    imgDiv.innerHTML = `<img src='${levels[currentLevel].img}' alt='Sample' style='max-width:120px;max-height:120px;border-radius:12px;border:2px solid #00b8ff;box-shadow:0 2px 8px #00b8ff44;'>`;
+  imgDiv.innerHTML = `<img src='${levels[currentLevel].img}' alt='Sample' style='max-width:320px;max-height:320px;border-radius:24px;border:4px solid #00b8ff;box-shadow:0 6px 24px #00b8ff44;'>`;
     imgDiv.style.display = 'block';
   }
   function nextLevel() {
@@ -618,6 +715,32 @@
       document.getElementById('levelPrompt').innerHTML = "<span style='font-size:2rem;'>🎉</span> <span>All levels complete!</span> <button onclick='backToModeSelect()' class='kids-next-btn'>Choose Again</button>";
     }
   }
+
+  // Image upload and draw on canvas
+const imageLoader = document.getElementById('imageLoader');
+if (imageLoader) {
+  imageLoader.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      const img = new Image();
+      img.onload = function() {
+        // Clear canvas and draw the image centered and scaled
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let scale = Math.min(canvas.width / img.width, canvas.height / img.height, 1);
+        let imgW = img.width * scale;
+        let imgH = img.height * scale;
+        let x = (canvas.width - imgW) / 2;
+        let y = (canvas.height - imgH) / 2;
+        ctx.drawImage(img, x, y, imgW, imgH);
+        saveState();
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
 </script>
 <style>
 .kids-modal {
@@ -627,13 +750,23 @@
   animation: kidsPop 0.5s;
 }
 .kids-title {
-  color: #00b8ff; font-size: 2.2rem; margin-bottom: 24px; font-family: 'Comic Sans MS', cursive, sans-serif;
-  text-shadow: 2px 2px 0 #fff, 0 0 8px #00b8ff88;
+  color: #00b8ff;
+  font-size: 3.5rem;
+  margin-bottom: 32px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  text-shadow: 2px 2px 0 #fff, 0 0 12px #00b8ff88;
 }
 .kids-mode-btns { display: flex; gap: 32px; }
 .kids-mode-btn {
-  font-size: 1.5rem; padding: 18px 36px; margin: 0 12px; border-radius: 18px; border: none; font-family: 'Comic Sans MS', cursive, sans-serif;
-  box-shadow: 0 2px 12px #00b8ff44; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+  font-size: 2.2rem;
+  padding: 28px 56px;
+  margin: 0 18px;
+  border-radius: 24px;
+  border: none;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  box-shadow: 0 4px 18px #00b8ff44;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 .kids-mode-btn.self { background: #00b8ff; color: #fff; }
 .kids-mode-btn.levels { background: #fff; color: #00b8ff; border: 2px solid #00b8ff; }
@@ -645,15 +778,37 @@
   padding: 8px 0;
 }
 .kids-level-btn {
-  background: #fff; color: #00b8ff; border: 2px solid #00b8ff; border-radius: 16px; font-size: 1.2rem; font-family: 'Comic Sans MS', cursive, sans-serif;
-  padding: 16px 24px; min-width: 180px; min-height: 60px; box-shadow: 0 2px 12px #00b8ff44; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: transform 0.2s, box-shadow 0.2s;
+  background: #fff;
+  color: #00b8ff;
+  border: 2px solid #00b8ff;
+  border-radius: 24px;
+  font-size: 2rem;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  padding: 28px 48px;
+  min-width: 240px;
+  min-height: 80px;
+  box-shadow: 0 4px 18px #00b8ff44;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 .kids-level-btn:hover { background: #00b8ff; color: #fff; transform: scale(1.07); box-shadow: 0 4px 24px #00b8ff88; }
-.kids-level-icon { font-size: 2rem; }
-.kids-level-text { font-size: 1.1rem; font-weight: 600; }
-.kids-back-btn {
-  background: #eee; color: #00b8ff; border: none; border-radius: 12px; font-size: 1.1rem; padding: 10px 24px; margin-top: 12px; cursor: pointer; font-family: 'Comic Sans MS', cursive, sans-serif;
-}
+.kids-level-icon { font-size: 3rem; }
+.kids-level-text { font-size: 2rem; font-weight: 700; }
+  .kids-back-btn {
+    background: #eee;
+    color: #00b8ff;
+    border: none;
+    border-radius: 18px;
+    font-size: 2rem;
+    padding: 18px 48px;
+    margin-top: 18px;
+    cursor: pointer;
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    box-shadow: 0 2px 12px #00b8ff44;
+  }
 .kids-back-btn:hover { background: #00b8ff; color: #fff; }
 .kids-level-prompt {
   display: none; position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
@@ -667,4 +822,5 @@
 .kids-next-btn:hover { background: #fff; color: #00b8ff; border: 2px solid #00b8ff; }
 @keyframes kidsPop { 0% { transform: scale(0.7); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 </style>
-{% endblock %}
+</body>
+</html>
