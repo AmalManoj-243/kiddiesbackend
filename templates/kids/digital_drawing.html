@@ -145,25 +145,35 @@
     </label>
   </div>
   <div class="toolbar-row">
-    <button onclick="setTool('brush')" id="brushBtn" class="tool-btn active" title="Sketch"><i class="fas fa-pencil-alt"></i></button>
-    <button onclick="setTool('line')" id="lineBtn" class="tool-btn" title="Line"><i class="fas fa-slash"></i></button>
-    <button onclick="setTool('rect')" id="rectBtn" class="tool-btn" title="Rectangle"><i class="far fa-square"></i></button>
-    <button onclick="setTool('circle')" id="circleBtn" class="tool-btn" title="Circle"><i class="far fa-circle"></i></button>
-    <button onclick="setTool('ellipse')" id="ellipseBtn" class="tool-btn" title="Ellipse"><i class="far fa-circle"></i></button>
-    <button onclick="setTool('polygon')" id="polygonBtn" class="tool-btn" title="Polygon"><i class="fas fa-draw-polygon"></i></button>
-    <button onclick="setTool('fill')" id="fillBtn" class="tool-btn" title="Fill"><i class="fas fa-fill-drip"></i></button>
-    <button onclick="setTool('text')" id="textBtn" class="tool-btn" title="Text"><i class="fas fa-font"></i></button>
-    <button onclick="clearCanvas()" class="kids-btn" title="Clear"><i class="fas fa-trash"></i></button>
-    <button onclick="saveDrawing()" class="kids-btn save" title="Save"><i class="fas fa-save"></i></button>
-    <button onclick="undo()" class="kids-btn" title="Undo"><i class="fas fa-undo"></i></button>
-    <button onclick="redo()" class="kids-btn" title="Redo"><i class="fas fa-redo"></i></button>
-    <span id="saveMsg" style="color:#00b8ff;font-weight:600;"></span>
+  <button onclick="setTool('gradient')" id="gradientBtn" class="tool-btn" title="Gradient Brush"><i class="fas fa-adjust"></i></button>
+  <button onclick="setTool('pattern')" id="patternBtn" class="tool-btn" title="Pattern/Texture Brush"><i class="fas fa-grip-lines"></i></button>
+  <button onclick="setTool('rainbow')" id="rainbowBtn" class="tool-btn" title="Rainbow Brush"><i class="fas fa-rainbow"></i></button>
+  <button onclick="setTool('picker')" id="pickerBtn" class="tool-btn" title="Color Picker"><i class="fas fa-eye-dropper"></i></button>
+  <button onclick="setTool('blur')" id="blurBtn" class="tool-btn" title="Blur Tool"><i class="fas fa-low-vision"></i></button>
+  <button onclick="setTool('smudge')" id="smudgeBtn" class="tool-btn" title="Smudge Tool"><i class="fas fa-hand-paper"></i></button>
+  <button onclick="setTool('curve')" id="curveBtn" class="tool-btn" title="Curve Tool"><i class="fas fa-wave-square"></i></button>
+  </div>
+  <div class="toolbar-row">
+  <button onclick="setTool('brush')" id="brushBtn" class="tool-btn active" title="Sketch"><i class="fas fa-pencil-alt"></i></button>
+  <button onclick="setTool('line')" id="lineBtn" class="tool-btn" title="Line"><i class="fas fa-slash"></i></button>
+  <button onclick="setTool('rect')" id="rectBtn" class="tool-btn" title="Rectangle"><i class="far fa-square"></i></button>
+  <button onclick="setTool('circle')" id="circleBtn" class="tool-btn" title="Circle"><i class="far fa-circle"></i></button>
+  <button onclick="setTool('mirror')" id="mirrorBtn" class="tool-btn" title="Mirror Tool"><i class="fas fa-columns"></i></button>
+  <button onclick="setTool('fill')" id="fillBtn" class="tool-btn" title="Fill"><i class="fas fa-fill-drip"></i></button>
+  <button onclick="setTool('text')" id="textBtn" class="tool-btn" title="Text"><i class="fas fa-font"></i></button>
+  <span style="display:inline-block;min-width:48px;"></span>
+  <button onclick="clearCanvas()" class="kids-btn" title="Clear" style="margin-left:32px;"><i class="fas fa-trash"></i></button>
+  <button onclick="saveDrawing()" class="kids-btn save" title="Save" style="margin-left:12px;"><i class="fas fa-save"></i></button>
+  <button onclick="undo()" class="kids-btn" title="Undo" style="margin-left:12px;"><i class="fas fa-undo"></i></button>
+  <button onclick="redo()" class="kids-btn" title="Redo" style="margin-left:12px;"><i class="fas fa-redo"></i></button>
+  <span id="saveMsg" style="color:#00b8ff;font-weight:600;"></span>
   </div>
   <div class="toolbar-row">
   </div>
 </div>
 <div id="levelSampleImg" style="position:fixed;top:240px;left:23px;z-index:9998;display:none;"></div>
 <canvas id="drawingCanvas" width="1920" height="1080"></canvas>
+<canvas id="previewCanvas" width="1920" height="1080" style="position:absolute;top:80px;left:0;width:100vw;height:calc(100vh - 80px);pointer-events:none;z-index:2;"></canvas>
 
 <div id="modeSelect" class="kids-modal">
   <h2 class="kids-title">🎨 Choose Drawing Mode</h2>
@@ -179,6 +189,8 @@
 </div>
 
 <script>
+  const previewCanvas = document.getElementById('previewCanvas');
+  const previewCtx = previewCanvas.getContext('2d');
   const canvas = document.getElementById('drawingCanvas');
   const ctx = canvas.getContext('2d');
   let drawing = false, tool = 'brush', startX = 0, startY = 0, brushSize = 6, brushColor = '#000000', snapshot = null;
@@ -193,6 +205,8 @@
     const rect = canvas.getBoundingClientRect();
     canvas.width = rect.width;
     canvas.height = rect.height;
+    previewCanvas.width = rect.width;
+    previewCanvas.height = rect.height;
   }
   window.addEventListener('resize', resizeCanvas);
   resizeCanvas();
@@ -201,6 +215,14 @@
     tool = selected;
     document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
     if(selected==='brush') document.getElementById('brushBtn').classList.add('active');
+    if(selected==='gradient') document.getElementById('gradientBtn').classList.add('active');
+    if(selected==='pattern') document.getElementById('patternBtn').classList.add('active');
+    if(selected==='rainbow') document.getElementById('rainbowBtn').classList.add('active');
+    if(selected==='picker') document.getElementById('pickerBtn').classList.add('active');
+    if(selected==='blur') document.getElementById('blurBtn').classList.add('active');
+    if(selected==='smudge') document.getElementById('smudgeBtn').classList.add('active');
+    if(selected==='mirror') document.getElementById('mirrorBtn').classList.add('active');
+    if(selected==='curve') document.getElementById('curveBtn').classList.add('active');
     if(selected==='line') document.getElementById('lineBtn').classList.add('active');
     if(selected==='rect') document.getElementById('rectBtn').classList.add('active');
     if(selected==='circle') document.getElementById('circleBtn').classList.add('active');
@@ -298,12 +320,62 @@
   document.getElementById('canvasTextCancel').onclick = function() { hideTextInput(); };
 
   function startDraw(e) {
+    if(tool==='curve') {
+      const {x, y} = getXY(e);
+      if (!window.curvePoints) window.curvePoints = [];
+      window.curvePoints.push({x, y});
+      previewCtx.clearRect(0,0,previewCanvas.width,previewCanvas.height);
+      if(window.curvePoints.length === 2) {
+        // Show preview: dashed line from start to control, and a faint curve to mouse
+        previewCtx.save();
+        previewCtx.lineWidth = brushSize/2;
+        previewCtx.strokeStyle = '#00b8ff';
+        previewCtx.setLineDash([5,5]);
+        previewCtx.beginPath();
+        previewCtx.moveTo(window.curvePoints[0].x, window.curvePoints[0].y);
+        previewCtx.lineTo(window.curvePoints[1].x, window.curvePoints[1].y);
+        previewCtx.stroke();
+        previewCtx.setLineDash([]);
+        previewCtx.globalAlpha = 0.5;
+        previewCtx.beginPath();
+        previewCtx.moveTo(window.curvePoints[0].x, window.curvePoints[0].y);
+        previewCtx.quadraticCurveTo(window.curvePoints[1].x, window.curvePoints[1].y, x, y);
+        previewCtx.stroke();
+        previewCtx.restore();
+      }
+      if(window.curvePoints.length === 3) {
+        ctx.save();
+        ctx.lineWidth = brushSize;
+        ctx.strokeStyle = brushColor;
+        ctx.beginPath();
+        ctx.moveTo(window.curvePoints[0].x, window.curvePoints[0].y);
+        ctx.quadraticCurveTo(
+          window.curvePoints[1].x, window.curvePoints[1].y,
+          window.curvePoints[2].x, window.curvePoints[2].y
+        );
+        ctx.stroke();
+        ctx.restore();
+        window.curvePoints = undefined;
+        previewCtx.clearRect(0,0,previewCanvas.width,previewCanvas.height);
+      }
+      return;
+    }
     drawing = true;
     const {x, y} = getXY(e);
     startX = x; startY = y;
     if(tool==='brush') {
       lastDotX = null; lastDotY = null;
       draw(e);
+    }
+    if(tool==='picker') {
+      // Color picker: pick color instantly on mouse down
+      let px = Math.floor(x), py = Math.floor(y);
+      let imageData = ctx.getImageData(px, py, 1, 1).data;
+      let rgb = `#${((1<<24)+(imageData[0]<<16)+(imageData[1]<<8)+imageData[2]).toString(16).slice(1)}`;
+      brushColor = rgb;
+      document.getElementById('brushColor').value = rgb;
+      drawing = false;
+      return;
     }
     if(tool==='fill') floodFill(x, y, brushColor);
     if(['line','rect','circle','ellipse','polygon'].includes(tool)) snapshot = ctx.getImageData(0,0,canvas.width,canvas.height);
@@ -333,181 +405,261 @@
   canvas.addEventListener('touchmove', draw);
 
   function draw(e) {
+    // ...existing code...
+    if(tool==='mirror') {
+      if (!drawing) return;
+      const {x, y} = getXY(e);
+      // Draw at cursor and mirrored across vertical axis
+      ctx.save();
+      ctx.lineWidth = brushSize;
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = brushColor;
+      ctx.beginPath();
+      ctx.moveTo(lastDotX ?? startX, lastDotY ?? startY);
+      ctx.lineTo(x, y);
+      ctx.stroke();
+      // Mirror
+      let mx = canvas.width - (lastDotX ?? startX);
+      let mx2 = canvas.width - x;
+      ctx.beginPath();
+      ctx.moveTo(mx, y);
+      ctx.lineTo(mx2, y);
+      ctx.stroke();
+      ctx.restore();
+      lastDotX = x;
+      lastDotY = y;
+      return;
+    }
+    if(tool==='smudge') {
+      if (!drawing) return;
+      const {x, y} = getXY(e);
+      let px = Math.floor(x), py = Math.floor(y);
+      let r = Math.max(8, brushSize * 2);
+      let imageData = ctx.getImageData(px - r, py - r, r * 2, r * 2);
+      let data = imageData.data;
+      let w = r * 2, h = r * 2;
+      // Smudge: average colors and shift them slightly in the direction of movement
+      if (typeof draw.lastX === 'number' && typeof draw.lastY === 'number') {
+        let dx = px - draw.lastX;
+        let dy = py - draw.lastY;
+        for(let y0=1; y0<h-1; y0++) {
+          for(let x0=1; x0<w-1; x0++) {
+            let i = (y0*w + x0)*4;
+            let srcX = Math.max(0, Math.min(w-1, x0 - Math.sign(dx)));
+            let srcY = Math.max(0, Math.min(h-1, y0 - Math.sign(dy)));
+            let srcIdx = (srcY*w + srcX)*4;
+            for(let c=0; c<4; c++) {
+              data[i+c] = (data[i+c] + data[srcIdx+c]) / 2;
+            }
+          }
+        }
+      }
+      ctx.putImageData(imageData, px - r, py - r);
+      draw.lastX = px;
+      draw.lastY = py;
+      return;
+    } else {
+      draw.lastX = undefined;
+      draw.lastY = undefined;
+    }
+    if(tool==='blur') {
+      if (!drawing) return;
+      // Improved blur tool: apply a stronger blur using multiple passes
+      const {x, y} = getXY(e);
+      let px = Math.floor(x), py = Math.floor(y);
+      let r = Math.max(8, brushSize * 2);
+      let imageData = ctx.getImageData(px - r, py - r, r * 2, r * 2);
+      let data = imageData.data;
+      let w = r * 2, h = r * 2;
+      // Apply blur in multiple passes for stronger effect
+      for(let pass=0; pass<4; pass++) {
+        let temp = new Uint8ClampedArray(data);
+        for(let y0=1; y0<h-1; y0++) {
+          for(let x0=1; x0<w-1; x0++) {
+            let i = (y0*w + x0)*4;
+            let totalR=0, totalG=0, totalB=0, totalA=0;
+            for(let dy=-1; dy<=1; dy++) {
+              for(let dx=-1; dx<=1; dx++) {
+                let idx = ((y0+dy)*w + (x0+dx))*4;
+                totalR += temp[idx];
+                totalG += temp[idx+1];
+                totalB += temp[idx+2];
+                totalA += temp[idx+3];
+              }
+            }
+            data[i] = totalR/9;
+            data[i+1] = totalG/9;
+            data[i+2] = totalB/9;
+            data[i+3] = totalA/9;
+          }
+        }
+      }
+      ctx.putImageData(imageData, px - r, py - r);
+      return;
+    }
     if (!drawing) return;
     const {x, y} = getXY(e);
+    // Painting tools
+    if(tool==='gradient') {
+      // Gradient brush: radial gradient at cursor
+      const grad = ctx.createRadialGradient(x, y, 0, x, y, brushSize);
+      grad.addColorStop(0, brushColor);
+      grad.addColorStop(1, '#fff');
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(x, y, brushSize, 0, 2*Math.PI);
+      ctx.fillStyle = grad;
+      ctx.globalAlpha = 0.8;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.restore();
+      return;
+    }
+    if(tool==='pattern') {
+      // Pattern/Texture brush: checkerboard
+      ctx.save();
+      for(let dx=-brushSize; dx<brushSize; dx+=brushSize/2) {
+        for(let dy=-brushSize; dy<brushSize; dy+=brushSize/2) {
+          ctx.beginPath();
+          ctx.rect(x+dx, y+dy, brushSize/2, brushSize/2);
+          ctx.fillStyle = ((Math.floor(dx/(brushSize/2))+Math.floor(dy/(brushSize/2)))%2===0)?brushColor:'#fff';
+          ctx.globalAlpha = 0.7;
+          ctx.fill();
+        }
+      }
+      ctx.globalAlpha = 1;
+      ctx.restore();
+      return;
+    }
+    if(tool==='rainbow') {
+      // Rainbow brush: concentric colored arcs
+      ctx.save();
+      let rainbowColors = ['#ff0000','#ff7f00','#ffff00','#00ff00','#0000ff','#4B0082','#9400D3'];
+      for(let i=0; i<rainbowColors.length; i++) {
+        ctx.beginPath();
+        ctx.arc(x, y, brushSize/2 - i*2, 0, 2*Math.PI);
+        ctx.strokeStyle = rainbowColors[i];
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+      ctx.lineWidth = brushSize;
+      ctx.strokeStyle = brushColor;
+      ctx.restore();
+      return;
+    }
+    if(tool==='picker') {
+      // Color picker (eyedropper)
+      let px = Math.floor(x), py = Math.floor(y);
+      let imageData = ctx.getImageData(px, py, 1, 1).data;
+      let rgb = `#${((1<<24)+(imageData[0]<<16)+(imageData[1]<<8)+imageData[2]).toString(16).slice(1)}`;
+      brushColor = rgb;
+      document.getElementById('brushColor').value = rgb;
+      drawing = false;
+      return;
+    }
+    // ...existing code...
     if(tool==='brush') {
       ctx.lineWidth = brushSize;
       ctx.lineCap = 'round';
       ctx.strokeStyle = brushColor;
-      switch(brushType) {
-        case 'pencil':
-          ctx.globalAlpha = 1; ctx.setLineDash([]); ctx.globalCompositeOperation = 'source-over';
-          // Pencil: add slight jitter for hand-drawn effect
-          let jitter = (Math.random()-0.5)*2;
-          ctx.lineTo(x+jitter, y+jitter);
-          ctx.stroke();
-          ctx.beginPath();
-          ctx.moveTo(x+jitter, y+jitter);
-          return;
-        case 'charcoal':
-          ctx.globalAlpha = 0.2; ctx.lineWidth = brushSize * 2; ctx.setLineDash([]); ctx.globalCompositeOperation = 'source-over';
-          // Charcoal: overlay grainy texture
-          for(let i=0;i<brushSize*2;i++) {
-            let angle = Math.random()*2*Math.PI;
-            let radius = Math.random()*brushSize*1.5;
-            let sx = x + Math.cos(angle)*radius;
-            let sy = y + Math.sin(angle)*radius;
-            ctx.save();
-            ctx.globalAlpha = 0.15;
+      if(brushType === 'pencil') {
+        ctx.globalAlpha = 0.9;
+        ctx.beginPath();
+        ctx.moveTo(lastDotX ?? startX, lastDotY ?? startY);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        lastDotX = x;
+        lastDotY = y;
+        ctx.globalAlpha = 1;
+      } else if(brushType === 'charcoal') {
+        ctx.globalAlpha = 0.3;
+        ctx.beginPath();
+        ctx.arc(x, y, brushSize/2, 0, 2*Math.PI);
+        ctx.fillStyle = brushColor;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      } else if(brushType === 'graphite') {
+        ctx.globalAlpha = 0.5;
+        ctx.beginPath();
+        ctx.moveTo(lastDotX ?? startX, lastDotY ?? startY);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        lastDotX = x;
+        lastDotY = y;
+        ctx.globalAlpha = 1;
+      } else if(brushType === 'ink') {
+        ctx.globalAlpha = 1;
+        ctx.lineWidth = brushSize/2;
+        ctx.beginPath();
+        ctx.moveTo(lastDotX ?? startX, lastDotY ?? startY);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        lastDotX = x;
+        lastDotY = y;
+      } else if(brushType === 'marker') {
+        ctx.globalAlpha = 0.7;
+        ctx.lineWidth = brushSize*1.5;
+        ctx.beginPath();
+        ctx.moveTo(lastDotX ?? startX, lastDotY ?? startY);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        lastDotX = x;
+        lastDotY = y;
+        ctx.globalAlpha = 1;
+      } else if(brushType === 'airbrush') {
+        spray(x, y, brushSize, brushColor);
+      } else if(brushType === 'calligraphy') {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(Math.PI/8);
+        ctx.fillStyle = brushColor;
+        ctx.fillRect(-brushSize/2, -brushSize/8, brushSize, brushSize/4);
+        ctx.restore();
+      } else if(brushType === 'eraser') {
+        ctx.save();
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.beginPath();
+        ctx.arc(x, y, brushSize/2, 0, 2*Math.PI);
+        ctx.fill();
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.restore();
+      } else if(brushType === 'smudge') {
+        ctx.globalAlpha = 0.2;
+        ctx.beginPath();
+        ctx.arc(x, y, brushSize/2, 0, 2*Math.PI);
+        ctx.fillStyle = brushColor;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      } else if(brushType === 'blend') {
+        ctx.globalAlpha = 0.1;
+        ctx.beginPath();
+        ctx.arc(x, y, brushSize, 0, 2*Math.PI);
+        ctx.fillStyle = brushColor;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      } else if(brushType === 'spray') {
+        spray(x, y, brushSize, brushColor);
+      } else if(brushType === 'pattern') {
+        // Use the pattern brush logic
+        ctx.save();
+        for(let dx=-brushSize; dx<brushSize; dx+=brushSize/2) {
+          for(let dy=-brushSize; dy<brushSize; dy+=brushSize/2) {
             ctx.beginPath();
-            ctx.arc(sx, sy, brushSize/4, 0, 2*Math.PI);
-            ctx.fillStyle = brushColor;
+            ctx.rect(x+dx, y+dy, brushSize/2, brushSize/2);
+            ctx.fillStyle = ((Math.floor(dx/(brushSize/2))+Math.floor(dy/(brushSize/2)))%2===0)?brushColor:'#fff';
+            ctx.globalAlpha = 0.7;
             ctx.fill();
-            ctx.restore();
           }
-          ctx.lineTo(x, y);
-          ctx.stroke();
-          ctx.beginPath();
-          ctx.moveTo(x, y);
-          return;
-        case 'graphite':
-          ctx.globalAlpha = 0.7; ctx.setLineDash([]); ctx.globalCompositeOperation = 'source-over';
-          // Graphite: smooth gradient shading
-          let grad = ctx.createRadialGradient(x, y, brushSize/4, x, y, brushSize);
-          grad.addColorStop(0, brushColor);
-          grad.addColorStop(1, '#fff');
-          ctx.strokeStyle = grad;
-          ctx.lineTo(x, y);
-          ctx.stroke();
-          ctx.beginPath();
-          ctx.moveTo(x, y);
-          return;
-        case 'ink':
-          ctx.globalAlpha = 1; ctx.lineCap = 'butt'; ctx.setLineDash([]); ctx.globalCompositeOperation = 'source-over';
-          break;
-        case 'eraser':
-          ctx.globalAlpha = 1; ctx.setLineDash([]); ctx.globalCompositeOperation = 'destination-out'; ctx.strokeStyle = 'rgba(0,0,0,1)';
-          break;
-        case 'marker':
-          ctx.globalAlpha = 0.8; ctx.setLineDash([]); ctx.globalCompositeOperation = 'source-over';
-          // Marker: soft edge effect
-          ctx.shadowColor = brushColor;
-          ctx.shadowBlur = brushSize/2;
-          ctx.lineTo(x, y);
-          ctx.stroke();
-          ctx.shadowBlur = 0;
-          ctx.beginPath();
-          ctx.moveTo(x, y);
-          return;
-        case 'airbrush':
-          ctx.globalAlpha = 0.1; ctx.lineWidth = brushSize * 2; ctx.setLineDash([]); ctx.globalCompositeOperation = 'source-over';
-          // Airbrush: more random spray dots
-          for(let i=0;i<brushSize*8;i++) {
-            let angle = Math.random()*2*Math.PI;
-            let radius = Math.random()*brushSize*1.5;
-            let sx = x + Math.cos(angle)*radius;
-            let sy = y + Math.sin(angle)*radius;
-            ctx.save();
-            ctx.globalAlpha = 0.08;
-            ctx.beginPath();
-            ctx.arc(sx, sy, brushSize/5, 0, 2*Math.PI);
-            ctx.fillStyle = brushColor;
-            ctx.fill();
-            ctx.restore();
-          }
-          ctx.lineTo(x, y);
-          ctx.stroke();
-          ctx.beginPath();
-          ctx.moveTo(x, y);
-          return;
-        case 'calligraphy':
-          ctx.globalAlpha = 1; ctx.lineCap = 'butt'; ctx.setLineDash([]); ctx.globalCompositeOperation = 'source-over';
-          // Calligraphy: angle effect
-          let angleRad = Math.PI/6;
-          ctx.save();
-          ctx.translate(x, y);
-          ctx.rotate(angleRad);
-          ctx.beginPath();
-          ctx.moveTo(0, 0);
-          ctx.lineTo(brushSize, 0);
-          ctx.strokeStyle = brushColor;
-          ctx.lineWidth = brushSize;
-          ctx.stroke();
-          ctx.restore();
-          ctx.beginPath();
-          ctx.moveTo(x, y);
-          return;
-        case 'smudge':
-          ctx.globalAlpha = 0.2; ctx.setLineDash([]); ctx.globalCompositeOperation = 'lighter';
-          // Smudge: blend with previous color
-          ctx.lineTo(x, y);
-          ctx.stroke();
-          ctx.beginPath();
-          ctx.moveTo(x, y);
-          return;
-        case 'blend':
-          ctx.globalAlpha = 0.1; ctx.setLineDash([]); ctx.globalCompositeOperation = 'lighter';
-          // Blend: more color mixing
-          ctx.lineTo(x, y);
-          ctx.stroke();
-          ctx.beginPath();
-          ctx.moveTo(x, y);
-          return;
-        case 'spray':
-          // Spray: more realistic spray
-          for(let i=0;i<brushSize*10;i++) {
-            let angle = Math.random()*2*Math.PI;
-            let radius = Math.random()*brushSize;
-            let sx = x + Math.cos(angle)*radius;
-            let sy = y + Math.sin(angle)*radius;
-            ctx.save();
-            ctx.globalAlpha = 0.15;
-            ctx.beginPath();
-            ctx.arc(sx, sy, 1, 0, 2*Math.PI);
-            ctx.fillStyle = brushColor;
-            ctx.fill();
-            ctx.restore();
-          }
-          return;
-        case 'pattern':
-          ctx.setLineDash([6,2]); ctx.globalCompositeOperation = 'source-over';
-          // Pattern brush: alternating color
-          ctx.strokeStyle = Math.random() > 0.5 ? brushColor : '#fff';
-          ctx.lineTo(x, y);
-          ctx.stroke();
-          ctx.beginPath();
-          ctx.moveTo(x, y);
-          return;
-        case 'hatch':
-          // Hatching: draw parallel lines
-          ctx.save();
-          ctx.strokeStyle = brushColor;
-          ctx.globalAlpha = 0.5;
-          for(let i=-brushSize;i<brushSize;i+=4) {
-            ctx.beginPath(); ctx.moveTo(x+i,y-brushSize); ctx.lineTo(x+i,y+brushSize); ctx.stroke(); }
-          ctx.globalAlpha = 1;
-          ctx.restore();
-          return;
-        case 'crosshatch': crosshatch(x, y, brushSize, brushColor); ctx.setLineDash([]); ctx.globalCompositeOperation = 'source-over'; return;
-        case 'dotted':
-          ctx.setLineDash([]); ctx.globalCompositeOperation = 'source-over';
-          let dotSpacing = brushSize * 2.5;
-          if (lastDotX === null || lastDotY === null || Math.hypot(x - lastDotX, y - lastDotY) >= dotSpacing) {
-            drawDot(x, y, brushSize, brushColor);
-            lastDotX = x;
-            lastDotY = y;
-          }
-          return;
-        default: ctx.globalAlpha = 1; ctx.setLineDash([]); ctx.globalCompositeOperation = 'source-over'; break;
+        }
+        ctx.globalAlpha = 1;
+        ctx.restore();
+      } else if(brushType === 'dotted') {
+        drawDot(x, y, brushSize, brushColor);
+      } else if(brushType === 'hatch') {
+        hatch(x, y, brushSize, brushColor);
+      } else if(brushType === 'crosshatch') {
+        crosshatch(x, y, brushSize, brushColor);
       }
-      ctx.lineTo(x, y);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(x, y);
-      ctx.setLineDash([]);
-      ctx.globalAlpha = 1;
-      ctx.lineCap = 'round';
-      lastDotX = null; lastDotY = null;
     } else if(['line','rect','circle','ellipse','polygon','text'].includes(tool)) {
       drawShape(e,false);
     }
@@ -589,8 +741,39 @@
 
   // Simple flood fill (bucket tool)
   function floodFill(x, y, fillColor) {
-    ctx.fillStyle = fillColor;
-    ctx.beginPath(); ctx.arc(x, y, 20, 0, 2 * Math.PI); ctx.fill();
+    // Convert fillColor to RGBA
+    function hexToRgba(hex) {
+      let c = hex.replace('#', '');
+      if (c.length === 3) c = c[0]+c[0]+c[1]+c[1]+c[2]+c[2];
+      let num = parseInt(c, 16);
+      return [num >> 16 & 255, num >> 8 & 255, num & 255, 255];
+    }
+    let canvasWidth = ctx.canvas.width;
+    let canvasHeight = ctx.canvas.height;
+    let imgData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
+    let data = imgData.data;
+    let stack = [[Math.floor(x), Math.floor(y)]];
+    let targetIdx = (Math.floor(y) * canvasWidth + Math.floor(x)) * 4;
+    let targetColor = [data[targetIdx], data[targetIdx+1], data[targetIdx+2], data[targetIdx+3]];
+    let fillRgba = hexToRgba(fillColor);
+    function colorsMatch(a, b) {
+      return Math.abs(a[0]-b[0])<20 && Math.abs(a[1]-b[1])<20 && Math.abs(a[2]-b[2])<20 && Math.abs(a[3]-b[3])<20;
+    }
+    if (colorsMatch(targetColor, fillRgba)) return; // Already filled
+    while (stack.length) {
+      let [cx, cy] = stack.pop();
+      if (cx < 0 || cy < 0 || cx >= canvasWidth || cy >= canvasHeight) continue;
+      let idx = (cy * canvasWidth + cx) * 4;
+      let pixel = [data[idx], data[idx+1], data[idx+2], data[idx+3]];
+      if (colorsMatch(pixel, targetColor)) {
+        data[idx] = fillRgba[0];
+        data[idx+1] = fillRgba[1];
+        data[idx+2] = fillRgba[2];
+        data[idx+3] = fillRgba[3];
+        stack.push([cx+1, cy], [cx-1, cy], [cx, cy+1], [cx, cy-1]);
+      }
+    }
+    ctx.putImageData(imgData, 0, 0);
   }
 
   // Spray tool

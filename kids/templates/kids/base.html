@@ -252,40 +252,7 @@
 </head>
 <body>
 
-        <header class="kids-header">
-            <div class="container d-flex align-items-center justify-content-between py-2">
-                <div>
-                    <h1 style="font-size:2rem; font-weight:900; letter-spacing:2px; margin-bottom:0; color:#00b8ff;">Kids Zone</h1>
-                    <p style="font-size:1rem; font-weight:500; margin-bottom:0; color:#b0b0b0;">Fun, Safe & Colorful!</p>
-                </div>
-                <div class="d-flex align-items-center" style="gap: 12px;">
-                    <!-- Removed normal user logic -->
-                        <form method="post" action="{% url 'switch_mode' %}" style="display:inline;">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-warning btn-sm">
-                                {% if request.session.kids_mode %}
-                                    Switch to Normal Mode
-                                {% else %}
-                                    Switch to Kids Mode
-                                {% endif %}
-                            </button>
-                        </form>
-                    {% endif %}
-                    {% if user.is_authenticated %}
-                        <form method="post" action="{% url 'logout' %}" style="display:inline;">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-danger btn-sm">Logout</button>
-                        </form>
-                    {% endif %}
-                </div>
-            </div>
-        </header>
-    <nav class="kids-nav text-center mb-4" style="background:#5958a3; border-radius:16px; box-shadow:0 2px 8px #232b2b44; padding:12px 0;">
-        <a href="/kids/" style="color:#f2f6f8;">Home</a>
-        <a href="/kids/games/" style="color:#eaf2f5;">Games</a>
-        <a href="/kids/movies/" style="color:#e3ebee;">Movies</a>
-        <a href="/kids/learning/" style="color:#e0e9ec;">Learning</a>
-    </nav>
+    <!-- Header and navigation removed for painting game -->
     <main>
         {% block content %}{% endblock %}
     </main>
